@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fut Pemba Previsões</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f6f1;--card:#fff;--ink:#14231c;--mute:#5b6b62;--line:#d9e2da;--pitch:#0e4b36;--pitch2:#0a3829;--amber:#f2b705;--err:#b3261e;--ok:#1d7a4d}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1511;--card:#13221b;--ink:#e8f0ea;--mute:#98aba0;--line:#25382e;--pitch:#1c7a58;--pitch2:#0a3829;--err:#ff8a80;--ok:#6fd49b}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Barlow,system-ui,sans-serif}
+body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+h1,h2,h3{font-family:"Barlow Condensed",Impact,sans-serif;margin:0;letter-spacing:.2px}
+button,input,select{font:inherit;color:inherit}
+.wrap{max-width:760px;margin:0 auto;padding:16px}
+.brand{display:flex;align-items:center;gap:10px;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:26px}
+.logo{width:38px;height:38px;border-radius:50%;background:var(--pitch);display:grid;place-items:center;border:3px solid var(--amber)}
+.logo:after{content:"";width:14px;height:14px;border-radius:50%;background:var(--amber)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin-top:18px}
+label{display:block;font-weight:600;margin:12px 0 4px}
+input[type=email],input[type=password],input[type=text],select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+input:focus-visible,button:focus-visible,select:focus-visible{outline:3px solid var(--amber);outline-offset:1px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chk{display:flex;gap:8px;align-items:flex-start;font-weight:400;margin:10px 0}
+.chk input{margin-top:4px}
+.btn{border:0;border-radius:8px;padding:11px 16px;font-weight:600;cursor:pointer;background:var(--pitch);color:#fff}
+.btn.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.amber{background:var(--amber);color:#1b1500}
+.btn[disabled]{opacity:.55;cursor:wait}
+.link{background:none;border:0;padding:6px 0;color:var(--pitch);text-decoration:underline;cursor:pointer}
+@media (prefers-color-scheme:dark){.link{color:var(--amber)}}
+.msg{margin-top:12px;padding:10px 12px;border-radius:8px;font-size:15px}
+.msg.err{background:color-mix(in srgb,var(--err) 14%,transparent);color:var(--err)}
+.msg.ok{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.upd{color:var(--mute);font-size:14px;margin:6px 0 0}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:12px 0 4px}
+.tab{white-space:nowrap;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 14px;cursor:pointer}
+.tab[aria-pressed=true]{background:var(--pitch);color:#fff;border-color:var(--pitch)}
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.filters .full{grid-column:1/-1}
+.day{margin:22px 0 6px;font-size:24px;border-bottom:3px solid var(--amber);display:inline-block;padding-right:12px}
+.comp{margin:12px 0 6px;color:var(--mute);font-weight:600}
+.match{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--pitch);border-radius:10px;padding:12px;margin-bottom:8px}
+.teams{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}
+.t{display:flex;align-items:center;gap:8px;font-weight:600;min-width:0}
+.t.r{justify-content:flex-end;text-align:right}
+.t img{width:26px;height:26px;object-fit:contain}
+.t span{overflow-wrap:anywhere}
+.vs{font-family:"Barlow Condensed",sans-serif;font-size:22px;text-align:center;min-width:64px}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;color:var(--mute);font-size:14px}
+.st{border-radius:6px;padding:2px 8px;background:var(--bg);border:1px solid var(--line)}
+.st.live{background:var(--err);color:#fff;border-color:var(--err)}
+.fav{background:none;border:0;font-size:22px;cursor:pointer;color:var(--amber);line-height:1}
+.empty{text-align:center;color:var(--mute);padding:40px 12px}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);max-width:440px;width:calc(100% - 32px)}
+dialog::backdrop{background:#0008}
+.hide{display:none!important}
+.bar{display:flex;height:26px;border-radius:6px;overflow:hidden;margin:6px 0;font-size:13px;font-weight:600;color:#fff}
+.bar span{display:grid;place-items:center;min-width:0}
+.k{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--line)}
+.sec{font-family:"Barlow Condensed",sans-serif;font-size:20px;margin:16px 0 4px}
+dialog{max-height:88vh;overflow:auto}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<dialog id="dlg"></dialog>
+<script>
+const $app = document.getElementById("app");
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store = {
+  get(k, d){ try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+let state = { msg: null, fixtures: [], lastSync: null, tab: "all",
+  tz: store.get("tz", Intl.DateTimeFormat().resolvedOptions().timeZone), favs: new Set(store.get("favs", [])),
+  q: "", comp: "", status: "", loading: true };
+function header(){ return `<div class="brand"><span class="logo" aria-hidden="true"></span>Fut Pemba Previsões</div>`; }
+function msgHtml(){ return state.msg ? `<div class="msg ${state.msg.t}" role="alert">${esc(state.msg.s)}</div>` : ""; }
+
+async function loadFixtures(){
+  state.loading = true; render();
+  try {
+    const r = await fetch("fixtures.json?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const d = await r.json();
+    state.fixtures = d.matches ?? [];
+    state.lastSync = d.lastSuccessAt ?? null;
+    const bad = (d.leagues ?? []).filter(l => !l.ok);
+    state.msg = bad.length ? { t: "err", s: `Sem atualização recente em: ${bad.map(l => l.name).join(", ")}. Os jogos já guardados foram mantidos.` } : null;
+  } catch {
+    state.msg = { t: "err", s: "Não foi possível carregar o calendário. Abre o app pelo endereço publicado (não como ficheiro) e tenta de novo." };
+  }
+  state.loading = false; render();
+}
+
+/* ---------- Vista "Jogos da Semana" ---------- */
+const STATUS = { NS:"Agendada", TBD:"Hora por confirmar", "1H":"Ao vivo", HT:"Intervalo", "2H":"Ao vivo", ET:"Ao vivo", P:"Ao vivo", LIVE:"Ao vivo",
+  FT:"Terminada", AET:"Terminada", PEN:"Terminada", PST:"Adiada", CANC:"Cancelada", SUSP:"Suspensa", ABD:"Abandonada" };
+const isLive = s => ["1H","HT","2H","ET","P","LIVE"].includes(s);
+const fmtDay = (iso) => new Intl.DateTimeFormat("pt", { timeZone: state.tz, weekday:"long", day:"numeric", month:"long" }).format(new Date(iso));
+const fmtHour = (iso) => new Intl.DateTimeFormat("pt", { timeZone: state.tz, hour:"2-digit", minute:"2-digit" }).format(new Date(iso));
+const dayKey = (iso) => new Intl.DateTimeFormat("en-CA", { timeZone: state.tz }).format(new Date(iso)); // YYYY-MM-DD no fuso escolhido
+
+function filtered(){
+  const today = dayKey(new Date().toISOString());
+  const tomorrow = dayKey(new Date(Date.now() + 86400e3).toISOString());
+  const in7 = dayKey(new Date(Date.now() + 7*86400e3).toISOString());
+  const q = state.q.trim().toLowerCase();
+  return state.fixtures.filter(f => {
+    const k = dayKey(f.kickoff_utc);
+    if (state.tab === "today" && k !== today) return false;
+    if (state.tab === "tomorrow" && k !== tomorrow) return false;
+    if (state.tab === "week" && (k < today || k > in7)) return false;
+    if (state.tab === "live" && !isLive(f.status)) return false;
+    if (state.tab === "favs" && !state.favs.has(f.id)) return false;
+    if (state.comp && f.competitions?.name !== state.comp) return false;
+    if (state.status === "live" && !isLive(f.status)) return false;
+    if (state.status === "ns" && !["NS","TBD"].includes(f.status)) return false;
+    if (state.status === "done" && !["FT","AET","PEN"].includes(f.status)) return false;
+    if (q && !(`${f.home_team} ${f.away_team} ${f.competitions?.name ?? ""} ${f.competitions?.country ?? ""}`.toLowerCase().includes(q))) return false;
+    return true;
+  });
+}
+
+function matchCard(f){
+  const logo = u => u ? `<img src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : "";
+  const score = (f.home_goals ?? null) !== null && f.status !== "NS" ? `${f.home_goals} - ${f.away_goals}` : "vs";
+  const label = f.time_confirmed ? fmtHour(f.kickoff_utc) : "Hora por confirmar";
+  const canAnalyze = ["NS","TBD"].includes(f.status);
+  return `<article class="match">
+    <div class="teams">
+      <div class="t">${logo(f.home_logo)}<span>${esc(f.home_team)}</span></div>
+      <div class="vs">${esc(score)}</div>
+      <div class="t r"><span>${esc(f.away_team)}</span>${logo(f.away_logo)}</div>
+    </div>
+    <div class="meta">
+      <span>${esc(label)} <span class="st ${isLive(f.status) ? "live" : ""}">${esc(STATUS[f.status] ?? f.status)}</span></span>
+      <span class="row">
+        <button class="fav" data-fav="${esc(f.id)}" aria-label="Favorito" aria-pressed="${state.favs.has(f.id)}">${state.favs.has(f.id) ? "★" : "☆"}</button>
+        <button class="btn amber" data-an="${esc(f.id)}" ${canAnalyze ? "" : "disabled"}>Analisar com IA</button>
+      </span>
+    </div></article>`;
+}
+
+function renderGames(){
+  const list = filtered();
+  const comps = [...new Set(state.fixtures.map(f => f.competitions?.name).filter(Boolean))].sort();
+  const tabs = [["all","Todos"],["today","Hoje"],["tomorrow","Amanhã"],["week","Próximos 7 dias"],["live","Ao vivo"],["favs","Favoritos"]];
+  const zones = ["Africa/Maputo","Europe/Lisbon","America/Sao_Paulo","Europe/London","America/New_York","UTC"];
+  if (!zones.includes(state.tz)) zones.unshift(state.tz);
+  let html = `${header()}
+    <h1 style="font-size:34px;margin-top:14px">Jogos da Semana</h1>
+    <p class="upd">${state.lastSync ? `Última atualização do calendário: ${esc(new Intl.DateTimeFormat("pt",{timeZone:state.tz,dateStyle:"short",timeStyle:"short"}).format(new Date(state.lastSync)))}` : "O calendário ainda não foi sincronizado."}</p>
+    <div class="tabs" role="group" aria-label="Período">${tabs.map(([k,l]) => `<button class="tab" data-tab="${k}" aria-pressed="${state.tab===k}">${l}</button>`).join("")}</div>
+    <div class="filters">
+      <input class="full" id="q" type="text" placeholder="Pesquisar equipa, campeonato ou país" value="${esc(state.q)}">
+      <select id="comp" aria-label="Campeonato"><option value="">Todos os campeonatos</option>${comps.map(c => `<option ${c===state.comp?"selected":""}>${esc(c)}</option>`).join("")}</select>
+      <select id="status" aria-label="Estado"><option value="">Qualquer estado</option><option value="ns" ${state.status==="ns"?"selected":""}>Agendadas</option><option value="live" ${state.status==="live"?"selected":""}>Ao vivo</option><option value="done" ${state.status==="done"?"selected":""}>Terminadas</option></select>
+      <select class="full" id="tz" aria-label="Fuso horário">${zones.map(z => `<option ${z===state.tz?"selected":""}>${esc(z)}</option>`).join("")}</select>
+    </div>${msgHtml()}`;
+  if (state.loading) html += `<div class="empty">A carregar jogos…</div>`;
+  else if (!list.length) html += `<div class="empty">${state.fixtures.length ? (state.tab === "live" ? "Sem jogos ao vivo neste momento. As atualizações ao vivo ainda não estão configuradas: o calendário é atualizado uma vez a cada 24 horas." : "Nenhum jogo corresponde aos filtros.") : "Ainda não há jogos importados. A próxima sincronização automática vai preencher esta lista."}</div>`;
+  else {
+    let lastDay = "", lastComp = "";
+    for (const f of list){
+      const d = dayKey(f.kickoff_utc), c = f.competitions?.name ?? "Outros";
+      if (d !== lastDay){ html += `<h2 class="day">${esc(fmtDay(f.kickoff_utc))}</h2>`; lastDay = d; lastComp = ""; }
+      if (c !== lastComp){ html += `<div class="comp">${esc(c)}${f.competitions?.country ? " · " + esc(f.competitions.country) : ""}</div>`; lastComp = c; }
+      html += matchCard(f);
+    }
+  }
+  $app.innerHTML = html;
+  $app.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { state.tab = b.dataset.tab; render(); });
+  const q = document.getElementById("q");
+  q.oninput = () => { state.q = q.value; const p = q.selectionStart; render(); const n = document.getElementById("q"); n.focus(); n.setSelectionRange(p,p); };
+  document.getElementById("comp").onchange = e => { state.comp = e.target.value; render(); };
+  document.getElementById("status").onchange = e => { state.status = e.target.value; render(); };
+  document.getElementById("tz").onchange = e => { state.tz = e.target.value; store.set("tz", state.tz); render(); };
+  $app.querySelectorAll("[data-fav]").forEach(b => b.onclick = () => {
+    const id = b.dataset.fav; state.favs.has(id) ? state.favs.delete(id) : state.favs.add(id);
+    store.set("favs", [...state.favs]); render();
+  });
+  $app.querySelectorAll("[data-an]").forEach(b => b.onclick = () => openAnalysis(b.dataset.an));
+}
+
+/* ---------- Análise (pré-calculada no servidor) ---------- */
+const pct = p => (p * 100).toFixed(0) + "%";
+const rows = (pairs) => pairs.map(([l, p]) => `<div class="k"><span>${esc(l)}</span><strong>${pct(p)}</strong></div>`).join("");
+function bar(a, b, c, la, lb, lc){
+  const w = x => Math.max(x * 100, 0).toFixed(1);
+  return `<div class="bar"><span style="width:${w(a)}%;background:#0e4b36">${pct(a)}</span><span style="width:${w(b)}%;background:#6b7a72">${pct(b)}</span><span style="width:${w(c)}%;background:#b07d00">${pct(c)}</span></div>
+  <div class="row upd" style="justify-content:space-between"><span>${esc(la)}</span><span>${esc(lb)}</span><span>${esc(lc)}</span></div>`;
+}
+function analysisHtml(an, f, reused){
+  const r = an.result, t = r.totals, q = r.quality;
+  const when = new Intl.DateTimeFormat("pt", { timeZone: state.tz, dateStyle: "short", timeStyle: "short" }).format(new Date(an.created_at));
+  const fts = r.firstToScore;
+  return `<h3 style="font-size:26px">${esc(f.home_team)} vs ${esc(f.away_team)}</h3>
+  <p class="upd">${esc(f.competitions?.name ?? "")} · ${esc(fmtDay(f.kickoff_utc))}, ${esc(fmtHour(f.kickoff_utc))}</p>
+  <div class="sec">Resultado final</div>${bar(r.result.home, r.result.draw, r.result.away, "Casa", "Empate", "Fora")}
+  <div class="sec">Total de golos</div>${rows([["Mais de 0,5",t.over_0_5],["Mais de 1,5",t.over_1_5],["Mais de 2,5",t.over_2_5],["Mais de 3,5",t.over_3_5],["Menos de 1,5",t.under_1_5],["Menos de 2,5",t.under_2_5],["Menos de 3,5",t.under_3_5]])}
+  <div class="sec">Ambas as equipas marcam</div>${rows([["Sim", r.btts.yes],["Não", r.btts.no]])}
+  <div class="sec">Resultado ao intervalo</div>${bar(r.halftime.home, r.halftime.draw, r.halftime.away, "Casa", "Empate", "Fora")}
+  <div class="sec">Golos da equipa da casa</div>${rows(Object.entries(r.teamGoals.home))}
+  <div class="sec">Golos da equipa visitante</div>${rows(Object.entries(r.teamGoals.away))}
+  <div class="sec">Resultados exatos mais prováveis</div>${rows(r.exactScores.map(x => [x.score, x.p]))}
+  <div class="sec">Quem marca primeiro</div>${rows([["Casa", fts.home],["Fora", fts.away],["Sem golos", fts.none]])}
+  <div class="sec">Como foi calculado</div>
+  <p class="upd">Modelo ${esc(an.model_version)}: distribuição de Poisson com base nos últimos jogos de cada equipa (${q.homeMatches} da casa, ${q.awayMatches} do visitante), golos esperados ${r.lambda.home.toFixed(2)} x ${r.lambda.away.toFixed(2)}. Qualidade dos dados: ${esc(q.level)}. Não inclui confrontos diretos, classificação, lesões nem notícias. São estimativas estatísticas, não garantias.</p>
+  <p class="upd">Calculada em ${esc(when)}.</p>
+  <form method="dialog" class="row"><button class="btn">Fechar</button></form>`;
+}
+function openAnalysis(extId){
+  const f = state.fixtures.find(x => x.external_id === extId || x.id === extId); if (!f) return;
+  const dlg = document.getElementById("dlg");
+  if (f.analysis) dlg.innerHTML = analysisHtml(f.analysis, f, false);
+  else dlg.innerHTML = `<h3 style="font-size:24px">${esc(f.home_team)} vs ${esc(f.away_team)}</h3>
+    <div class="msg err">${esc(f.analysis_note || "Ainda não há análise para esta partida.")}</div>
+    <form method="dialog" class="row" style="margin-top:12px"><button class="btn">Fechar</button></form>`;
+  dlg.showModal();
+}
+function render(){ renderGames(); }
+loadFixtures();
+setInterval(loadFixtures, 30 * 60 * 1000); // volta a ler o calendário a cada 30 min
+
+</script>
+</body>
+  </html>
