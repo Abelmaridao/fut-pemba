@@ -1,52 +1,41 @@
-// Atualiza o calendário (fixtures.json) a partir da API-Football. Corre no GitHub Actions.
+// Atualiza o calendário (fixtures.json) a partir do football-data.org. Corre no GitHub Actions.
 import { readFile, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { analyze, MODEL_VERSION } from "./model.ts";
 
-// calendar:true = temporada = ano civil (Brasil, EUA). As restantes começam em agosto.
+// Competições do plano gratuito do football-data.org (código = identificador na API)
 export const COMPETITIONS = [
-  { id: 2, name: "UEFA Champions League", country: "Europa" },
-  { id: 3, name: "UEFA Europa League", country: "Europa" },
-  { id: 848, name: "UEFA Conference League", country: "Europa" },
-  { id: 39, name: "Premier League", country: "Inglaterra" },
-  { id: 40, name: "Championship", country: "Inglaterra" },
-  { id: 140, name: "La Liga", country: "Espanha" },
-  { id: 141, name: "La Liga 2", country: "Espanha" },
-  { id: 78, name: "Bundesliga", country: "Alemanha" },
-  { id: 79, name: "2. Bundesliga", country: "Alemanha" },
-  { id: 135, name: "Serie A", country: "Itália" },
-  { id: 136, name: "Serie B", country: "Itália" },
-  { id: 88, name: "Eredivisie", country: "Países Baixos" },
-  { id: 89, name: "Eerste Divisie", country: "Países Baixos" },
-  { id: 94, name: "Primeira Liga", country: "Portugal" },
-  { id: 71, name: "Brasileirão Série A", country: "Brasil", calendar: true },
-  { id: 72, name: "Brasileirão Série B", country: "Brasil", calendar: true },
-  { id: 307, name: "Liga Profissional Saudita", country: "Arábia Saudita" },
-  { id: 253, name: "MLS", country: "Estados Unidos", calendar: true },
-  { id: 255, name: "USL Championship", country: "Estados Unidos", calendar: true },
-  { id: 61, name: "Ligue 1", country: "França" },
-  { id: 62, name: "Ligue 2", country: "França" },
-  { id: 203, name: "Süper Lig", country: "Turquia" },
-  { id: 204, name: "1. Lig", country: "Turquia" },
-  // Girabola (Angola): acrescenta { id: ID_CONFIRMADO, name: "Girabola", country: "Angola" } quando souberes o ID.
+  { id: "CL", name: "UEFA Champions League", country: "Europa" },
+  { id: "PL", name: "Premier League", country: "Inglaterra" },
+  { id: "ELC", name: "Championship", country: "Inglaterra" },
+  { id: "PD", name: "La Liga", country: "Espanha" },
+  { id: "BL1", name: "Bundesliga", country: "Alemanha" },
+  { id: "SA", name: "Serie A", country: "Itália" },
+  { id: "DED", name: "Eredivisie", country: "Países Baixos" },
+  { id: "PPL", name: "Primeira Liga", country: "Portugal" },
+  { id: "BSA", name: "Brasileirão Série A", country: "Brasil" },
+  { id: "FL1", name: "Ligue 1", country: "França" },
 ];
-const BASE = "https://v3.football.api-sports.io";
-const FINAL = new Set(["FT", "AET", "PEN"]);
-const WINDOW_DAYS = 7, FORM_N = 12, H = 3600e3;
+const BASE = "https://api.football-data.org/v4";
+const FINAL = new Set(["FT"]);
+const WINDOW_DAYS = 7, FORM_N = 12, H = 3600e3, PACE_MS = 7000; // 10 pedidos/min no plano gratuito
 
-export const seasonFor = (c, now) => c.calendar ? now.getUTCFullYear() : (now.getUTCMonth() >= 6 ? now.getUTCFullYear() : now.getUTCFullYear() - 1);
+// Estados da API -> códigos usados pelo app
+export const STATUS_MAP = { SCHEDULED: "TBD", TIMED: "NS", IN_PLAY: "LIVE", PAUSED: "HT", EXTRA_TIME: "ET",
+  PENALTY_SHOOTOUT: "P", FINISHED: "FT", SUSPENDED: "SUSP", POSTPONED: "PST", CANCELLED: "CANC", AWARDED: "AWD" };
 
 export function normalize(x, comp) {
+  const status = STATUS_MAP[x.status] ?? x.status;
   return {
-    id: String(x.fixture.id), competition_id: comp.id,
+    id: String(x.id), competition_id: comp.id,
     competitions: { name: comp.name, country: comp.country },
-    home_team_id: x.teams.home.id, away_team_id: x.teams.away.id,
-    home_team: x.teams.home.name, away_team: x.teams.away.name,
-    home_logo: x.teams.home.logo ?? null, away_logo: x.teams.away.logo ?? null,
-    kickoff_utc: new Date(x.fixture.date).toISOString(),
-    time_confirmed: x.fixture.status.short !== "TBD",
-    status: x.fixture.status.short,
-    home_goals: x.goals.home, away_goals: x.goals.away,
+    home_team_id: x.homeTeam.id, away_team_id: x.awayTeam.id,
+    home_team: x.homeTeam.name ?? x.homeTeam.shortName, away_team: x.awayTeam.name ?? x.awayTeam.shortName,
+    home_logo: x.homeTeam.crest ?? null, away_logo: x.awayTeam.crest ?? null,
+    kickoff_utc: new Date(x.utcDate).toISOString(),
+    time_confirmed: status !== "TBD",
+    status,
+    home_goals: x.score?.fullTime?.home ?? null, away_goals: x.score?.fullTime?.away ?? null,
   };
 }
 
@@ -86,7 +75,7 @@ export function buildData({ prev, results, now = new Date(), windowDays = WINDOW
       if (res.ok) analysis = { model_version: MODEL_VERSION, created_at: now.toISOString(), result: res };
       else analysis_note = res.reason;
     }
-    matches.push({ ...f, analysis, analysis_note, updated_at: now.toISOString(), source: "api-football" });
+    matches.push({ ...f, analysis, analysis_note, updated_at: now.toISOString(), source: "football-data.org" });
   }
   // Ligas que falharam: mantém o que já estava guardado (nunca apaga por falha)
   for (const m of prev?.matches ?? []) {
@@ -105,36 +94,37 @@ export function buildData({ prev, results, now = new Date(), windowDays = WINDOW
   };
 }
 
-async function fetchLeague(comp, now, key, sleep) {
-  const url = `${BASE}/fixtures?league=${comp.id}&season=${seasonFor(comp, now)}&timezone=UTC`;
+async function fetchLeague(comp, key, sleep) {
+  const url = `${BASE}/competitions/${comp.id}/matches`;
   let lastErr;
   for (let i = 1; i <= 3; i++) {
     try {
-      const r = await fetch(url, { headers: { "x-apisports-key": key } });
+      const r = await fetch(url, { headers: { "X-Auth-Token": key } });
       if (r.status === 429) return { limit: true };
-      if (!r.ok) throw new Error("HTTP " + r.status);
+      if (!r.ok) {
+        let msg = ""; try { msg = (await r.json()).message ?? ""; } catch {}
+        throw new Error(`HTTP ${r.status} ${msg}`.trim());
+      }
       const j = await r.json();
-      const errs = j.errors && (Array.isArray(j.errors) ? j.errors.length : Object.keys(j.errors).length) ? JSON.stringify(j.errors) : null;
-      if (errs) { if (errs.toLowerCase().includes("limit") || errs.toLowerCase().includes("request")) return { limit: true }; throw new Error(errs); }
-      const remaining = Number(r.headers.get("x-ratelimit-requests-remaining") ?? NaN);
-      return { fixtures: (j.response ?? []).map((x) => normalize(x, comp)), remaining };
+      return { fixtures: (j.matches ?? []).map((x) => normalize(x, comp)) };
     } catch (e) { lastErr = e; if (i < 3) await sleep(1000 * 2 ** (i - 1)); }
   }
   throw lastErr;
 }
 
-export async function main({ key = process.env.FOOTBALL_API_KEY, now = new Date(), sleep = (ms) => new Promise((r) => setTimeout(r, ms)), file = "fixtures.json" } = {}) {
+export async function main({ key = process.env.FOOTBALL_API_KEY, now = new Date(), sleep = (ms) => new Promise((r) => setTimeout(r, ms)), file = "fixtures.json", paceMs = PACE_MS } = {}) {
   if (!key) throw new Error("Falta o segredo FOOTBALL_API_KEY.");
   let prev = null;
   try { prev = JSON.parse(await readFile(file, "utf8")); } catch {}
-  const results = []; let stop = false;
+  const results = []; let stop = false, first = true;
   for (const comp of COMPETITIONS) {
     if (stop) { results.push({ comp, ok: false, error: "ignorada: limite de pedidos da API" }); continue; }
+    if (!first) await sleep(paceMs); // respeita o limite de pedidos por minuto
+    first = false;
     try {
-      const r = await fetchLeague(comp, now, key, sleep);
+      const r = await fetchLeague(comp, key, sleep);
       if (r.limit) { stop = true; results.push({ comp, ok: false, error: "limite de pedidos da API atingido" }); continue; }
       results.push({ comp, ok: true, fixtures: r.fixtures });
-      if (!Number.isNaN(r.remaining) && r.remaining <= 2) stop = true;
     } catch (e) { results.push({ comp, ok: false, error: String(e.message ?? e) }); }
   }
   const data = buildData({ prev, results, now });
