@@ -1,11 +1,12 @@
-// Modelo estatístico "poisson-v1": puro, sem dependências, testável.
-export const MODEL_VERSION = "poisson-v1";
+// Modelo estatístico "poisson-v2": puro, sem dependências, testável.
+export const MODEL_VERSION = "poisson-v2";
 export type Match = { gf: number; ga: number };
 export type Input = { home: Match[]; away: Match[] };
 const MIN_MATCHES = 5;      // sem isto não se apresenta previsão quantitativa
 const SHRINK_K = 5;         // jogos "virtuais" da média da amostra (reduz extremos)
 const HOME_ADV = 1.1;       // fator casa: λ_casa × 1.1, λ_fora ÷ 1.1
 const HT_SHARE = 0.45;      // fração aproximada dos golos na 1.ª parte
+const MIN10_SHARE = 0.10;   // fração aproximada dos golos nos primeiros 10 minutos
 const MAXG = 10;
 
 const fact = (n: number) => { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; };
@@ -36,6 +37,10 @@ export type Analysis =
     teamGoals: { home: Record<string, number>; away: Record<string, number> };
     exactScores: { score: string; p: number }[];
     firstToScore: { home: number; away: number; none: number };
+    productiveHalf: { first: number; draw: number; second: number };
+    bothHalves: { home: { yes: number; no: number }; away: { yes: number; no: number } };
+    reach: { ge3: number; ge4: number; ge5: number; ge6: number };
+    min10: { home: number; draw: number; away: number };
     quality: { homeMatches: number; awayMatches: number; level: "baixa" | "razoavel" | "boa" };
   };
 
@@ -68,13 +73,30 @@ export function analyze(inp: Input): Analysis {
   scores.sort((x, y) => y.p - x.p);
   const none = g[0][0];
 
+  // Parte mais produtiva: golos da 1.ª vs 2.ª parte (Poisson independentes, taxa total × fração da parte)
+  const lt = lh + la, h1 = HT_SHARE, h2 = 1 - HT_SHARE;
+  let pf = 0, pd = 0, ps = 0, ptot = 0;
+  for (let i = 0; i <= MAXG; i++) for (let j = 0; j <= MAXG; j++) {
+    const p = pois(i, lt * h1) * pois(j, lt * h2); ptot += p;
+    if (i > j) pf += p; else if (i === j) pd += p; else ps += p;
+  }
+  // Uma equipa marca nas duas partes: P(≥1 na 1.ª) × P(≥1 na 2.ª)
+  const both = (l: number) => { const y = (1 - Math.exp(-l * h1)) * (1 - Math.exp(-l * h2)); return { yes: y, no: 1 - y }; };
+  // Alcance de golos: P(total ≥ n)
+  const ge = (n: number) => { let p = 0; g.forEach((r, i) => r.forEach((q, j) => { if (i + j >= n) p += q; })); return p; };
+  const nm = Math.min(H.length, A.length);
+
   return {
     ok: true, model: MODEL_VERSION, lambda: { home: lh, away: la },
     result: result1x2(g), totals, btts: { yes, no: 1 - yes },
     halftime: result1x2(grid(lh * HT_SHARE, la * HT_SHARE)),
     teamGoals: { home: tg(lh), away: tg(la) },
     exactScores: scores.slice(0, 5),
+    productiveHalf: { first: pf / ptot, draw: pd / ptot, second: ps / ptot },
+    bothHalves: { home: both(lh), away: both(la) },
+    reach: { ge3: ge(3), ge4: ge(4), ge5: ge(5), ge6: ge(6) },
+    min10: result1x2(grid(lh * MIN10_SHARE, la * MIN10_SHARE)),
     firstToScore: { home: (1 - none) * lh / (lh + la), away: (1 - none) * la / (lh + la), none },
-    quality: { homeMatches: H.length, awayMatches: A.length, level: Math.min(H.length, A.length) >= 10 ? "boa" : Math.min(H.length, A.length) >= 7 ? "razoavel" : "baixa" },
+    quality: { homeMatches: H.length, awayMatches: A.length, level: nm >= 10 ? "boa" : nm >= 7 ? "razoavel" : "baixa" },
   };
-}
+  }
