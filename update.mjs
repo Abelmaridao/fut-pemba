@@ -36,14 +36,20 @@ export function normalize(x, comp) {
     time_confirmed: status !== "TBD",
     status,
     home_goals: x.score?.fullTime?.home ?? null, away_goals: x.score?.fullTime?.away ?? null,
+    home_ht: x.score?.halfTime?.home ?? null, away_ht: x.score?.halfTime?.away ?? null,
   };
 }
+
+// Arredonda os decimais a 4 casas: o ficheiro fica ~3x mais pequeno e a precisão chega para percentagens
+export const round4 = (v) => typeof v === "number" ? Math.round(v * 1e4) / 1e4
+  : Array.isArray(v) ? v.map(round4)
+  : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, round4(x)])) : v;
 
 const TRACK = ["kickoff_utc", "time_confirmed", "status", "home_goals", "away_goals"];
 
 // results: [{comp, ok, fixtures?: normalized[], error?}]
 export function buildData({ prev, results, now = new Date(), windowDays = WINDOW_DAYS }) {
-  const t = now.getTime(), start = t - 24 * H, end = t + windowDays * 86400e3;
+  const t = now.getTime(), start = t - 48 * H, end = t + windowDays * 86400e3;
   const prevById = new Map((prev?.matches ?? []).map((m) => [m.id, m]));
   const okIds = new Set(results.filter((r) => r.ok).map((r) => r.comp.id));
 
@@ -72,8 +78,10 @@ export function buildData({ prev, results, now = new Date(), windowDays = WINDOW
     let analysis = null, analysis_note = null;
     if (["NS", "TBD"].includes(f.status)) {
       const res = analyze({ home: last(f.home_team_id), away: last(f.away_team_id) });
-      if (res.ok) analysis = { model_version: MODEL_VERSION, created_at: now.toISOString(), result: res };
+      if (res.ok) analysis = { model_version: MODEL_VERSION, created_at: now.toISOString(), result: round4(res) };
       else analysis_note = res.reason;
+    } else if (old?.analysis) {
+      analysis = old.analysis; // previsão feita antes do jogo: nunca é recalculada nem alterada
     }
     matches.push({ ...f, analysis, analysis_note, updated_at: now.toISOString(), source: "football-data.org" });
   }
@@ -83,13 +91,19 @@ export function buildData({ prev, results, now = new Date(), windowDays = WINDOW
     if (Date.parse(m.kickoff_utc) >= start) matches.push({ ...m, stale: true });
   }
   matches.sort((a, b) => a.kickoff_utc.localeCompare(b.kickoff_utc));
+  // Histórico: todos os jogos terminados (com ou sem previsão feita antes do jogo), guardados 30 dias
+  const hist = new Map((prev?.history ?? []).map((m) => [m.id, m]));
+  for (const m of matches) if (m.status === "FT") hist.set(m.id, hist.get(m.id)?.analysis && !m.analysis ? { ...m, analysis: hist.get(m.id).analysis } : m);
+  const history = [...hist.values()].filter((m) => Date.parse(m.kickoff_utc) >= t - 30 * 86400e3)
+    .sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc)).slice(0, 300);
   const anyOk = okIds.size > 0;
   return {
     generatedAt: now.toISOString(),
     lastSuccessAt: anyOk ? now.toISOString() : prev?.lastSuccessAt ?? null,
     windowDays,
-    leagues: results.map((r) => ({ id: r.comp.id, name: r.comp.name, ok: r.ok, count: r.ok ? r.fixtures.filter((f) => seen.has(f.id)).length : 0, error: r.error ?? null })),
+    leagues: results.map((r) => ({ id: r.comp.id, name: r.comp.name, country: r.comp.country, ok: r.ok, count: r.ok ? r.fixtures.filter((f) => seen.has(f.id)).length : 0, error: r.error ?? null })),
     matches,
+    history,
     changes: [...(prev?.changes ?? []), ...changes].slice(-200),
   };
 }
