@@ -104,7 +104,7 @@ const store = {
   get(k, d){ try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 };
-let S = { view: "home", compId: null, raw: [], rawHist: [], fixtures: [], history: [], hidden: new Set(store.get("hiddenHist", [])), leagues: [], lastSync: null, msg: null, loading: true, tab: "all", comp: "", day: "",
+let S = { view: "home", compId: null, raw: [], rawHist: [], fixtures: [], history: [], hidden: new Set(store.get("hiddenHist", [])), leagues: [], lastSync: null, lastFinal: null, msg: null, loading: true, tab: "all", comp: "", day: "",
   tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
   theme: store.get("theme", "auto"), drawer: false, search: false, q: "",
   na: { home: "", away: "", league: "" }, favs: store.get("favSearch", []), ext: null };
@@ -205,7 +205,7 @@ async function fetchData(){
     if (!r.ok) throw new Error("HTTP " + r.status);
     const d = await r.json();
     S.raw = d.matches ?? []; S.rawHist = d.history ?? []; S.leagues = d.leagues ?? [];
-    S.lastSync = d.lastSuccessAt ?? null;
+    S.lastSync = d.lastSuccessAt ?? null; S.lastFinal = d.lastFinalAt ?? null;
     const bad = S.leagues.filter(l => !l.ok);
     S.msg = bad.length ? `Sem atualização recente em: ${bad.map(l => l.name).join(", ")}. Os jogos já guardados foram mantidos.` : null;
     return true;
@@ -255,7 +255,7 @@ function matchCard(f, mode){
   const score = f.home_goals != null && f.away_goals != null && f.status !== "NS" && f.status !== "TBD" ? `${f.home_goals} - ${f.away_goals}` : "vs";
   const top = f.time_confirmed ? `${dayKey(f.kickoff_utc)} ${fmtHour(f.kickoff_utc)}` : `${dayKey(f.kickoff_utc)} · hora por confirmar`;
   let action;
-  if (done) action = f.analysis ? `<button class="btn" data-an="${esc(f.id)}">Ver estatísticas</button>` : `<span class="note">Sem previsão guardada</span>`;
+  if (done) action = `<button class="btn" data-an="${esc(f.id)}">Ver estatísticas</button>`;
   else action = `<button class="btn amber" data-an="${esc(f.id)}" ${["NS","TBD"].includes(f.status) ? "" : "disabled"}>Analisar com IA</button>`;
   const del = mode === "hist" ? `<button class="x" data-del="${esc(f.id)}" aria-label="Remover este jogo do histórico">✕</button>` : "";
   return `<article class="match">${del}<div class="dt">${esc(top)}</div><div class="teams">
@@ -331,18 +331,25 @@ function calView(){
     ${updLine()}${msgHtml()}` +
     (S.loading ? `<div class="empty">A carregar…</div>` : list.length ? byComp(list) : `<div class="empty">Sem jogos neste dia nas competições importadas.</div>`);
 }
-function finalOf(f){ return Number.isFinite(f.home_goals) && Number.isFinite(f.away_goals) ? { h: f.home_goals, a: f.away_goals, hh: f.home_ht, ah: f.away_ht } : null; }
-function histList(){ return S.history.filter(f => !S.hidden.has(f.id)); }
-const hiddenCount = () => S.history.filter(f => S.hidden.has(f.id)).length;
-const restoreLink = () => hiddenCount() ? `<div style="text-align:center"><button class="link" data-act="restore">Restaurar jogos removidos (${hiddenCount()})</button></div>` : "";
+function finalOf(f){
+  if (!(Number.isFinite(f.home_goals) && Number.isFinite(f.away_goals))) return null;
+  const zero = f.home_goals + f.away_goals === 0; // acabou 0-0: ao intervalo também foi 0-0
+  return { h: f.home_goals, a: f.away_goals, hh: f.home_ht ?? (zero ? 0 : null), ah: f.away_ht ?? (zero ? 0 : null) };
+}
+function histList(){ return S.history; }
 function histView(){
   const list = histList();
-  let hit = 0, tot = 0, nm = 0;
-  for (const f of list){ const fin = finalOf(f); if (!f.analysis?.result?.totals || !fin) continue; nm++;
-    for (const sec of sections(f.analysis.result)) for (const g of sec.groups){ const e = evalGroup(g, fin); if (e.hit !== null){ tot++; if (e.hit) hit++; } } }
-  const sum = tot ? `<div class="sum">Escolhas principais do modelo certas: <b>${Math.round(hit / tot * 100)}%</b> (${hit} de ${tot} mercados avaliados, em ${nm} jogo${nm === 1 ? "" : "s"}).</div>` : "";
-  return `<h1 class="ttl">Histórico</h1>${updLine()}${msgHtml()}${sum}` + (list.length ? grouped(list, "hist") + restoreLink()
-    : restoreLink() + `<div class="empty">Ainda não há jogos terminados. O histórico enche-se à medida que os jogos analisados terminam.</div>`);
+  const T = { live: { hit: 0, tot: 0, n: 0 }, retro: { hit: 0, tot: 0, n: 0 } };
+  for (const f of list){
+    const fin = finalOf(f); if (!f.analysis?.result?.totals || !fin) continue;
+    const t = f.analysis.retro ? T.retro : T.live; t.n++;
+    for (const sec of sections(f.analysis.result)) for (const g of sec.groups){ const e = evalGroup(g, fin); if (e.hit !== null){ t.tot++; if (e.hit) t.hit++; } }
+  }
+  const line = (t, label) => t.tot ? `<div>${label}: <b>${Math.round(t.hit / t.tot * 100)}%</b> certas (${t.hit} de ${t.tot} mercados, em ${t.n} jogo${t.n === 1 ? "" : "s"}).</div>` : "";
+  const sum = (T.live.tot || T.retro.tot) ? `<div class="sum">${line(T.live, "Previsões feitas antes do jogo")}${line(T.retro, "Análises reconstruídas depois do jogo")}</div>` : "";
+  const upd = S.lastFinal ? `<p class="sub">Última atualização do dia: ${esc(fmtFull(S.lastFinal))}</p>` : updLine();
+  return `<h1 class="ttl">Histórico</h1>${upd}${msgHtml()}${sum}` + (list.length ? grouped(list, "hist")
+    : `<div class="empty">Ainda não há jogos terminados. Os jogos passam para aqui na última atualização do dia.</div>`);
 }
 function favCard(f){
   const top = `${dayKey(f.kickoff_utc)} ${fmtHour(f.kickoff_utc)}`;
@@ -364,12 +371,13 @@ function pruneFavs(){
 function reclassify(){
   pruneFavs();
   const today = dayKey(new Date().toISOString());
-  const before = f => dayKey(f.kickoff_utc) < today;
+  const lf = S.lastFinal ? Date.parse(S.lastFinal) : 0; // última atualização do dia
+  const before = f => dayKey(f.kickoff_utc) < today || (isDone(f.status) && Date.parse(f.kickoff_utc) <= lf);
   S.fixtures = S.raw.filter(f => !(isDone(f.status) && before(f)));
   const m = new Map();
   for (const f of S.raw) if (f.status === "FT" && before(f)) m.set(f.id, f);
   for (const f of S.rawHist) if (before(f)) m.set(f.id, f.analysis || !m.has(f.id) ? f : m.get(f.id)); // prefere a versão com previsão
-  S.history = [...m.values()].sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc));
+  S.history = [...m.values()].filter(f => !S.hidden.has(f.id)).sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc)); // removidos ficam removidos
 }
 function render(){ reclassify(); $("app").innerHTML = header() + `<main>${view()}</main>` + nav(); }
 
@@ -490,12 +498,15 @@ function sections(r){
     S1.push({ title: "1 marca duas partes (casa)", groups: [bh("h", "home")] });
     S1.push({ title: "2 marca duas partes (fora)", groups: [bh("a", "away")] });
   }
-  if (r.min10) S1.push({ title: "1X2 aos 10 minutos", groups: [[["Casa vence", r.min10.home, () => null], ["Empate", r.min10.draw, () => null], ["Fora vence", r.min10.away, () => null]]] });
+  const z10 = f => f.h + f.a === 0; // só se sabe o 1X2 aos 10 min quando o jogo acabou 0-0
+  if (r.min10) S1.push({ title: "1X2 aos 10 minutos", groups: [[["Casa vence", r.min10.home, f => z10(f) ? false : null], ["Empate", r.min10.draw, f => z10(f) ? true : null], ["Fora vence", r.min10.away, f => z10(f) ? false : null]]] });
   const bucket = (obj, side) => Object.entries(obj).map(([k, p]) => [`${k} golo${k === "1" ? "" : "s"}`, p, f => (k === "3+" ? f[side] >= 3 : f[side] === +k)]);
   S1.push({ title: "Golos da equipa da casa", groups: [bucket(r.teamGoals.home, "h")] });
   S1.push({ title: "Golos da equipa visitante", groups: [bucket(r.teamGoals.away, "a")] });
   S1.push({ title: "Resultados exatos mais prováveis", groups: [r.exactScores.map(x => [x.score, x.p, f => `${f.h}-${f.a}` === x.score])] });
-  S1.push({ title: "Quem marca primeiro", groups: [[["Casa", r.firstToScore.home, () => null], ["Fora", r.firstToScore.away, () => null], ["Sem golos", r.firstToScore.none, f => (f.h + f.a === 0)]]] });
+  // quem marcou primeiro só é certo se uma das equipas não marcou
+  const first = f => (f.h + f.a === 0 ? "none" : f.a === 0 ? "home" : f.h === 0 ? "away" : null);
+  S1.push({ title: "Quem marca primeiro", groups: [[["Casa", r.firstToScore.home, f => { const v = first(f); return v === null ? null : v === "home"; }], ["Fora", r.firstToScore.away, f => { const v = first(f); return v === null ? null : v === "away"; }], ["Sem golos", r.firstToScore.none, f => f.h + f.a === 0]]] });
   S1.push({ title: "Total de cantos", groups: [6, 7, 8, 9, 10].map(n => [[`${n}+`, null, () => null]]), note: "Sem percentagens: a fonte de dados gratuita não fornece cantos, por isso não é possível calcular esta previsão com dados reais." });
   return S1;
 }
@@ -517,7 +528,7 @@ function analysisHtml(an, f, extra = ""){
   const dot = ok => !fin ? "<span></span>" : `<span class="dot ${ok === true ? "g" : ok === false ? "r" : "n"}" role="img" aria-label="${ok === true ? "Acertou" : ok === false ? "Falhou" : "Sem dados para avaliar"}"></span>`;
   const secs = sections(r).map(sec => `<div class="sec">${esc(sec.title)}</div>` + (sec.note ? `<p class="note">${esc(sec.note)}</p>` : "") + sec.groups.map(g => evalGroup(g, fin).rows.map(x =>
     `<div class="rp"><span>${esc(x.l)}</span><span class="trk"><span style="width:${x.p == null ? 0 : Math.max(0, x.p * 100).toFixed(0)}%"></span></span><strong>${x.p == null ? "—" : pc(x.p)}</strong>${dot(x.ok)}</div>`).join("")).join("")).join("");
-  const legend = fin ? `<p class="note"><span class="dot g"></span> o modelo acertou nesta linha · <span class="dot r"></span> falhou · <span class="dot n"></span> sem dados para avaliar (por exemplo, quem marca primeiro e o 1X2 aos 10 minutos). Resultado final: ${fin.h} - ${fin.a}.</p>` : "";
+  const legend = fin ? `<p class="note"><span class="dot g"></span> o modelo acertou nesta linha · <span class="dot r"></span> falhou · <span class="dot n"></span> sem dados para avaliar (por exemplo, quem marcou primeiro quando as duas equipas marcaram, o 1X2 aos 10 minutos e os cantos). Resultado final: ${fin.h} - ${fin.a}.</p>` : "";
   // As 5 linhas com maior probabilidade em todos os mercados (sem repetir probabilidades idênticas, ex.: "3+" = "Mais de 2,5")
   const all = [];
   for (const sec of sections(r)) for (const g of sec.groups) evalGroup(g, fin).rows.forEach(x => { if (x.p != null) all.push({ ...x, sec: sec.title }); });
@@ -528,7 +539,7 @@ function analysisHtml(an, f, extra = ""){
   return `<h3 style="font-size:22px;margin:0">${esc(f.home_team)} vs ${esc(f.away_team)}</h3>
     <p class="note">${esc(f.competitions?.name ?? "")} · ${esc(fmtDay(f.kickoff_utc))}, ${esc(fmtHour(f.kickoff_utc))}</p>${legend}${secs}
     <div class="sec">As 5 análises mais prováveis deste jogo</div>${topHtml}
-    <p class="note">Previsão calculada em ${esc(fmtFull(an.created_at))}${fin ? " (antes do jogo; nunca é alterada)" : ""}. São estimativas estatísticas, não garantias.</p>
+    <p class="note">Previsão calculada em ${esc(fmtFull(an.created_at))}${fin ? (an.retro ? " (análise reconstruída depois do jogo, só com resultados anteriores a ele; não foi uma previsão feita antes)" : " (antes do jogo; nunca é alterada)") : ""}. São estimativas estatísticas, não garantias.</p>
     ${extra}
     <form method="dialog"><button class="btn">Fechar</button></form>`;
 }
@@ -542,7 +553,7 @@ async function openAnalysis(id){
   const f = [...S.fixtures, ...S.history].find(x => x.id === id);
   if (!f){ dlg.innerHTML = `<div class="msg">Este jogo já não está na lista atual.</div>${close}`; return; }
   dlg.innerHTML = f.analysis ? analysisHtml(f.analysis, f)
-    : `<h3 style="margin:0">${esc(f.home_team)} vs ${esc(f.away_team)}</h3><div class="msg">${esc(f.analysis_note || "Ainda não há análise para esta partida.")}</div>${close}`;
+    : `<h3 style="margin:0">${esc(f.home_team)} vs ${esc(f.away_team)}</h3><div class="msg">${esc(f.analysis_note || (isDone(f.status) ? "Não há análise guardada para este jogo." : "Ainda não há análise para esta partida."))}</div>${close}`;
 }
 
 /* ---------- Navegação e eventos ---------- */
@@ -573,8 +584,7 @@ document.addEventListener("click", e => {
     const dlg = $("dlg"); if (dlg.open && dlg.close) dlg.close();
     return render();
   }
-  if (d.act === "restore"){ S.hidden = new Set(); store.set("hiddenHist", []); return render(); }
-  if (d.del){ if (window.confirm && !window.confirm("Remover este jogo do histórico neste telemóvel?")) return; S.hidden.add(d.del); store.set("hiddenHist", [...S.hidden]); return render(); }
+  if (d.del){ if (window.confirm && !window.confirm("Remover este jogo do histórico para sempre? Não dá para desfazer.")) return; S.hidden.add(d.del); store.set("hiddenHist", [...S.hidden]); return render(); }
   if (d.act === "toggle"){ setTheme(isDark() ? "light" : "dark"); return; }
   if (d.day){ const st = $("strip"), sc = st ? st.scrollLeft : 0; S.day = d.day; render(); const n = $("strip"); if (n) n.scrollLeft = sc; return; }
   if (d.nav) return go(d.nav);
