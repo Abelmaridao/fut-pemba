@@ -3,7 +3,13 @@ on:
   schedule:
     - cron: "0 3 * * *"
     - cron: "0 15 * * *"
+    - cron: "30 21 * * *"
   workflow_dispatch:
+    inputs:
+      final:
+        description: "Última atualização do dia?"
+        type: boolean
+        default: false
 permissions:
   contents: write
 concurrency:
@@ -21,6 +27,7 @@ jobs:
         run: node update.mjs
         env:
           FOOTBALL_API_KEY: ${{ secrets.FOOTBALL_API_KEY }}
+          FINAL_RUN: ${{ (github.event.schedule == '30 21 * * *' || github.event.inputs.final == 'true') && '1' || '0' }}
       - name: Guardar alterações
         if: always()
         run: |
