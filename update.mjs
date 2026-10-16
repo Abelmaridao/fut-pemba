@@ -18,7 +18,7 @@ export const COMPETITIONS = [
 ];
 const BASE = "https://api.football-data.org/v4";
 const FINAL = new Set(["FT"]);
-const WINDOW_DAYS = 7, FORM_N = 12, H = 3600e3, PACE_MS = 7000; // 10 pedidos/min no plano gratuito
+const WINDOW_DAYS = 7, FORM_N = 12, H = 3600e3, PACE_MS = 7000, HIST_BACKFILL_DAYS = 14; // 10 pedidos/min no plano gratuito
 
 // Estados da API -> códigos usados pelo app
 export const STATUS_MAP = { SCHEDULED: "TBD", TIMED: "NS", IN_PLAY: "LIVE", PAUSED: "HT", EXTRA_TIME: "ET",
@@ -48,7 +48,7 @@ export const round4 = (v) => typeof v === "number" ? Math.round(v * 1e4) / 1e4
 const TRACK = ["kickoff_utc", "time_confirmed", "status", "home_goals", "away_goals"];
 
 // results: [{comp, ok, fixtures?: normalized[], error?}]
-export function buildData({ prev, results, now = new Date(), windowDays = WINDOW_DAYS }) {
+export function buildData({ prev, results, now = new Date(), windowDays = WINDOW_DAYS, final = false }) {
   const t = now.getTime(), start = t - 48 * H, end = t + windowDays * 86400e3;
   const prevById = new Map((prev?.matches ?? []).map((m) => [m.id, m]));
   const okIds = new Set(results.filter((r) => r.ok).map((r) => r.comp.id));
@@ -62,6 +62,16 @@ export function buildData({ prev, results, now = new Date(), windowDays = WINDOW
     (form.get(f.away_team_id) ?? form.set(f.away_team_id, []).get(f.away_team_id)).push({ d, gf: f.away_goals, ga: f.home_goals });
   }
   const last = (id) => (form.get(id) ?? []).sort((a, b) => b.d - a.d).slice(0, FORM_N).map(({ gf, ga }) => ({ gf, ga }));
+
+  // Forma de uma equipa só com jogos ANTERIORES a k (para reconstruir análises sem "ver o resultado")
+  const lastBefore = (id, k) => (form.get(id) ?? []).filter((x) => x.d < k).sort((a, b) => b.d - a.d).slice(0, FORM_N).map(({ gf, ga }) => ({ gf, ga }));
+  const retro = (f) => {
+    const k = Date.parse(f.kickoff_utc);
+    const res = analyze({ home: lastBefore(f.home_team_id, k), away: lastBefore(f.away_team_id, k) });
+    return res.ok
+      ? { analysis: { model_version: MODEL_VERSION, created_at: now.toISOString(), retro: true, result: round4(res) }, analysis_note: null }
+      : { analysis: null, analysis_note: res.reason };
+  };
 
   const matches = [], changes = [];
   const seen = new Set();
@@ -82,6 +92,8 @@ export function buildData({ prev, results, now = new Date(), windowDays = WINDOW
       else analysis_note = res.reason;
     } else if (old?.analysis) {
       analysis = old.analysis; // previsão feita antes do jogo: nunca é recalculada nem alterada
+    } else if (f.status === "FT") {
+      ({ analysis, analysis_note } = retro(f)); // sem previsão guardada: reconstrói só com resultados anteriores ao jogo
     }
     matches.push({ ...f, analysis, analysis_note, updated_at: now.toISOString(), source: "football-data.org" });
   }
@@ -91,15 +103,28 @@ export function buildData({ prev, results, now = new Date(), windowDays = WINDOW
     if (Date.parse(m.kickoff_utc) >= start) matches.push({ ...m, stale: true });
   }
   matches.sort((a, b) => a.kickoff_utc.localeCompare(b.kickoff_utc));
-  // Histórico: todos os jogos terminados (com ou sem previsão feita antes do jogo), guardados 30 dias
+  // Histórico: todos os jogos terminados, guardados 30 dias. A previsão feita ANTES do jogo tem prioridade;
+  // se não existir, guarda-se uma análise reconstruída com os resultados anteriores ao jogo (marcada retro: true).
   const hist = new Map((prev?.history ?? []).map((m) => [m.id, m]));
-  for (const m of matches) if (m.status === "FT") hist.set(m.id, hist.get(m.id)?.analysis && !m.analysis ? { ...m, analysis: hist.get(m.id).analysis } : m);
+  const upsert = (m) => {
+    const p = hist.get(m.id);
+    const real = [m.analysis, p?.analysis].find((a) => a && !a.retro);
+    const analysis = real ?? p?.analysis ?? m.analysis ?? null;
+    hist.set(m.id, { ...m, analysis, analysis_note: analysis ? null : m.analysis_note ?? null });
+  };
+  for (const m of matches) if (m.status === "FT") upsert(m);
+  for (const r of results) if (r.ok) for (const f of r.fixtures) {
+    if (f.status !== "FT" || seen.has(f.id)) continue;
+    const k = Date.parse(f.kickoff_utc);
+    if (k >= t - HIST_BACKFILL_DAYS * 86400e3 && k <= t) upsert({ ...f, ...retro(f), updated_at: now.toISOString(), source: "football-data.org" });
+  }
   const history = [...hist.values()].filter((m) => Date.parse(m.kickoff_utc) >= t - 30 * 86400e3)
     .sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc)).slice(0, 300);
   const anyOk = okIds.size > 0;
   return {
     generatedAt: now.toISOString(),
     lastSuccessAt: anyOk ? now.toISOString() : prev?.lastSuccessAt ?? null,
+    lastFinalAt: final && anyOk ? now.toISOString() : prev?.lastFinalAt ?? null, // última atualização do dia
     windowDays,
     leagues: results.map((r) => ({ id: r.comp.id, name: r.comp.name, country: r.comp.country, ok: r.ok, count: r.ok ? r.fixtures.filter((f) => seen.has(f.id)).length : 0, error: r.error ?? null })),
     matches,
@@ -126,7 +151,7 @@ async function fetchLeague(comp, key, sleep) {
   throw lastErr;
 }
 
-export async function main({ key = process.env.FOOTBALL_API_KEY, now = new Date(), sleep = (ms) => new Promise((r) => setTimeout(r, ms)), file = "fixtures.json", paceMs = PACE_MS } = {}) {
+export async function main({ key = process.env.FOOTBALL_API_KEY, now = new Date(), sleep = (ms) => new Promise((r) => setTimeout(r, ms)), file = "fixtures.json", paceMs = PACE_MS, final = process.env.FINAL_RUN === "1" } = {}) {
   if (!key) throw new Error("Falta o segredo FOOTBALL_API_KEY.");
   let prev = null;
   try { prev = JSON.parse(await readFile(file, "utf8")); } catch {}
@@ -141,7 +166,7 @@ export async function main({ key = process.env.FOOTBALL_API_KEY, now = new Date(
       results.push({ comp, ok: true, fixtures: r.fixtures });
     } catch (e) { results.push({ comp, ok: false, error: String(e.message ?? e) }); }
   }
-  const data = buildData({ prev, results, now });
+  const data = buildData({ prev, results, now, final });
   await writeFile(file, JSON.stringify(data));
   const bad = data.leagues.filter((l) => !l.ok);
   console.log(`Jogos: ${data.matches.length} | ligas com erro: ${bad.length}`);
