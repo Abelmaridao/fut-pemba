@@ -3,229 +3,595 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Fut Pemba Previsões</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<title>Elephalpit Bet</title>
 <style>
-:root{--bg:#f3f6f1;--card:#fff;--ink:#14231c;--mute:#5b6b62;--line:#d9e2da;--pitch:#0e4b36;--pitch2:#0a3829;--amber:#f2b705;--err:#b3261e;--ok:#1d7a4d}
-@media (prefers-color-scheme:dark){:root{--bg:#0b1511;--card:#13221b;--ink:#e8f0ea;--mute:#98aba0;--line:#25382e;--pitch:#1c7a58;--pitch2:#0a3829;--err:#ff8a80;--ok:#6fd49b}}
+:root{--bg:#f1f6fc;--card:#fff;--ink:#0f1f3a;--mute:#5b6b85;--line:#cfe3f7;--blue:#0b5ec5;--blue2:#1478e0;--amber:#f2b705;--ok:#1fa463;--bad:#d93025;--grey:#9aa7ba;--hdr:#0b5ec5;--tint:#eaf3fd}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1220;--card:#131d31;--ink:#e8eefb;--mute:#93a3bf;--line:#243452;--blue:#2f86ea;--blue2:#5aa2f5;--hdr:#0a3f86;--tint:#18253d}}
+:root[data-theme="dark"]{--bg:#0b1220;--card:#131d31;--ink:#e8eefb;--mute:#93a3bf;--line:#243452;--blue:#2f86ea;--blue2:#5aa2f5;--hdr:#0a3f86;--tint:#18253d}
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Barlow,system-ui,sans-serif}
-body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-h1,h2,h3{font-family:"Barlow Condensed",Impact,sans-serif;margin:0;letter-spacing:.2px}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 button,input,select{font:inherit;color:inherit}
-.wrap{max-width:760px;margin:0 auto;padding:16px}
-.brand{display:flex;align-items:center;gap:10px;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:26px}
-.logo{width:38px;height:38px;border-radius:50%;background:var(--pitch);display:grid;place-items:center;border:3px solid var(--amber)}
-.logo:after{content:"";width:14px;height:14px;border-radius:50%;background:var(--amber)}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin-top:18px}
-label{display:block;font-weight:600;margin:12px 0 4px}
-input[type=email],input[type=password],input[type=text],select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
-input:focus-visible,button:focus-visible,select:focus-visible{outline:3px solid var(--amber);outline-offset:1px}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.chk{display:flex;gap:8px;align-items:flex-start;font-weight:400;margin:10px 0}
-.chk input{margin-top:4px}
-.btn{border:0;border-radius:8px;padding:11px 16px;font-weight:600;cursor:pointer;background:var(--pitch);color:#fff}
-.btn.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
-.btn.amber{background:var(--amber);color:#1b1500}
-.btn[disabled]{opacity:.55;cursor:wait}
-.link{background:none;border:0;padding:6px 0;color:var(--pitch);text-decoration:underline;cursor:pointer}
-@media (prefers-color-scheme:dark){.link{color:var(--amber)}}
-.msg{margin-top:12px;padding:10px 12px;border-radius:8px;font-size:15px}
-.msg.err{background:color-mix(in srgb,var(--err) 14%,transparent);color:var(--err)}
-.msg.ok{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}
-.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.upd{color:var(--mute);font-size:14px;margin:6px 0 0}
-.tabs{display:flex;gap:6px;overflow-x:auto;padding:12px 0 4px}
-.tab{white-space:nowrap;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 14px;cursor:pointer}
-.tab[aria-pressed=true]{background:var(--pitch);color:#fff;border-color:var(--pitch)}
-.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
-.filters .full{grid-column:1/-1}
-.day{margin:22px 0 6px;font-size:24px;border-bottom:3px solid var(--amber);display:inline-block;padding-right:12px}
-.comp{margin:12px 0 6px;color:var(--mute);font-weight:600}
-.match{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--pitch);border-radius:10px;padding:12px;margin-bottom:8px}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--amber);outline-offset:1px}
+header.top{position:sticky;top:0;z-index:5;background:var(--hdr);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px}
+.ib{background:none;border:0;color:#fff;padding:6px;display:grid;place-items:center}
+.ib svg{width:28px;height:28px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:20px;letter-spacing:.2px}
+.brand em{font-style:normal;color:#9cc9ff}
+.mark{width:30px;height:30px;border-radius:50%;background:#fff;color:var(--blue);display:grid;place-items:center;font-size:18px}
+main{max-width:760px;margin:0 auto;padding:12px 12px calc(88px + env(safe-area-inset-bottom,0px))}
+.ttl{font-size:24px;text-align:center;margin:8px 0 12px}
+.sub{color:var(--mute);font-size:14px;margin:0 0 8px;text-align:center}
+.comp{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.ball{font-size:30px;text-align:center}
+.ct b{display:block;font-size:18px}
+.ct i{color:var(--blue2);display:flex;align-items:center;gap:6px;font-size:16px}
+.cnt{border:1px solid var(--line);background:var(--tint);border-radius:6px;padding:4px 10px;font-size:14px;color:var(--blue2);white-space:nowrap}
+.cnt b{font-size:24px}
+.msg{margin:8px 0;padding:10px 12px;border-radius:8px;font-size:14px;background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px}
+.tab{white-space:nowrap;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 14px}
+.tab[aria-pressed=true]{background:var(--blue);color:#fff;border-color:var(--blue)}
+select,input[type=search],input[type=text]{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+.day{margin:18px 0 6px;font-size:18px;text-transform:capitalize;border-bottom:3px solid var(--amber);display:inline-block;padding-right:12px}
+.cn{margin:10px 0 6px;color:var(--mute);font-weight:600;font-size:14px}
+.match{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--blue);border-radius:10px;padding:12px;margin-bottom:8px}
 .teams{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}
 .t{display:flex;align-items:center;gap:8px;font-weight:600;min-width:0}
 .t.r{justify-content:flex-end;text-align:right}
 .t img{width:26px;height:26px;object-fit:contain}
 .t span{overflow-wrap:anywhere}
-.vs{font-family:"Barlow Condensed",sans-serif;font-size:22px;text-align:center;min-width:64px}
+.vs{font-size:22px;font-weight:800;text-align:center;min-width:60px}
 .meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;color:var(--mute);font-size:14px}
-.st{border-radius:6px;padding:2px 8px;background:var(--bg);border:1px solid var(--line)}
-.st.live{background:var(--err);color:#fff;border-color:var(--err)}
-.fav{background:none;border:0;font-size:22px;cursor:pointer;color:var(--amber);line-height:1}
-.empty{text-align:center;color:var(--mute);padding:40px 12px}
-dialog{border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);max-width:440px;width:calc(100% - 32px)}
-dialog::backdrop{background:#0008}
-.hide{display:none!important}
-.bar{display:flex;height:26px;border-radius:6px;overflow:hidden;margin:6px 0;font-size:13px;font-weight:600;color:#fff}
-.bar span{display:grid;place-items:center;min-width:0}
-.k{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--line)}
-.sec{font-family:"Barlow Condensed",sans-serif;font-size:20px;margin:16px 0 4px}
-dialog{max-height:88vh;overflow:auto}
+.st{border-radius:6px;padding:2px 8px;background:var(--tint);border:1px solid var(--line)}
+.st.live{background:var(--bad);color:#fff;border-color:var(--bad)}
+.match{position:relative}
+.fl{display:block;font-weight:700;margin:12px 0 4px}
+.dt{color:var(--grey);font-size:12px;margin-bottom:6px}
+.x{position:absolute;top:2px;right:2px;width:36px;height:36px;border:0;background:none;color:var(--grey);font-size:18px;line-height:1;border-radius:8px}
+.x:active{background:var(--tint)}
+.link{background:none;border:0;color:var(--blue2);text-decoration:underline;padding:8px 0}
+.row{display:flex;gap:8px;align-items:center}
+.btn{border:0;border-radius:8px;padding:10px 14px;font-weight:700;background:var(--blue);color:#fff}
+.btn.amber{background:var(--amber);color:#1b1500}
+.btn.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn[disabled]{opacity:.5}
+.fav{background:none;border:0;font-size:22px;color:var(--amber);line-height:1}
+.empty{text-align:center;color:var(--mute);padding:36px 12px}
+nav.bot{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--hdr);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+nav.bot button{background:none;border:0;color:#cfe1fb;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;padding:4px 2px}
+nav.bot button[aria-current=page]{color:#fff;font-weight:800}
+nav.bot svg{width:28px;height:28px}
+.ov{position:fixed;inset:0;z-index:20;background:#0009;display:flex}
+.drawer{background:var(--card);width:min(320px,86vw);height:100%;padding:calc(16px + env(safe-area-inset-top,0px)) 16px 16px;overflow:auto}
+.drawer h3{margin:18px 0 8px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.seg button{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:10px 4px}
+.seg button[aria-pressed=true]{background:var(--blue);color:#fff;border-color:var(--blue)}
+.sp{background:var(--bg);width:100%;padding:calc(12px + env(safe-area-inset-top,0px)) 12px 12px;overflow:auto}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);max-width:460px;width:calc(100% - 24px);max-height:90vh;overflow:auto;padding:16px}
+dialog::backdrop{background:#0009}
+.sec{font-weight:800;font-size:17px;margin:16px 0 4px}
+.rp{display:grid;grid-template-columns:1fr 64px 42px 14px;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font-size:15px}
+.trk{height:8px;border-radius:4px;background:var(--tint);overflow:hidden;display:block}
+.trk span{display:block;height:100%;background:var(--blue2)}
+.rp strong{text-align:right}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block}
+.dot.g{background:var(--ok)}.dot.r{background:var(--bad)}.dot.n{border:2px solid var(--grey)}
+.note{color:var(--mute);font-size:13px;margin:6px 0}
+.stripw{display:flex;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 4px 8px 8px;margin-bottom:10px}
+.strip{display:flex;gap:4px;overflow-x:auto;flex:1;scrollbar-width:none}
+.strip::-webkit-scrollbar{display:none}
+.dy{background:none;border:0;border-radius:10px;min-width:54px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;color:var(--mute);font-size:15px;font-weight:600}
+.dy b{font-size:24px;color:var(--ink);line-height:1.1}
+.dy i{width:5px;height:5px;border-radius:50%;margin-top:3px}
+.dy i.has{background:var(--blue2)}
+.dy[aria-pressed=true]{background:linear-gradient(135deg,#f0148c,#b800b8);color:#fff}
+.dy[aria-pressed=true] b{color:#fff}
+.dy[aria-pressed=true] i.has{background:#fff}
+.nx{background:none;border:0;font-size:26px;color:var(--mute);padding:0 10px}
+.sum{background:var(--tint);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:0 0 8px;font-size:14px}
 </style>
 </head>
 <body>
-<div class="wrap" id="app"></div>
+<div id="app"></div>
+<div id="ov"></div>
 <dialog id="dlg"></dialog>
 <script>
-const $app = document.getElementById("app");
+const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const store = {
   get(k, d){ try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 };
-let state = { msg: null, fixtures: [], lastSync: null, tab: "all",
-  tz: store.get("tz", Intl.DateTimeFormat().resolvedOptions().timeZone), favs: new Set(store.get("favs", [])),
-  q: "", comp: "", status: "", loading: true };
-function header(){ return `<div class="brand"><span class="logo" aria-hidden="true"></span>Fut Pemba Previsões</div>`; }
-function msgHtml(){ return state.msg ? `<div class="msg ${state.msg.t}" role="alert">${esc(state.msg.s)}</div>` : ""; }
+let S = { view: "home", compId: null, raw: [], rawHist: [], fixtures: [], history: [], hidden: new Set(store.get("hiddenHist", [])), leagues: [], lastSync: null, msg: null, loading: true, tab: "all", comp: "", day: "",
+  tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  theme: store.get("theme", "auto"), drawer: false, search: false, q: "",
+  na: { home: "", away: "", league: "" }, favs: store.get("favSearch", []), ext: null };
 
-async function loadFixtures(){
-  state.loading = true; render();
+/* MODEL:BEGIN (gerado a partir de model.ts) */
+const MODEL = (() => {
+// Modelo estatístico "poisson-v2": puro, sem dependências, testável.
+const MODEL_VERSION = "poisson-v2";
+const MIN_MATCHES = 5;      // sem isto não se apresenta previsão quantitativa
+const SHRINK_K = 5;         // jogos "virtuais" da média da amostra (reduz extremos)
+const HOME_ADV = 1.1;       // fator casa: λ_casa × 1.1, λ_fora ÷ 1.1
+const HT_SHARE = 0.45;      // fração aproximada dos golos na 1.ª parte
+const MIN10_SHARE = 0.10;   // fração aproximada dos golos nos primeiros 10 minutos
+const MAXG = 10;
+const fact = (n) => { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; };
+const pois = (k, l) => Math.exp(-l) * Math.pow(l, k) / fact(k);
+const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+function grid(lh, la) {
+  const g= []; let tot = 0;
+  for (let i = 0; i <= MAXG; i++) { g[i] = []; for (let j = 0; j <= MAXG; j++) { g[i][j] = pois(i, lh) * pois(j, la); tot += g[i][j]; } }
+  for (const row of g) for (let j = 0; j <= MAXG; j++) row[j] /= tot; // normaliza a truncagem
+  return g;
+}
+function result1x2(g) {
+  let h = 0, d = 0, a = 0;
+  g.forEach((row, i) => row.forEach((p, j) => { if (i > j) h += p; else if (i === j) d += p; else a += p; }));
+  return { home: h, draw: d, away: a };
+}
+function analyze(inp){
+  const valid = (m) => Number.isFinite(m.gf) && Number.isFinite(m.ga) && m.gf >= 0 && m.ga >= 0;
+  const H = inp.home.filter(valid), A = inp.away.filter(valid);
+  if (H.length < MIN_MATCHES || A.length < MIN_MATCHES)
+    return { ok: false, reason: `Dados insuficientes: são precisos pelo menos ${MIN_MATCHES} jogos recentes de cada equipa (tem ${H.length} e ${A.length}).` };
+  const all = [...H, ...A];
+  const mu = Math.max(0.3, all.reduce((s, m) => s + m.gf, 0) / all.length); // média de golos por equipa/jogo na amostra
+  const str = (ms) => {
+    const n = ms.length, gf = ms.reduce((s, m) => s + m.gf, 0), ga = ms.reduce((s, m) => s + m.ga, 0);
+    return { att: (gf + SHRINK_K * mu) / (n + SHRINK_K) / mu, def: (ga + SHRINK_K * mu) / (n + SHRINK_K) / mu };
+  };
+  const h = str(H), a = str(A);
+  const lh = clamp(mu * h.att * a.def * HOME_ADV, 0.2, 4.5);
+  const la = clamp(mu * a.att * h.def / HOME_ADV, 0.2, 4.5);
+  const g = grid(lh, la);
+  const total = (k, over) => { let p = 0; g.forEach((r, i) => r.forEach((q, j) => { if ((i + j > k) === over) p += q; })); return p; };
+  const totals= {};
+  for (const k of [0.5, 1.5, 2.5, 3.5]) totals[`over_${String(k).replace(".", "_")}`] = total(k, true);
+  for (const k of [1.5, 2.5, 3.5]) totals[`under_${String(k).replace(".", "_")}`] = total(k, false);
+  let yes = 0; g.forEach((r, i) => r.forEach((q, j) => { if (i > 0 && j > 0) yes += q; }));
+  const tg = (l) => { const p0 = pois(0, l), p1 = pois(1, l), p2 = pois(2, l); return { "0": p0, "1": p1, "2": p2, "3+": 1 - p0 - p1 - p2 }; };
+  const scores= [];
+  g.forEach((r, i) => r.forEach((q, j) => scores.push({ score: `${i}-${j}`, p: q })));
+  scores.sort((x, y) => y.p - x.p);
+  const none = g[0][0];
+  // Parte mais produtiva: golos da 1.ª vs 2.ª parte (Poisson independentes, taxa total × fração da parte)
+  const lt = lh + la, h1 = HT_SHARE, h2 = 1 - HT_SHARE;
+  let pf = 0, pd = 0, ps = 0, ptot = 0;
+  for (let i = 0; i <= MAXG; i++) for (let j = 0; j <= MAXG; j++) {
+    const p = pois(i, lt * h1) * pois(j, lt * h2); ptot += p;
+    if (i > j) pf += p; else if (i === j) pd += p; else ps += p;
+  }
+  // Uma equipa marca nas duas partes: P(≥1 na 1.ª) × P(≥1 na 2.ª)
+  const both = (l) => { const y = (1 - Math.exp(-l * h1)) * (1 - Math.exp(-l * h2)); return { yes: y, no: 1 - y }; };
+  // Alcance de golos: P(total ≥ n)
+  const ge = (n) => { let p = 0; g.forEach((r, i) => r.forEach((q, j) => { if (i + j >= n) p += q; })); return p; };
+  const nm = Math.min(H.length, A.length);
+  return {
+    ok: true, model: MODEL_VERSION, lambda: { home: lh, away: la },
+    result: result1x2(g), totals, btts: { yes, no: 1 - yes },
+    halftime: result1x2(grid(lh * HT_SHARE, la * HT_SHARE)),
+    teamGoals: { home: tg(lh), away: tg(la) },
+    exactScores: scores.slice(0, 5),
+    productiveHalf: { first: pf / ptot, draw: pd / ptot, second: ps / ptot },
+    bothHalves: { home: both(lh), away: both(la) },
+    reach: { ge3: ge(3), ge4: ge(4), ge5: ge(5), ge6: ge(6) },
+    min10: result1x2(grid(lh * MIN10_SHARE, la * MIN10_SHARE)),
+    firstToScore: { home: (1 - none) * lh / (lh + la), away: (1 - none) * la / (lh + la), none },
+    quality: { homeMatches: H.length, awayMatches: A.length, level: nm >= 10 ? "boa" : nm >= 7 ? "razoavel" : "baixa" },
+  };
+}
+return { analyze, MODEL_VERSION };
+})();
+/* MODEL:END */
+
+/* Fonte de dados para ligas FORA das 10 (ainda não ligada).
+   Contrato: find({home, away, league, from, to}) -> { event:{id, home, away, league, kickoff_utc, time_confirmed}, homeHistory:[{gf,ga}], awayHistory:[{gf,ga}] }
+   Em caso de erro lança Error com .code = "notfound" | "league" | "offline". */
+const EXTRA_SOURCE = null;
+
+/* ---------- Tema ---------- */
+function applyTheme(){ const r = document.documentElement; if (S.theme === "auto") r.removeAttribute("data-theme"); else r.setAttribute("data-theme", S.theme); }
+const isDark = () => S.theme === "dark" || (S.theme === "auto" && !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches));
+function setTheme(t){ S.theme = t; store.set("theme", t); applyTheme(); drawerHtml(); }
+
+/* ---------- Dados ---------- */
+async function fetchData(){
   try {
     const r = await fetch("fixtures.json?t=" + Date.now(), { cache: "no-store" });
     if (!r.ok) throw new Error("HTTP " + r.status);
     const d = await r.json();
-    state.fixtures = d.matches ?? [];
-    state.lastSync = d.lastSuccessAt ?? null;
-    const bad = (d.leagues ?? []).filter(l => !l.ok);
-    state.msg = bad.length ? { t: "err", s: `Sem atualização recente em: ${bad.map(l => l.name).join(", ")}. Os jogos já guardados foram mantidos.` } : null;
-  } catch {
-    state.msg = { t: "err", s: "Não foi possível carregar o calendário. Abre o app pelo endereço publicado (não como ficheiro) e tenta de novo." };
-  }
-  state.loading = false; render();
-}
-
-/* ---------- Vista "Jogos da Semana" ---------- */
-const STATUS = { NS:"Agendada", TBD:"Hora por confirmar", "1H":"Ao vivo", HT:"Intervalo", "2H":"Ao vivo", ET:"Ao vivo", P:"Ao vivo", LIVE:"Ao vivo",
-  FT:"Terminada", AET:"Terminada", PEN:"Terminada", PST:"Adiada", CANC:"Cancelada", SUSP:"Suspensa", ABD:"Abandonada" };
-const isLive = s => ["1H","HT","2H","ET","P","LIVE"].includes(s);
-const fmtDay = (iso) => new Intl.DateTimeFormat("pt", { timeZone: state.tz, weekday:"long", day:"numeric", month:"long" }).format(new Date(iso));
-const fmtHour = (iso) => new Intl.DateTimeFormat("pt", { timeZone: state.tz, hour:"2-digit", minute:"2-digit" }).format(new Date(iso));
-const dayKey = (iso) => new Intl.DateTimeFormat("en-CA", { timeZone: state.tz }).format(new Date(iso)); // YYYY-MM-DD no fuso escolhido
-
-function filtered(){
-  const today = dayKey(new Date().toISOString());
-  const tomorrow = dayKey(new Date(Date.now() + 86400e3).toISOString());
-  const in7 = dayKey(new Date(Date.now() + 7*86400e3).toISOString());
-  const q = state.q.trim().toLowerCase();
-  return state.fixtures.filter(f => {
-    const k = dayKey(f.kickoff_utc);
-    if (state.tab === "today" && k !== today) return false;
-    if (state.tab === "tomorrow" && k !== tomorrow) return false;
-    if (state.tab === "week" && (k < today || k > in7)) return false;
-    if (state.tab === "live" && !isLive(f.status)) return false;
-    if (state.tab === "favs" && !state.favs.has(f.id)) return false;
-    if (state.comp && f.competitions?.name !== state.comp) return false;
-    if (state.status === "live" && !isLive(f.status)) return false;
-    if (state.status === "ns" && !["NS","TBD"].includes(f.status)) return false;
-    if (state.status === "done" && !["FT","AET","PEN"].includes(f.status)) return false;
-    if (q && !(`${f.home_team} ${f.away_team} ${f.competitions?.name ?? ""} ${f.competitions?.country ?? ""}`.toLowerCase().includes(q))) return false;
+    S.raw = d.matches ?? []; S.rawHist = d.history ?? []; S.leagues = d.leagues ?? [];
+    S.lastSync = d.lastSuccessAt ?? null;
+    const bad = S.leagues.filter(l => !l.ok);
+    S.msg = bad.length ? `Sem atualização recente em: ${bad.map(l => l.name).join(", ")}. Os jogos já guardados foram mantidos.` : null;
     return true;
-  });
+  } catch { S.msg = "Sem ligação ao servidor. O app precisa de internet para mostrar os jogos e as análises."; return false; }
 }
+async function load(){ S.loading = true; render(); await fetchData(); S.loading = false; render(); }
 
-function matchCard(f){
+/* ---------- Formatação ---------- */
+const STATUS = { NS:"Agendada", TBD:"Hora por confirmar", "1H":"Ao vivo", HT:"Intervalo", "2H":"Ao vivo", ET:"Ao vivo", P:"Ao vivo", LIVE:"Ao vivo",
+  FT:"Terminada", AWD:"Resultado atribuído", PST:"Adiada", CANC:"Cancelada", SUSP:"Suspensa" };
+const isLive = s => ["1H","HT","2H","ET","P","LIVE"].includes(s);
+const isDone = s => ["FT","AWD"].includes(s);
+const fmtDay = iso => new Intl.DateTimeFormat("pt", { timeZone: S.tz, weekday:"long", day:"numeric", month:"long" }).format(new Date(iso));
+const fmtHour = iso => new Intl.DateTimeFormat("pt", { timeZone: S.tz, hour:"2-digit", minute:"2-digit" }).format(new Date(iso));
+const fmtFull = iso => new Intl.DateTimeFormat("pt", { timeZone: S.tz, dateStyle:"short", timeStyle:"short" }).format(new Date(iso));
+const dayKey = iso => new Intl.DateTimeFormat("en-CA", { timeZone: S.tz }).format(new Date(iso));
+const ORDER = ["CL","PL","PD","ELC","BL1","SA","DED","PPL","BSA","FL1"];
+const LABEL = { CL:["Clubes internacionais","Liga dos campeões UEFA"], PL:["Inglaterra","Premier League"], PD:["Espanha","La Liga"],
+  ELC:["Inglaterra 2","Championship"], BL1:["Alemanha","Bundesliga"], SA:["Itália","Série A"], DED:["Países Baixos","Eredivisie"],
+  PPL:["Portugal","Primeira Liga"], BSA:["Brasil","Brasileirão Série A"], FL1:["França","Ligue 1"] };
+const labelById = (id, name, country) => LABEL[id] ?? [country || "", name || id];
+const countOf = id => S.fixtures.filter(f => f.competition_id === id).length;
+const norm = s => String(s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+/* ---------- Componentes ---------- */
+const ICON = {
+  menu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>',
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>',
+  home: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
+  live: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="2.6" fill="currentColor"/><path d="M7.5 7.5a6.4 6.4 0 0 0 0 9M16.5 7.5a6.4 6.4 0 0 1 0 9M4.5 4.5a10.6 10.6 0 0 0 0 15M19.5 4.5a10.6 10.6 0 0 1 0 15"/></svg>',
+  cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="8" cy="14" r=".8" fill="currentColor"/><circle cx="12" cy="14" r=".8" fill="currentColor"/><circle cx="16" cy="14" r=".8" fill="currentColor"/></svg>',
+  star: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 17.5 6.1 20.7l1.2-6.6L2.5 9.5l6.6-.9z"/></svg>',
+  hist: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5M3.5 4v4.5H8"/><path d="M12 7.5V12l3 2"/></svg>'
+};
+function header(){
+  return `<header class="top"><button class="ib" data-act="drawer" aria-label="Definições">${ICON.menu}</button>
+    <div class="brand"><span class="mark" aria-hidden="true">🦁</span><span>Elephalpit <em>Bet</em></span></div>
+    <button class="ib" data-act="search" aria-label="Pesquisar equipas">${ICON.search}</button></header>`;
+}
+function nav(){
+  const it = [["home","Home",ICON.home],["live","AO VIVO",ICON.live],["cal","Calendário",ICON.cal],["fav","Favoritos",ICON.star],["hist","Histórico",ICON.hist]];
+  return `<nav class="bot">${it.map(([k,l,i]) => `<button data-nav="${k}" ${S.view === k || (k === "home" && S.view === "comp") ? 'aria-current="page"' : ""}>${i}<span>${l}</span></button>`).join("")}</nav>`;
+}
+function matchCard(f, mode){
   const logo = u => u ? `<img src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : "";
-  const score = (f.home_goals ?? null) !== null && f.status !== "NS" ? `${f.home_goals} - ${f.away_goals}` : "vs";
-  const label = f.time_confirmed ? fmtHour(f.kickoff_utc) : "Hora por confirmar";
-  const canAnalyze = ["NS","TBD"].includes(f.status);
-  return `<article class="match">
-    <div class="teams">
-      <div class="t">${logo(f.home_logo)}<span>${esc(f.home_team)}</span></div>
-      <div class="vs">${esc(score)}</div>
-      <div class="t r"><span>${esc(f.away_team)}</span>${logo(f.away_logo)}</div>
-    </div>
-    <div class="meta">
-      <span>${esc(label)} <span class="st ${isLive(f.status) ? "live" : ""}">${esc(STATUS[f.status] ?? f.status)}</span></span>
-      <span class="row">
-        <button class="fav" data-fav="${esc(f.id)}" aria-label="Favorito" aria-pressed="${state.favs.has(f.id)}">${state.favs.has(f.id) ? "★" : "☆"}</button>
-        <button class="btn amber" data-an="${esc(f.id)}" ${canAnalyze ? "" : "disabled"}>Analisar com IA</button>
-      </span>
-    </div></article>`;
+  const done = isDone(f.status);
+  const score = f.home_goals != null && f.away_goals != null && f.status !== "NS" && f.status !== "TBD" ? `${f.home_goals} - ${f.away_goals}` : "vs";
+  const top = f.time_confirmed ? `${dayKey(f.kickoff_utc)} ${fmtHour(f.kickoff_utc)}` : `${dayKey(f.kickoff_utc)} · hora por confirmar`;
+  let action;
+  if (done) action = f.analysis ? `<button class="btn" data-an="${esc(f.id)}">Ver estatísticas</button>` : `<span class="note">Sem previsão guardada</span>`;
+  else action = `<button class="btn amber" data-an="${esc(f.id)}" ${["NS","TBD"].includes(f.status) ? "" : "disabled"}>Analisar com IA</button>`;
+  const del = mode === "hist" ? `<button class="x" data-del="${esc(f.id)}" aria-label="Remover este jogo do histórico">✕</button>` : "";
+  return `<article class="match">${del}<div class="dt">${esc(top)}</div><div class="teams">
+    <div class="t">${logo(f.home_logo)}<span>${esc(f.home_team)}</span></div><div class="vs">${esc(score)}</div>
+    <div class="t r"><span>${esc(f.away_team)}</span>${logo(f.away_logo)}</div></div>
+    <div class="meta"><span><span class="st ${isLive(f.status) ? "live" : ""}">${esc(STATUS[f.status] ?? f.status)}</span></span>
+    <span class="row">${action}</span></div></article>`;
 }
-
-function renderGames(){
-  const list = filtered();
-  const comps = [...new Set(state.fixtures.map(f => f.competitions?.name).filter(Boolean))].sort();
-  const tabs = [["all","Todos"],["today","Hoje"],["tomorrow","Amanhã"],["week","Próximos 7 dias"],["live","Ao vivo"],["favs","Favoritos"]];
-  const zones = ["Africa/Maputo","Europe/Lisbon","America/Sao_Paulo","Europe/London","America/New_York","UTC"];
-  if (!zones.includes(state.tz)) zones.unshift(state.tz);
-  let html = `${header()}
-    <h1 style="font-size:34px;margin-top:14px">Jogos da Semana</h1>
-    <p class="upd">${state.lastSync ? `Última atualização do calendário: ${esc(new Intl.DateTimeFormat("pt",{timeZone:state.tz,dateStyle:"short",timeStyle:"short"}).format(new Date(state.lastSync)))}` : "O calendário ainda não foi sincronizado."}</p>
-    <div class="tabs" role="group" aria-label="Período">${tabs.map(([k,l]) => `<button class="tab" data-tab="${k}" aria-pressed="${state.tab===k}">${l}</button>`).join("")}</div>
-    <div class="filters">
-      <input class="full" id="q" type="text" placeholder="Pesquisar equipa, campeonato ou país" value="${esc(state.q)}">
-      <select id="comp" aria-label="Campeonato"><option value="">Todos os campeonatos</option>${comps.map(c => `<option ${c===state.comp?"selected":""}>${esc(c)}</option>`).join("")}</select>
-      <select id="status" aria-label="Estado"><option value="">Qualquer estado</option><option value="ns" ${state.status==="ns"?"selected":""}>Agendadas</option><option value="live" ${state.status==="live"?"selected":""}>Ao vivo</option><option value="done" ${state.status==="done"?"selected":""}>Terminadas</option></select>
-      <select class="full" id="tz" aria-label="Fuso horário">${zones.map(z => `<option ${z===state.tz?"selected":""}>${esc(z)}</option>`).join("")}</select>
-    </div>${msgHtml()}`;
-  if (state.loading) html += `<div class="empty">A carregar jogos…</div>`;
-  else if (!list.length) html += `<div class="empty">${state.fixtures.length ? (state.tab === "live" ? "Sem jogos ao vivo neste momento. As atualizações ao vivo ainda não estão configuradas: o calendário é atualizado uma vez a cada 24 horas." : "Nenhum jogo corresponde aos filtros.") : "Ainda não há jogos importados. A próxima sincronização automática vai preencher esta lista."}</div>`;
-  else {
-    let lastDay = "", lastComp = "";
-    for (const f of list){
-      const d = dayKey(f.kickoff_utc), c = f.competitions?.name ?? "Outros";
-      if (d !== lastDay){ html += `<h2 class="day">${esc(fmtDay(f.kickoff_utc))}</h2>`; lastDay = d; lastComp = ""; }
-      if (c !== lastComp){ html += `<div class="comp">${esc(c)}${f.competitions?.country ? " · " + esc(f.competitions.country) : ""}</div>`; lastComp = c; }
-      html += matchCard(f);
-    }
+function grouped(list, mode){
+  let h = "", ld = "", lc = "";
+  for (const f of list){
+    const d = dayKey(f.kickoff_utc), c = f.competitions?.name ?? "Outros";
+    if (d !== ld){ h += `<h2 class="day">${esc(fmtDay(f.kickoff_utc))}</h2>`; ld = d; lc = ""; }
+    if (c !== lc){ h += `<div class="cn">${esc(c)}${f.competitions?.country ? " · " + esc(f.competitions.country) : ""}</div>`; lc = c; }
+    h += matchCard(f, mode);
   }
-  $app.innerHTML = html;
-  $app.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { state.tab = b.dataset.tab; render(); });
-  const q = document.getElementById("q");
-  q.oninput = () => { state.q = q.value; const p = q.selectionStart; render(); const n = document.getElementById("q"); n.focus(); n.setSelectionRange(p,p); };
-  document.getElementById("comp").onchange = e => { state.comp = e.target.value; render(); };
-  document.getElementById("status").onchange = e => { state.status = e.target.value; render(); };
-  document.getElementById("tz").onchange = e => { state.tz = e.target.value; store.set("tz", state.tz); render(); };
-  $app.querySelectorAll("[data-fav]").forEach(b => b.onclick = () => {
-    const id = b.dataset.fav; state.favs.has(id) ? state.favs.delete(id) : state.favs.add(id);
-    store.set("favs", [...state.favs]); render();
+  return h;
+}
+const updLine = () => `<p class="sub">${S.lastSync ? "Última atualização do calendário: " + esc(fmtFull(S.lastSync)) : "O calendário ainda não foi sincronizado."}</p>`;
+const msgHtml = () => S.msg ? `<div class="msg" role="alert">${esc(S.msg)}</div>` : "";
+
+/* ---------- Vistas ---------- */
+function homeView(){
+  const ids = [...ORDER, ...S.leagues.map(l => l.id).filter(id => !ORDER.includes(id))];
+  const cards = ids.map(id => {
+    const l = S.leagues.find(x => x.id === id) ?? {};
+    const [a, b] = labelById(id, l.name, l.country), n = countOf(id);
+    const num = S.loading && !S.leagues.length ? "…" : n;
+    return `<button class="comp" data-comp="${esc(id)}"><span class="ball" aria-hidden="true">⚽</span>
+      <span class="ct"><b>${esc(a)}</b><i><span aria-hidden="true">🌍</span>${esc(b)}</i></span><span class="cnt"><b>${num}</b> ${n === 1 ? "jogo" : "jogos"}</span></button>`;
+  }).join("");
+  return `<h1 class="ttl">Melhores Competições</h1>${updLine()}${msgHtml()}${cards}`;
+}
+function compView(){
+  const l = S.leagues.find(x => x.id === S.compId) ?? {};
+  const list = S.fixtures.filter(f => f.competition_id === S.compId);
+  const name = labelById(S.compId, l.name ?? list[0]?.competitions?.name, l.country)[1];
+  return `<div class="row" style="margin-bottom:6px"><button class="btn alt" data-nav="home">← Voltar</button></div><h1 class="ttl">${esc(name)}</h1>
+    ${list.length ? grouped(list) : `<div class="empty">Sem jogos desta competição nos próximos dias.</div>`}`;
+}
+function liveView(){
+  const list = S.fixtures.filter(f => isLive(f.status));
+  return `<h1 class="ttl">Ao Vivo</h1>${updLine()}${msgHtml()}` + (list.length ? grouped(list)
+    : `<div class="empty">Sem jogos ao vivo neste momento. O calendário é atualizado duas vezes por dia, por isso o ao vivo só aparece se um jogo estiver a decorrer nessa altura.</div>`);
+}
+function dayList(){
+  const out = [];
+  for (let i = 0; i < 7; i++){
+    const d = new Date(Date.now() + i * 86400e3), iso = d.toISOString();
+    const wd = new Intl.DateTimeFormat("pt", { timeZone: S.tz, weekday: "short" }).format(d).replace(".", "");
+    const dn = new Intl.DateTimeFormat("pt", { timeZone: S.tz, day: "numeric" }).format(d);
+    out.push({ key: dayKey(iso), wd: wd.charAt(0).toUpperCase() + wd.slice(1), dn });
+  }
+  return out;
+}
+function byComp(list){
+  let h = "", lc = "";
+  for (const f of list){
+    const c = f.competitions?.name ?? "Outros";
+    if (c !== lc){ h += `<div class="cn">${esc(c)}${f.competitions?.country ? " · " + esc(f.competitions.country) : ""}</div>`; lc = c; }
+    h += matchCard(f);
+  }
+  return h;
+}
+function calView(){
+  const days = dayList();
+  if (!days.some(d => d.key === S.day)) S.day = days[0].key;
+  const count = new Map(); S.fixtures.forEach(f => { const k = dayKey(f.kickoff_utc); count.set(k, (count.get(k) || 0) + 1); });
+  const strip = days.map(d => `<button class="dy" data-day="${esc(d.key)}" aria-pressed="${S.day === d.key}"><span>${esc(d.wd)}</span><b>${esc(d.dn)}</b><i class="${count.get(d.key) ? "has" : ""}"></i></button>`).join("");
+  let list = S.fixtures.filter(f => dayKey(f.kickoff_utc) === S.day);
+  list.sort((a, b) => (a.competitions?.name ?? "").localeCompare(b.competitions?.name ?? "") || a.kickoff_utc.localeCompare(b.kickoff_utc));
+  return `<div class="stripw"><div class="strip" id="strip">${strip}</div><button class="nx" data-act="next" aria-label="Mais dias">→</button></div>
+    ${updLine()}${msgHtml()}` +
+    (S.loading ? `<div class="empty">A carregar…</div>` : list.length ? byComp(list) : `<div class="empty">Sem jogos neste dia nas competições importadas.</div>`);
+}
+function finalOf(f){ return Number.isFinite(f.home_goals) && Number.isFinite(f.away_goals) ? { h: f.home_goals, a: f.away_goals, hh: f.home_ht, ah: f.away_ht } : null; }
+function histList(){ return S.history.filter(f => !S.hidden.has(f.id)); }
+const hiddenCount = () => S.history.filter(f => S.hidden.has(f.id)).length;
+const restoreLink = () => hiddenCount() ? `<div style="text-align:center"><button class="link" data-act="restore">Restaurar jogos removidos (${hiddenCount()})</button></div>` : "";
+function histView(){
+  const list = histList();
+  let hit = 0, tot = 0, nm = 0;
+  for (const f of list){ const fin = finalOf(f); if (!f.analysis?.result?.totals || !fin) continue; nm++;
+    for (const sec of sections(f.analysis.result)) for (const g of sec.groups){ const e = evalGroup(g, fin); if (e.hit !== null){ tot++; if (e.hit) hit++; } } }
+  const sum = tot ? `<div class="sum">Escolhas principais do modelo certas: <b>${Math.round(hit / tot * 100)}%</b> (${hit} de ${tot} mercados avaliados, em ${nm} jogo${nm === 1 ? "" : "s"}).</div>` : "";
+  return `<h1 class="ttl">Histórico</h1>${updLine()}${msgHtml()}${sum}` + (list.length ? grouped(list, "hist") + restoreLink()
+    : restoreLink() + `<div class="empty">Ainda não há jogos terminados. O histórico enche-se à medida que os jogos analisados terminam.</div>`);
+}
+function favCard(f){
+  const top = `${dayKey(f.kickoff_utc)} ${fmtHour(f.kickoff_utc)}`;
+  return `<article class="match"><button class="x" style="color:var(--amber);font-size:22px" data-favdel="${esc(f.id)}" aria-label="Remover dos favoritos">★</button><div class="dt">${esc(top)}</div>
+    <div class="cn" style="margin:0 0 6px">${esc(f.league)}</div>
+    <div class="teams"><div class="t"><span>${esc(f.home_team)}</span></div><div class="vs">vs</div><div class="t r"><span>${esc(f.away_team)}</span></div></div>
+    <div class="meta"><span class="st">Favorito</span><button class="btn amber" data-favopen="${esc(f.id)}">Ver análise</button></div></article>`;
+}
+function favView(){
+  const list = S.favs.slice().sort((a, b) => a.kickoff_utc.localeCompare(b.kickoff_utc));
+  return `<h1 class="ttl">Favoritos</h1><p class="sub">Jogos analisados na lupa e guardados por ti.</p>` +
+    (list.length ? list.map(favCard).join("") : `<div class="empty">Ainda não tens favoritos. Toca na lupa, analisa um jogo e adiciona-o aqui.</div>`);
+}
+function view(){ return ({ home: homeView, comp: compView, live: liveView, cal: calView, fav: favView, hist: histView })[S.view](); }
+function pruneFavs(){
+  const keep = S.favs.filter(f => Date.parse(f.kickoff_utc) >= Date.now() - 86400e3);
+  if (keep.length !== S.favs.length){ S.favs = keep; store.set("favSearch", S.favs); }
+}
+function reclassify(){
+  pruneFavs();
+  const today = dayKey(new Date().toISOString());
+  const before = f => dayKey(f.kickoff_utc) < today;
+  S.fixtures = S.raw.filter(f => !(isDone(f.status) && before(f)));
+  const m = new Map();
+  for (const f of S.raw) if (f.status === "FT" && before(f)) m.set(f.id, f);
+  for (const f of S.rawHist) if (before(f)) m.set(f.id, f.analysis || !m.has(f.id) ? f : m.get(f.id)); // prefere a versão com previsão
+  S.history = [...m.values()].sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc));
+}
+function render(){ reclassify(); $("app").innerHTML = header() + `<main>${view()}</main>` + nav(); }
+
+/* ---------- Menu (definições) e pesquisa ---------- */
+function drawerHtml(){
+  if (!S.drawer){ if (!S.search) $("ov").innerHTML = ""; return; }
+  const dark = isDark();
+  $("ov").innerHTML = `<div class="ov" data-act="close"><div class="drawer" role="dialog" aria-label="Menu">
+    <button class="btn" style="width:100%;font-size:18px;padding:14px" data-act="toggle" aria-pressed="${dark}">${dark ? "☀️ Modo claro" : "🌙 Modo escuro"}</button></div></div>`;
+}
+function searchHtml(){
+  if (!S.search){ drawerHtml(); return; }
+  const fld = (id, label, key) => `<label class="fl" for="${id}">${label}</label><input id="${id}" type="text" autocomplete="off" value="${esc(S.na[key])}">`;
+  $("ov").innerHTML = `<div class="ov"><div class="sp">
+    <div class="row" style="justify-content:space-between"><b style="font-size:22px">Nova análise</b><button class="btn alt" data-act="close">Fechar</button></div>
+    <p class="note">Procura nas 10 competições do app e, quando houver fonte, noutras ligas. Só aparecem jogos já publicados e dentro dos próximos 7 dias.</p>
+    ${fld("na-home", "Equipa da casa", "home")}${fld("na-away", "Equipa de fora", "away")}${fld("na-league", "Liga", "league")}
+    <button class="btn" style="width:100%;margin-top:14px;font-size:17px;padding:13px" data-act="analyze">Analisar</button><div id="nas"></div></div></div>`;
+}
+const DAY = 86400e3;
+const coded = (code, msg) => Object.assign(new Error(msg || code), { code });
+const loose = (a, b) => { a = norm(a).trim(); b = norm(b).trim(); return !!a && !!b && (a.includes(b) || b.includes(a)); };
+function errText(e){
+  return ({ nosource: "Essa liga não está nas 10 do app e a fonte de dados para outras ligas ainda não está ligada, por isso não é possível procurar o jogo.",
+    offline: "Sem ligação à internet. Esta análise precisa de estar online.",
+    notfound: "Jogo não encontrado. Só aparecem jogos já publicados e dentro dos próximos 7 dias." })[e.code] || e.message || "Não foi possível fazer a análise.";
+}
+const nameOk = (typed, name) => { const t = norm(typed).split(/\s+/).filter(w => w.length >= 2), n = norm(name); return t.length > 0 && t.every(w => n.includes(w)); };
+const aliasesOf = f => [f.competitions?.name, f.competitions?.country, ...(LABEL[f.competition_id] ?? [])].filter(Boolean);
+const leagueOk = (f, typed) => aliasesOf(f).some(a => loose(a, typed));
+const knownLeague = typed => ORDER.some(id => [...(LABEL[id] ?? []), S.leagues.find(l => l.id === id)?.name ?? ""].some(a => loose(a, typed)));
+// Procura nos jogos das 10 competições (dados já importados e analisados), sempre depois de ir ao servidor
+async function lookupInternal(q, now, to){
+  if (!(await fetchData())) throw coded("offline");
+  reclassify();
+  const open = S.fixtures.filter(f => ["NS", "TBD"].includes(f.status) && Date.parse(f.kickoff_utc) >= now && Date.parse(f.kickoff_utc) <= to);
+  const hit = open.filter(f => nameOk(q.home, f.home_team) && nameOk(q.away, f.away_team) && leagueOk(f, q.league)).sort((a, b) => a.kickoff_utc.localeCompare(b.kickoff_utc))[0];
+  if (!hit){
+    const swapped = open.find(f => nameOk(q.home, f.away_team) && nameOk(q.away, f.home_team) && leagueOk(f, q.league));
+    if (swapped) throw coded("swapped", `Encontrei o jogo, mas com a casa e o visitante trocados: casa ${swapped.home_team}, fora ${swapped.away_team}. Troca os campos.`);
+    const other = open.find(f => nameOk(q.home, f.home_team) && nameOk(q.away, f.away_team));
+    if (other) throw coded("league", `Encontrei esse jogo noutra competição (${other.competitions?.name}). Escreve essa liga para analisar.`);
+    return null;
+  }
+  if (!hit.analysis) throw coded("insufficient", hit.analysis_note || "Ainda não há análise para este jogo.");
+  const qa = hit.analysis.result.quality ?? {};
+  return { f: { id: "fx:" + hit.id, home_team: hit.home_team, away_team: hit.away_team, competitions: hit.competitions, kickoff_utc: hit.kickoff_utc, time_confirmed: hit.time_confirmed, status: "NS" },
+    an: hit.analysis, q,
+    note: `Base: últimos ${qa.homeMatches ?? "?"} jogos da casa e ${qa.awayMatches ?? "?"} do visitante. Qualidade dos dados: ${qa.level ?? "?"}. Fonte: football-data.org (competições do app).` };
+}
+async function lookup(q){
+  const now0 = Date.now(), to0 = now0 + 7 * DAY;
+  const internal = await lookupInternal(q, now0, to0);
+  if (internal) return internal;
+  if (!EXTRA_SOURCE) throw coded(knownLeague(q.league) ? "notfound" : "nosource");
+  const now = Date.now(), to = now + 7 * DAY;
+  let res;
+  try { res = await EXTRA_SOURCE.find({ ...q, from: new Date(now).toISOString(), to: new Date(to).toISOString() }); }
+  catch (err){ throw err && err.code ? err : coded("offline"); }
+  const ev = res && res.event;
+  if (!ev) throw coded("notfound");
+  const t = Date.parse(ev.kickoff_utc);
+  if (!(t >= now && t <= to)) throw coded("notfound"); // regra do app: só jogos publicados dos próximos 7 dias
+  if (ev.league && !loose(ev.league, q.league)) throw coded("league", `Encontrei esse jogo noutra competição (${ev.league}). Escreve essa liga para analisar.`);
+  const out = MODEL.analyze({ home: res.homeHistory ?? [], away: res.awayHistory ?? [] });
+  if (!out.ok) throw coded("insufficient", out.reason);
+  const f = { id: "ext:" + ev.id, home_team: ev.home, away_team: ev.away, competitions: { name: ev.league || q.league, country: "" },
+    kickoff_utc: ev.kickoff_utc, time_confirmed: ev.time_confirmed !== false, status: "NS" };
+  const an = { model_version: MODEL.MODEL_VERSION, created_at: new Date().toISOString(), result: out };
+  const note = `Base: últimos ${out.quality.homeMatches} jogos da casa e ${out.quality.awayMatches} do visitante. Qualidade dos dados: ${out.quality.level}. Fonte: ${EXTRA_SOURCE.name ?? "externa"}.`;
+  return { f, an, note, q };
+}
+const favButton = f => `<button type="button" class="btn alt" style="width:100%;margin:10px 0" data-favtoggle="${esc(f.id)}">${S.favs.some(x => x.id === f.id) ? "★ Remover dos favoritos" : "☆ Adicionar aos favoritos"}</button>`;
+function showExternal(r){
+  S.ext = r; const dlg = $("dlg");
+  dlg.innerHTML = analysisHtml(r.an, r.f, `<p class="note">${esc(r.note)}</p>${favButton(r.f)}`);
+  if (!dlg.open) dlg.showModal();
+}
+async function runNewAnalysis(){
+  const q = { home: S.na.home.trim(), away: S.na.away.trim(), league: S.na.league.trim() };
+  const say = (t, cls = "") => { const el = $("nas"); if (el) el.innerHTML = t ? `<div class="msg ${cls}" style="${cls ? "background:var(--tint);color:var(--ink)" : ""}">${esc(t)}</div>` : ""; };
+  if (!q.home || !q.away || !q.league) return say("Preenche a equipa da casa, a equipa de fora e a liga.");
+  if (norm(q.home).trim() === norm(q.away).trim()) return say("A equipa da casa e a de fora têm de ser diferentes.");
+  say("A procurar o jogo…", "info");
+  try { const r = await lookup(q); say(""); showExternal(r); }
+  catch (e){ say(errText(e)); }
+}
+async function openFav(id){
+  const fav = S.favs.find(x => x.id === id); if (!fav) return;
+  const dlg = $("dlg"); dlg.innerHTML = `<p class="note">A obter a análise mais recente…</p>`; if (!dlg.open) dlg.showModal();
+  try { showExternal(await lookup(fav.q)); }
+  catch (e){ dlg.innerHTML = `<div class="msg">${esc(errText(e))}</div><button class="btn alt" style="width:100%;margin:10px 0" data-favdel="${esc(id)}">Remover dos favoritos</button><form method="dialog"><button class="btn">Fechar</button></form>`; }
+}
+function saveFavs(){ store.set("favSearch", S.favs); }
+
+/* ---------- Análise e avaliação (círculos verde/vermelho) ---------- */
+const pc = p => p == null ? "—" : (p * 100).toFixed(0) + "%";
+const ck = k => k.replace(".", ",");
+function sections(r){
+  const t = r.totals, S1 = [];
+  S1.push({ title: "Resultado final", groups: [[["Casa", r.result.home, f => f.h > f.a], ["Empate", r.result.draw, f => f.h === f.a], ["Fora", r.result.away, f => f.h < f.a]]] });
+  const tg = [];
+  for (const [k, key] of [["0.5","0_5"],["1.5","1_5"],["2.5","2_5"],["3.5","3_5"]]){
+    const g = [[`Mais de ${ck(k)}`, t["over_" + key], f => f.h + f.a > +k]];
+    if (t["under_" + key] != null) g.push([`Menos de ${ck(k)}`, t["under_" + key], f => f.h + f.a < +k]);
+    tg.push(g);
+  }
+  S1.push({ title: "Total de golos", groups: tg });
+  if (r.reach) S1.push({ title: "Alcance de golos", groups: [[3, r.reach.ge3], [4, r.reach.ge4], [5, r.reach.ge5], [6, r.reach.ge6]].map(([n, p]) => [[`${n}+`, p, f => f.h + f.a >= n]]) });
+  S1.push({ title: "Ambas as equipas marcam", groups: [[["Sim", r.btts.yes, f => f.h > 0 && f.a > 0], ["Não", r.btts.no, f => !(f.h > 0 && f.a > 0)]]] });
+  const ht = f => f.hh == null || f.ah == null;
+  S1.push({ title: "Resultado ao intervalo", groups: [[["Casa", r.halftime.home, f => ht(f) ? null : f.hh > f.ah], ["Empate", r.halftime.draw, f => ht(f) ? null : f.hh === f.ah], ["Fora", r.halftime.away, f => ht(f) ? null : f.hh < f.ah]]] });
+  const noHt = f => f.hh == null || f.ah == null;
+  const g1 = f => f.hh + f.ah, g2 = f => f.h + f.a - (f.hh + f.ah);
+  if (r.productiveHalf) S1.push({ title: "Parte mais produtiva", groups: [[["Primeira parte", r.productiveHalf.first, f => noHt(f) ? null : g1(f) > g2(f)], ["Empate", r.productiveHalf.draw, f => noHt(f) ? null : g1(f) === g2(f)], ["Segunda parte", r.productiveHalf.second, f => noHt(f) ? null : g1(f) < g2(f)]]] });
+  if (r.bothHalves){
+    const bh = (side, key) => { const y = f => noHt(f) ? null : (side === "h" ? f.hh > 0 && f.h - f.hh > 0 : f.ah > 0 && f.a - f.ah > 0); return [["Sim", r.bothHalves[key].yes, y], ["Não", r.bothHalves[key].no, f => { const v = y(f); return v === null ? null : !v; }]]; };
+    S1.push({ title: "1 marca duas partes (casa)", groups: [bh("h", "home")] });
+    S1.push({ title: "2 marca duas partes (fora)", groups: [bh("a", "away")] });
+  }
+  if (r.min10) S1.push({ title: "1X2 aos 10 minutos", groups: [[["Casa vence", r.min10.home, () => null], ["Empate", r.min10.draw, () => null], ["Fora vence", r.min10.away, () => null]]] });
+  const bucket = (obj, side) => Object.entries(obj).map(([k, p]) => [`${k} golo${k === "1" ? "" : "s"}`, p, f => (k === "3+" ? f[side] >= 3 : f[side] === +k)]);
+  S1.push({ title: "Golos da equipa da casa", groups: [bucket(r.teamGoals.home, "h")] });
+  S1.push({ title: "Golos da equipa visitante", groups: [bucket(r.teamGoals.away, "a")] });
+  S1.push({ title: "Resultados exatos mais prováveis", groups: [r.exactScores.map(x => [x.score, x.p, f => `${f.h}-${f.a}` === x.score])] });
+  S1.push({ title: "Quem marca primeiro", groups: [[["Casa", r.firstToScore.home, () => null], ["Fora", r.firstToScore.away, () => null], ["Sem golos", r.firstToScore.none, f => (f.h + f.a === 0)]]] });
+  S1.push({ title: "Total de cantos", groups: [6, 7, 8, 9, 10].map(n => [[`${n}+`, null, () => null]]), note: "Sem percentagens: a fonte de dados gratuita não fornece cantos, por isso não é possível calcular esta previsão com dados reais." });
+  return S1;
+}
+// Regra: num mercado com várias opções o modelo "escolhe" a mais provável; com uma só linha, escolhe "acontece" se p >= 50%.
+// Cada linha fica verde se a escolha do modelo para essa linha coincidiu com o que aconteceu, vermelha se não, cinzenta se não há dados.
+function evalGroup(items, fin){
+  const top = items.length > 1 ? items.reduce((b, x, i) => (x[1] > items[b][1] ? i : b), 0) : -1;
+  const rows = items.map(([l, p, fn], i) => {
+    let ok = null;
+    if (fin){ const occ = fn(fin); if (occ !== null && occ !== undefined){ const pred = items.length === 1 ? p >= 0.5 : i === top; ok = pred ? occ : !occ; } }
+    return { l, p, ok };
   });
-  $app.querySelectorAll("[data-an]").forEach(b => b.onclick = () => openAnalysis(b.dataset.an));
+  let hit = null;
+  if (fin){ const i = items.length === 1 ? 0 : top, o = items[i][2](fin); if (o !== null && o !== undefined) hit = items.length === 1 ? ((items[0][1] >= 0.5) === o) : o; }
+  return { rows, hit };
+}
+function analysisHtml(an, f, extra = ""){
+  const r = an.result, q = r.quality, fin = isDone(f.status) ? finalOf(f) : null;
+  const dot = ok => !fin ? "<span></span>" : `<span class="dot ${ok === true ? "g" : ok === false ? "r" : "n"}" role="img" aria-label="${ok === true ? "Acertou" : ok === false ? "Falhou" : "Sem dados para avaliar"}"></span>`;
+  const secs = sections(r).map(sec => `<div class="sec">${esc(sec.title)}</div>` + (sec.note ? `<p class="note">${esc(sec.note)}</p>` : "") + sec.groups.map(g => evalGroup(g, fin).rows.map(x =>
+    `<div class="rp"><span>${esc(x.l)}</span><span class="trk"><span style="width:${x.p == null ? 0 : Math.max(0, x.p * 100).toFixed(0)}%"></span></span><strong>${x.p == null ? "—" : pc(x.p)}</strong>${dot(x.ok)}</div>`).join("")).join("")).join("");
+  const legend = fin ? `<p class="note"><span class="dot g"></span> o modelo acertou nesta linha · <span class="dot r"></span> falhou · <span class="dot n"></span> sem dados para avaliar (por exemplo, quem marca primeiro e o 1X2 aos 10 minutos). Resultado final: ${fin.h} - ${fin.a}.</p>` : "";
+  // As 5 linhas com maior probabilidade em todos os mercados (sem repetir probabilidades idênticas, ex.: "3+" = "Mais de 2,5")
+  const all = [];
+  for (const sec of sections(r)) for (const g of sec.groups) evalGroup(g, fin).rows.forEach(x => { if (x.p != null) all.push({ ...x, sec: sec.title }); });
+  all.sort((a, b) => b.p - a.p);
+  const top5 = [];
+  for (const x of all){ if (top5.some(t => Math.abs(t.p - x.p) < 1e-9)) continue; top5.push(x); if (top5.length === 5) break; }
+  const topHtml = top5.map(x => `<div class="rp"><span>${esc(x.l)}<br><small style="color:var(--mute)">${esc(x.sec)}</small></span><span class="trk"><span style="width:${Math.max(0, x.p * 100).toFixed(0)}%"></span></span><strong>${pc(x.p)}</strong>${dot(x.ok)}</div>`).join("");
+  return `<h3 style="font-size:22px;margin:0">${esc(f.home_team)} vs ${esc(f.away_team)}</h3>
+    <p class="note">${esc(f.competitions?.name ?? "")} · ${esc(fmtDay(f.kickoff_utc))}, ${esc(fmtHour(f.kickoff_utc))}</p>${legend}${secs}
+    <div class="sec">As 5 análises mais prováveis deste jogo</div>${topHtml}
+    <p class="note">Previsão calculada em ${esc(fmtFull(an.created_at))}${fin ? " (antes do jogo; nunca é alterada)" : ""}. São estimativas estatísticas, não garantias.</p>
+    ${extra}
+    <form method="dialog"><button class="btn">Fechar</button></form>`;
+}
+async function openAnalysis(id){
+  const dlg = $("dlg");
+  dlg.innerHTML = `<p class="note">A obter a análise mais recente…</p>`;
+  if (!dlg.open) dlg.showModal();
+  const ok = await fetchData(); render(); // vai sempre ao servidor: as análises podem ter sido acrescentadas ou atualizadas
+  const close = `<form method="dialog"><button class="btn">Fechar</button></form>`;
+  if (!ok){ dlg.innerHTML = `<div class="msg">Sem ligação à internet. O app precisa de estar online para mostrar as análises.</div>${close}`; return; }
+  const f = [...S.fixtures, ...S.history].find(x => x.id === id);
+  if (!f){ dlg.innerHTML = `<div class="msg">Este jogo já não está na lista atual.</div>${close}`; return; }
+  dlg.innerHTML = f.analysis ? analysisHtml(f.analysis, f)
+    : `<h3 style="margin:0">${esc(f.home_team)} vs ${esc(f.away_team)}</h3><div class="msg">${esc(f.analysis_note || "Ainda não há análise para esta partida.")}</div>${close}`;
 }
 
-/* ---------- Análise (pré-calculada no servidor) ---------- */
-const pct = p => (p * 100).toFixed(0) + "%";
-const rows = (pairs) => pairs.map(([l, p]) => `<div class="k"><span>${esc(l)}</span><strong>${pct(p)}</strong></div>`).join("");
-function bar(a, b, c, la, lb, lc){
-  const w = x => Math.max(x * 100, 0).toFixed(1);
-  return `<div class="bar"><span style="width:${w(a)}%;background:#0e4b36">${pct(a)}</span><span style="width:${w(b)}%;background:#6b7a72">${pct(b)}</span><span style="width:${w(c)}%;background:#b07d00">${pct(c)}</span></div>
-  <div class="row upd" style="justify-content:space-between"><span>${esc(la)}</span><span>${esc(lb)}</span><span>${esc(lc)}</span></div>`;
+/* ---------- Navegação e eventos ---------- */
+function go(view, compId){
+  S.view = view; S.compId = compId ?? null; S.drawer = false; S.search = false; drawerHtml();
+  try { history.pushState({ v: view, c: compId ?? null }, ""); } catch {}
+  render(); window.scrollTo && window.scrollTo(0, 0);
 }
-function analysisHtml(an, f, reused){
-  const r = an.result, t = r.totals, q = r.quality;
-  const when = new Intl.DateTimeFormat("pt", { timeZone: state.tz, dateStyle: "short", timeStyle: "short" }).format(new Date(an.created_at));
-  const fts = r.firstToScore;
-  return `<h3 style="font-size:26px">${esc(f.home_team)} vs ${esc(f.away_team)}</h3>
-  <p class="upd">${esc(f.competitions?.name ?? "")} · ${esc(fmtDay(f.kickoff_utc))}, ${esc(fmtHour(f.kickoff_utc))}</p>
-  <div class="sec">Resultado final</div>${bar(r.result.home, r.result.draw, r.result.away, "Casa", "Empate", "Fora")}
-  <div class="sec">Total de golos</div>${rows([["Mais de 0,5",t.over_0_5],["Mais de 1,5",t.over_1_5],["Mais de 2,5",t.over_2_5],["Mais de 3,5",t.over_3_5],["Menos de 1,5",t.under_1_5],["Menos de 2,5",t.under_2_5],["Menos de 3,5",t.under_3_5]])}
-  <div class="sec">Ambas as equipas marcam</div>${rows([["Sim", r.btts.yes],["Não", r.btts.no]])}
-  <div class="sec">Resultado ao intervalo</div>${bar(r.halftime.home, r.halftime.draw, r.halftime.away, "Casa", "Empate", "Fora")}
-  <div class="sec">Golos da equipa da casa</div>${rows(Object.entries(r.teamGoals.home))}
-  <div class="sec">Golos da equipa visitante</div>${rows(Object.entries(r.teamGoals.away))}
-  <div class="sec">Resultados exatos mais prováveis</div>${rows(r.exactScores.map(x => [x.score, x.p]))}
-  <div class="sec">Quem marca primeiro</div>${rows([["Casa", fts.home],["Fora", fts.away],["Sem golos", fts.none]])}
-  <div class="sec">Como foi calculado</div>
-  <p class="upd">Modelo ${esc(an.model_version)}: distribuição de Poisson com base nos últimos jogos de cada equipa (${q.homeMatches} da casa, ${q.awayMatches} do visitante), golos esperados ${r.lambda.home.toFixed(2)} x ${r.lambda.away.toFixed(2)}. Qualidade dos dados: ${esc(q.level)}. Não inclui confrontos diretos, classificação, lesões nem notícias. São estimativas estatísticas, não garantias.</p>
-  <p class="upd">Calculada em ${esc(when)}.</p>
-  <form method="dialog" class="row"><button class="btn">Fechar</button></form>`;
-}
-function openAnalysis(extId){
-  const f = state.fixtures.find(x => x.external_id === extId || x.id === extId); if (!f) return;
-  const dlg = document.getElementById("dlg");
-  if (f.analysis) dlg.innerHTML = analysisHtml(f.analysis, f, false);
-  else dlg.innerHTML = `<h3 style="font-size:24px">${esc(f.home_team)} vs ${esc(f.away_team)}</h3>
-    <div class="msg err">${esc(f.analysis_note || "Ainda não há análise para esta partida.")}</div>
-    <form method="dialog" class="row" style="margin-top:12px"><button class="btn">Fechar</button></form>`;
-  dlg.showModal();
-}
-function render(){ renderGames(); }
-loadFixtures();
-setInterval(loadFixtures, 30 * 60 * 1000); // volta a ler o calendário a cada 30 min
+window.addEventListener("popstate", e => { const s = e.state || { v: "home", c: null }; S.view = s.v; S.compId = s.c; render(); });
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-nav],[data-comp],[data-tab],[data-day],[data-an],[data-del],[data-favtoggle],[data-favdel],[data-favopen],[data-act]"); if (!el) return;
+  const d = el.dataset;
+  if (d.act === "close"){ if (e.target !== el && el.classList.contains("ov") && e.target.closest(".drawer")) return; S.drawer = false; S.search = false; $("ov").innerHTML = ""; return; }
+  if (d.act === "drawer"){ S.drawer = true; S.search = false; drawerHtml(); return; }
+  if (d.act === "search"){ S.search = true; S.drawer = false; searchHtml(); return; }
+  if (d.act === "next"){ const st = $("strip"); if (st && st.scrollBy) st.scrollBy({ left: 240, behavior: "smooth" }); return; }
+  if (d.act === "analyze") return runNewAnalysis();
+  if (d.favopen) return openFav(d.favopen);
+  if (d.favtoggle){
+    const r = S.ext; if (!r || r.f.id !== d.favtoggle) return;
+    if (S.favs.some(x => x.id === r.f.id)) S.favs = S.favs.filter(x => x.id !== r.f.id);
+    else S.favs = [...S.favs, { id: r.f.id, home_team: r.f.home_team, away_team: r.f.away_team, league: r.f.competitions.name, kickoff_utc: r.f.kickoff_utc, q: r.q }];
+    saveFavs(); showExternal(r); render(); return;
+  }
+  if (d.favdel){
+    if (window.confirm && !window.confirm("Remover este jogo dos favoritos?")) return;
+    S.favs = S.favs.filter(x => x.id !== d.favdel); saveFavs();
+    const dlg = $("dlg"); if (dlg.open && dlg.close) dlg.close();
+    return render();
+  }
+  if (d.act === "restore"){ S.hidden = new Set(); store.set("hiddenHist", []); return render(); }
+  if (d.del){ if (window.confirm && !window.confirm("Remover este jogo do histórico neste telemóvel?")) return; S.hidden.add(d.del); store.set("hiddenHist", [...S.hidden]); return render(); }
+  if (d.act === "toggle"){ setTheme(isDark() ? "light" : "dark"); return; }
+  if (d.day){ const st = $("strip"), sc = st ? st.scrollLeft : 0; S.day = d.day; render(); const n = $("strip"); if (n) n.scrollLeft = sc; return; }
+  if (d.nav) return go(d.nav);
+  if (d.comp) return go("comp", d.comp);
+  if (d.tab){ S.tab = d.tab; return render(); }
+  if (d.an) return openAnalysis(d.an);
+});
+document.addEventListener("input", e => { const k = ({ "na-home": "home", "na-away": "away", "na-league": "league" })[e.target.id]; if (k) S.na[k] = e.target.value; });
+document.addEventListener("change", e => {
+  if (e.target.id === "fcomp"){ S.comp = e.target.value; render(); }
+});
 
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") load(); });
+window.addEventListener("online", load);
+applyTheme();
+load();
+setInterval(load, 30 * 60 * 1000);
 </script>
 </body>
   </html>
