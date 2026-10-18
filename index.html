@@ -381,7 +381,7 @@ function matchCard(f, mode){
   return `<article class="match">${del}<div class="dt">${esc(top)}</div><div class="teams">
     <div class="t">${logo(f.home_logo)}<span>${esc(f.home_team)}</span></div><div class="vsw"><div class="vs">${esc(score)}</div></div>
     <div class="t r"><span>${esc(f.away_team)}</span>${logo(f.away_logo)}</div></div>
-    <div class="meta"><span><span class="st">${esc(STATUS[f.status] ?? f.status)}</span></span>
+    <div class="meta"><span>${isLive(f.status) ? "" : `<span class="st">${esc(STATUS[f.status] ?? f.status)}</span>`}</span>
     <span class="row">${action}</span></div></article>`;
 }
 function grouped(list, mode){
@@ -667,21 +667,22 @@ function sections(r, nm){
   const one = (l, p, fn, pick) => ({ l, p, fn, v: null, pick });
   const noHt = f => f.hh == null || f.ah == null;
   const win = i => (i === 1 ? "Sim" : "Vence");
-  // 1X2: diferença entre as duas equipas < 5 pontos => uma só linha "Qualquer vence"; senão 3 linhas por ordem de probabilidade
+  // 1X2: diferença entre as duas equipas < 5 => "Qualquer vence"; 5 a 10 (jogo equilibrado) => Vence/Empata + Talvez Sim; maior => Sim/Não
   { const it = [[H, r.result.home, f => f.h > f.a, "h"], ["Empate", r.result.draw, f => f.h === f.a, "d"], [A, r.result.away, f => f.h < f.a, "a"]];
-    const n = lr(it.map(x => x[1]));
-    if (Math.abs(n[0] - n[2]) < 5){
-      out.push({ title: "Resultado final", pct: true, groups: [[{ l: "1X2", p: r.result.home + r.result.away, fn: f => f.h !== f.a, v: "Qualquer vence", pick: true }]], one: true });
-    } else {
-      const rank = it.map((x, i) => [x[1], i]).sort((a, b) => b[0] - a[0] || a[1] - b[1]).map(x => x[1]);
+    const n = lr(it.map(x => x[1])), diff = Math.abs(n[0] - n[2]);
+    const favI = n[0] >= n[2] ? 0 : 2, dogI = favI === 0 ? 2 : 0;
+    if (diff < 5){
+      out.push({ title: "Resultado final", pct: true, groups: [[{ l: "1X2", p: r.result.home + r.result.away, fn: f => f.h !== f.a, v: "Qualquer vence", pick: true }]] });
+    } else if (diff <= 10 && n[1] > n[dogI] && n[1] <= n[favI]){
+      const fav = it[favI][3] === "h"; // favorita em casa: "Vence/Empata"; favorita fora: "Empate/Vence"
       const rows = it.map(([l, p, fn, k], i) => {
-        const rk = rank.indexOf(i);
-        if (rk === 0) return k === "d" ? { l, p, fn, v: "Sim", pick: true }
-          : { l, p, fn: k === "h" ? (f => f.h >= f.a) : (f => f.h <= f.a), v: "Empata/vence", pick: true };
-        if (rk === 1) return { l, p, fn, v: "Talvez sim", pick: false };
-        return { l: k === "d" ? l : `${l} vence`, p, fn, v: "Não", pick: false };
+        if (i === favI) return { l, p, fn: fav ? (f => f.h >= f.a) : (f => f.h <= f.a), v: fav ? "Vence/Empata" : "Empate/Vence", pick: true };
+        if (k === "d") return { l, p, fn, v: "Talvez Sim", pick: false };
+        return { l, p, fn, v: "Não vence", pick: false };
       });
       out.push({ title: "Resultado final", pct: true, groups: [rows] });
+    } else {
+      out.push({ title: "Resultado final", pct: true, groups: [excl(it.map(([l, p, fn, k]) => [k === "d" ? l : `${l} vence`, p, fn]))] });
     }
   }
   const t = r.totals, tg = [];
@@ -731,7 +732,7 @@ function sections(r, nm){
 const ints = (sec, g) => !sec.pct ? [] : g.length > 1 ? lr(g.map(x => x.p)) : g.map(x => Math.round(x.p * 100));
 const occ = (x, fin) => { if (!fin) return null; const o = x.fn(fin); return o === null || o === undefined ? null : o; };
 // verde/vermelho: a frase mostrada (ex.: "Empate Não") estava certa?
-const rowOk = (x, fin) => { const o = occ(x, fin); return o === null ? null : (x.v === "Não" ? !o : o); };
+const rowOk = (x, fin) => { const o = occ(x, fin); return o === null ? null : (String(x.v).startsWith("Não") ? !o : o); };
 // o modelo acertou neste mercado? (a opção escolhida aconteceu; se não escolheu nenhuma, nenhuma das linhas aconteceu)
 function groupHit(g, fin){
   if (!fin) return null;
