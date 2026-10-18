@@ -59,7 +59,7 @@ select,input[type=search],input[type=text],input[type=email],input[type=password
 .btn[disabled]{opacity:.5}
 .fav{background:none;border:0;font-size:22px;color:var(--amber);line-height:1}
 .empty{text-align:center;color:var(--mute);padding:36px 12px}
-nav.bot{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--hdr);display:grid;grid-template-columns:repeat(6,1fr);padding:6px 2px calc(6px + env(safe-area-inset-bottom,0px))}
+nav.bot{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--hdr);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 2px calc(6px + env(safe-area-inset-bottom,0px))}
 nav.bot button{position:relative;background:none;border:0;color:#cfe1fb;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;padding:4px 1px}
 nav.bot button[aria-current=page]{color:#fff;font-weight:800}
 nav.bot svg{width:26px;height:26px}
@@ -135,6 +135,15 @@ dialog::backdrop{background:#0009}
 .lgb[aria-pressed=true]{border-color:var(--blue);background:var(--tint)}
 .lgb .ck{width:24px;height:24px;border:2px solid var(--grey);border-radius:6px;display:grid;place-items:center;font-weight:800;color:#fff;flex:none}
 .lgb[aria-pressed=true] .ck{background:var(--blue);border-color:var(--blue)}
+/* Sim/Não com percentagem */
+.rp.wd{grid-template-columns:1fr 52px 40px 40px 14px}
+.rp.wd .v{text-align:right;font-weight:800}
+.vsw{text-align:center}
+.mn{color:var(--bad);font-weight:800;font-size:14px;margin-top:2px}
+/* ao vivo */
+.vs.lv{color:var(--bad)}
+.st.live::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#fff;margin-right:6px;animation:pl 1.2s infinite}
+@keyframes pl{50%{opacity:.25}}
 </style>
 </head>
 <body>
@@ -249,7 +258,7 @@ async function fetchData(){
     const r = await fetch("fixtures.json?t=" + Date.now(), { cache: "no-store" });
     if (!r.ok) throw new Error("HTTP " + r.status);
     const d = await r.json();
-    S.raw = d.matches ?? []; S.rawHist = d.history ?? []; S.leagues = d.leagues ?? [];
+    S.fetchedAt = Date.now(); S.raw = d.matches ?? []; S.rawHist = d.history ?? []; S.leagues = d.leagues ?? [];
     S.lastSync = d.lastSuccessAt ?? null; S.lastFinal = d.lastFinalAt ?? null;
     const bad = S.leagues.filter(l => !l.ok);
     S.msg = bad.length ? `Sem atualização recente em: ${bad.map(l => l.name).join(", ")}. Os jogos já guardados foram mantidos.` : null;
@@ -263,6 +272,32 @@ const STATUS = { NS:"Agendada", TBD:"Hora por confirmar", "1H":"Ao vivo", HT:"In
   FT:"Terminada", AWD:"Resultado atribuído", PST:"Adiada", CANC:"Cancelada", SUSP:"Suspensa" };
 const isLive = s => ["1H","HT","2H","ET","P","LIVE"].includes(s);
 const isDone = s => ["FT","AWD"].includes(s);
+const LIVE_MAX = 150 * 60000; // sem resultado final 2h30 depois do início, o jogo passa ao histórico
+// estado real do jogo: começa sozinho à hora marcada e termina sozinho, mesmo antes do servidor atualizar
+function effStatus(f){
+  const st = f.status, t = Date.parse(f.kickoff_utc), now = Date.now();
+  if (!Number.isFinite(t)) return st;
+  if (isLive(st)) return now - t > 4 * 3600e3 ? "FT" : st;
+  if (st === "NS" && f.time_confirmed !== false && now >= t) return now - t < LIVE_MAX ? "LIVE" : "FT";
+  return st;
+}
+// minuto do jogo: usa o do servidor se existir; senão calcula a partir da hora do apito (45' + 15' de intervalo + 45')
+function liveMinute(f){
+  if (f.status === "HT") return "Intervalo";
+  const m = Number(f.minute ?? f.elapsed);
+  if (Number.isFinite(m) && m > 0){ // o minuto do servidor continua a contar até à atualização seguinte
+    const base = Date.parse(S.lastSync) || S.fetchedAt || Date.now(); // hora a que o ficheiro foi gerado
+    const mm = m + Math.max(0, Math.floor((Date.now() - base) / 60000));
+    if (f.status === "1H" && mm > 45) return "45+'";
+    return mm > 90 && f.status !== "ET" ? "90+'" : mm + "'";
+  }
+  const t = Date.parse(f.kickoff_utc); if (!Number.isFinite(t)) return "";
+  const e = Math.floor((Date.now() - t) / 60000); if (e < 0) return "";
+  if (e <= 45) return Math.max(1, e) + "'";
+  if (e <= 60) return f.status === "2H" ? "46'" : "Intervalo";
+  const mm = e - 15; return mm > 90 ? "90+'" : mm + "'";
+}
+const withEff = f => { const st = effStatus(f); return st === f.status ? f : { ...f, status: st, _est: true }; };
 const fmtDay = iso => new Intl.DateTimeFormat("pt", { timeZone: S.tz, weekday:"long", day:"numeric", month:"long" }).format(new Date(iso));
 const fmtHour = iso => new Intl.DateTimeFormat("pt", { timeZone: S.tz, hour:"2-digit", minute:"2-digit" }).format(new Date(iso));
 const fmtFull = iso => new Intl.DateTimeFormat("pt", { timeZone: S.tz, dateStyle:"short", timeStyle:"short" }).format(new Date(iso));
@@ -283,8 +318,7 @@ const ICON = {
   live: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="2.6" fill="currentColor"/><path d="M7.5 7.5a6.4 6.4 0 0 0 0 9M16.5 7.5a6.4 6.4 0 0 1 0 9M4.5 4.5a10.6 10.6 0 0 0 0 15M19.5 4.5a10.6 10.6 0 0 1 0 15"/></svg>',
   cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="8" cy="14" r=".8" fill="currentColor"/><circle cx="12" cy="14" r=".8" fill="currentColor"/><circle cx="16" cy="14" r=".8" fill="currentColor"/></svg>',
   star: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 17.5 6.1 20.7l1.2-6.6L2.5 9.5l6.6-.9z"/></svg>',
-  hist: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5M3.5 4v4.5H8"/><path d="M12 7.5V12l3 2"/></svg>',
-  chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5h-8l-5 3.5V17.5H4A1.5 1.5 0 0 1 2.5 16V7A1.5 1.5 0 0 1 4 5.5z"/><path d="M7 10h10M7 13.5h6"/></svg>'
+  hist: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5M3.5 4v4.5H8"/><path d="M12 7.5V12l3 2"/></svg>'
 };
 function header(){
   return `<header class="top"><button class="ib" data-act="drawer" aria-label="Definições">${ICON.menu}</button>
@@ -292,20 +326,21 @@ function header(){
     <button class="ib" data-act="search" aria-label="Pesquisar equipas">${ICON.search}</button></header>`;
 }
 function nav(){
-  const it = [["home","Home",ICON.home],["live","AO VIVO",ICON.live],["cal","Calendário",ICON.cal],["chat","Chat",ICON.chat],["fav","Favoritos",ICON.star],["hist","Histórico",ICON.hist]];
-  return `<nav class="bot">${it.map(([k,l,i]) => `<button data-nav="${k}" ${S.view === k || (k === "home" && S.view === "comp") ? 'aria-current="page"' : ""}>${i}<span>${l}</span>${k === "chat" ? bdg() : ""}</button>`).join("")}</nav>`;
+  const it = [["home","Home",ICON.home],["live","AO VIVO",ICON.live],["cal","Calendário",ICON.cal],["fav","Favoritos",ICON.star],["hist","Histórico",ICON.hist]];
+  return `<nav class="bot">${it.map(([k,l,i]) => `<button data-nav="${k}" ${S.view === k || (k === "home" && S.view === "comp") ? 'aria-current="page"' : ""}>${i}<span>${l}</span></button>`).join("")}</nav>`;
 }
 function matchCard(f, mode){
   const logo = u => u ? `<img src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : "";
   const done = isDone(f.status);
-  const score = f.home_goals != null && f.away_goals != null && f.status !== "NS" && f.status !== "TBD" ? `${f.home_goals} - ${f.away_goals}` : "vs";
+  const has = f.home_goals != null && f.away_goals != null && f.status !== "NS" && f.status !== "TBD";
+  const score = has ? `${f.home_goals} - ${f.away_goals}` : (isLive(f.status) || done ? "– –" : "vs");
   const top = f.time_confirmed ? `${dayKey(f.kickoff_utc)} ${fmtHour(f.kickoff_utc)}` : `${dayKey(f.kickoff_utc)} · hora por confirmar`;
   let action;
   if (done) action = `<button class="btn" data-an="${esc(f.id)}">Ver estatísticas</button>`;
   else action = `<button class="btn amber" data-an="${esc(f.id)}" ${["NS","TBD"].includes(f.status) ? "" : "disabled"}>Analisar com IA</button>`;
   const del = mode === "hist" ? `<button class="x" data-del="${esc(f.id)}" aria-label="Remover este jogo do histórico">✕</button>` : "";
   return `<article class="match">${del}<div class="dt">${esc(top)}</div><div class="teams">
-    <div class="t">${logo(f.home_logo)}<span>${esc(f.home_team)}</span></div><div class="vs">${esc(score)}</div>
+    <div class="t">${logo(f.home_logo)}<span>${esc(f.home_team)}</span></div><div class="vsw"><div class="vs${isLive(f.status) ? " lv" : ""}">${esc(score)}</div>${isLive(f.status) ? `<div class="mn">${esc(liveMinute(f))}</div>` : ""}</div>
     <div class="t r"><span>${esc(f.away_team)}</span>${logo(f.away_logo)}</div></div>
     <div class="meta"><span><span class="st ${isLive(f.status) ? "live" : ""}">${esc(STATUS[f.status] ?? f.status)}</span></span>
     <span class="row">${action}</span></div></article>`;
@@ -339,13 +374,13 @@ function compView(){
   const l = S.leagues.find(x => x.id === S.compId) ?? {};
   const list = S.fixtures.filter(f => f.competition_id === S.compId);
   const name = labelById(S.compId, l.name ?? list[0]?.competitions?.name, l.country)[1];
-  return `<div class="row" style="margin-bottom:6px"><button class="btn alt" data-nav="home">← Voltar</button></div><h1 class="ttl">${esc(name)}</h1>
+  return `${backBar()}<h1 class="ttl">${esc(name)}</h1>
     ${list.length ? grouped(list) : `<div class="empty">Sem jogos desta competição nos próximos dias.</div>`}`;
 }
 function liveView(){
   const list = S.fixtures.filter(f => isLive(f.status));
   return `<h1 class="ttl">Ao Vivo</h1>${updLine()}${msgHtml()}` + (list.length ? grouped(list)
-    : `<div class="empty">Sem jogos ao vivo neste momento. O calendário é atualizado duas vezes por dia, por isso o ao vivo só aparece se um jogo estiver a decorrer nessa altura.</div>`);
+    : `<div class="empty">Sem jogos ao vivo neste momento. Os jogos aparecem aqui quando começam e passam para o Histórico assim que terminam.</div>`);
 }
 S.sel = (store.get("calLeagues", []) || []).filter(id => ORDER.includes(id)).slice(0, 3); S.lg = false;
 const leagueSel = f => !S.sel.length || S.sel.includes(f.competition_id);
@@ -411,9 +446,9 @@ function histView(){
   }
   const line = (t, label) => t.tot ? `<div>${label}: <b>${Math.round(t.hit / t.tot * 100)}%</b> certas (${t.hit} de ${t.tot} mercados, em ${t.n} jogo${t.n === 1 ? "" : "s"}).</div>` : "";
   const sum = (T.live.tot || T.retro.tot) ? `<div class="sum">${line(T.live, "Previsões feitas antes do jogo")}${line(T.retro, "Análises reconstruídas depois do jogo")}</div>` : "";
-  const upd = S.lastFinal ? `<p class="sub">Última atualização do dia: ${esc(fmtFull(S.lastFinal))}</p>` : updLine();
+  const upd = updLine();
   return `<h1 class="ttl">Histórico</h1>${upd}${msgHtml()}${sum}` + (list.length ? grouped(list, "hist")
-    : `<div class="empty">Ainda não há jogos terminados. Os jogos passam para aqui na última atualização do dia.</div>`);
+    : `<div class="empty">Ainda não há jogos terminados. Os jogos passam para aqui assim que terminam.</div>`);
 }
 function favCard(f){
   const top = `${dayKey(f.kickoff_utc)} ${fmtHour(f.kickoff_utc)}`;
@@ -430,14 +465,15 @@ function favView(){
 function vipPick(f){
   const r = f.analysis?.result?.result; if (!r || !Number.isFinite(r.home) || !Number.isFinite(r.away)) return null;
   const p = Math.max(r.home, r.away); if (p < 0.5) return null;
-  return { team: r.home >= r.away ? f.home_team : f.away_team };
+  const n = lr([r.home, r.draw ?? Math.max(0, 1 - r.home - r.away), r.away]);
+  return { team: r.home >= r.away ? f.home_team : f.away_team, pct: r.home >= r.away ? n[0] : n[2] };
 }
 function vipView(){
   const u = cur(); if (!u || !u.admin) return `<div class="empty">Sem permissão.</div>`;
   const now = Date.now(), list = S.fixtures.filter(f => ["NS", "TBD"].includes(f.status) && Date.parse(f.kickoff_utc) >= now && vipPick(f))
     .sort((a, b) => a.kickoff_utc.localeCompare(b.kickoff_utc));
   const note = list.length ? `<p class="sub">${list.length} jogo${list.length === 1 ? "" : "s"} com uma equipa a partir de 50% de probabilidade de vitória.</p>` : "";
-  return `<h1 class="ttl">VIP</h1>${note}${msgHtml()}` + (list.length ? vipGrouped(list) : `<div class="empty">Neste momento não há jogos em que uma equipa tenha 50% ou mais de probabilidade de vitória.</div>`);
+  return `${backBar()}<h1 class="ttl">VIP</h1>${note}${msgHtml()}` + (list.length ? vipGrouped(list) : `<div class="empty">Neste momento não há jogos em que uma equipa tenha 50% ou mais de probabilidade de vitória.</div>`);
 }
 function vipGrouped(list){
   let h = "", ld = "";
@@ -445,12 +481,20 @@ function vipGrouped(list){
     const d = dayKey(f.kickoff_utc);
     if (d !== ld){ h += `<h2 class="day">${esc(fmtDay(f.kickoff_utc))}</h2>`; ld = d; }
     const c = f.competitions?.name ?? "";
-    h += matchCard(f).replace('<div class="meta">', `<div class="cn" style="margin:8px 0 0">${esc(c)}</div><div class="meta"><span style="font-weight:700;color:var(--ink)">${esc(vipPick(f).team)} vitória: Sim</span>`);
+    h += matchCard(f).replace('<div class="meta">', `<div class="cn" style="margin:8px 0 0">${esc(c)}</div><div class="meta"><span style="font-weight:700;color:var(--ink)">${esc(vipPick(f).team)} vitória: ${vipPick(f).pct}%</span>`);
   }
   return h;
 }
+const backBar = () => `<div class="row" style="margin-bottom:8px"><button class="btn alt" data-act="back">← Voltar</button></div>`;
+function goBack(){
+  S.drawer = false; S.search = false; S.lg = false; $("ov").innerHTML = "";
+  const i = history.state && history.state.i;
+  if (i > 0) { try { history.back(); return; } catch {} }
+  S.view = "home"; S.compId = null; try { history.replaceState({ v: "home", c: null, i: 0 }, ""); } catch {}
+  render(); window.scrollTo && window.scrollTo(0, 0);
+}
 function view(){ return ({ vip: vipView, home: homeView, comp: compView, live: liveView, cal: calView, fav: favView, hist: histView,
-  chat: chatView, profile: profileView, user: userView, admin: adminView })[S.view](); }
+  profile: profileView, user: userView, admin: adminView })[S.view](); }
 function pruneFavs(){
   const keep = S.favs.filter(f => Date.parse(f.kickoff_utc) >= Date.now() - 86400e3);
   if (keep.length !== S.favs.length){ S.favs = keep; store.set("favSearch", S.favs); }
@@ -458,22 +502,19 @@ function pruneFavs(){
 function reclassify(){
   pruneFavs();
   const today = dayKey(new Date().toISOString());
-  const lf = S.lastFinal ? Date.parse(S.lastFinal) : 0; // última atualização do dia
-  const before = f => dayKey(f.kickoff_utc) < today || (isDone(f.status) && Date.parse(f.kickoff_utc) <= lf);
-  S.fixtures = S.raw.filter(f => !(isDone(f.status) && before(f)));
+  const all = S.raw.map(withEff);
+  S.fixtures = all.filter(f => !isDone(f.status));            // jogo terminado sai logo da lista...
   const m = new Map();
-  for (const f of S.raw) if (f.status === "FT" && before(f)) m.set(f.id, f);
-  for (const f of S.rawHist) if (before(f)) m.set(f.id, f.analysis || !m.has(f.id) ? f : m.get(f.id)); // prefere a versão com previsão
-  S.history = [...m.values()].filter(f => !S.hidden.has(f.id)).sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc)); // removidos ficam removidos
+  for (const f of all) if (isDone(f.status)) m.set(f.id, f);   // ...e entra logo no histórico
+  for (const f0 of S.rawHist){ const f = withEff(f0); if (isDone(f.status) || dayKey(f.kickoff_utc) < today) m.set(f.id, f.analysis || !m.has(f.id) ? f : m.get(f.id)); }
+  S.history = [...m.values()].filter(f => !S.hidden.has(f.id)).sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc));
 }
 function render(){
   reclassify();
   const u = cur();
   if (!u){ S.soc.was = false; $("ov").innerHTML = ""; $("app").innerHTML = authView(); return; }
   S.soc.was = true;
-  markCurrent();
   $("app").innerHTML = header() + `<main>${view()}</main>` + nav();
-  const cl = $("chatlist"); if (cl) cl.scrollTop = cl.scrollHeight;
 }
 
 /* ---------- Menu (definições) e pesquisa ---------- */
@@ -486,7 +527,6 @@ function drawerHtml(){
   $("ov").innerHTML = `<div class="ov" data-act="close"><div class="drawer" role="dialog" aria-label="Menu">${top}
     <button class="btn" style="${B}" data-act="toggle" aria-pressed="${dark}">${dark ? "☀️ Modo claro" : "🌙 Modo escuro"}</button>
     <button class="btn" style="${B}">Adicionar tempo</button>
-    <button class="btn" style="${B}">Chat</button>
     ${u ? `<button class="btn alt" style="width:100%;margin-top:8px" data-s="logout">Terminar sessão</button>` : ""}</div></div>`;
 }
 function searchHtml(){
@@ -591,7 +631,7 @@ function sections(r, nm){
   const one = (l, p, fn, pick) => ({ l, p, fn, v: null, pick });
   const noHt = f => f.hh == null || f.ah == null;
   const win = i => (i === 1 ? "Sim" : "Vitória");
-  out.push({ title: "Resultado final", pct: false, groups: [excl([[`${H} vitória`, r.result.home, f => f.h > f.a], ["Empate", r.result.draw, f => f.h === f.a], [`${A} vitória`, r.result.away, f => f.h < f.a]])] });
+  out.push({ title: "Resultado final", pct: true, groups: [excl([[`${H} vitória`, r.result.home, f => f.h > f.a], ["Empate", r.result.draw, f => f.h === f.a], [`${A} vitória`, r.result.away, f => f.h < f.a]])] });
   const t = r.totals, tg = [];
   for (const [k, key] of [["0.5", "0_5"], ["1.5", "1_5"], ["2.5", "2_5"], ["3.5", "3_5"]]){
     const over = t["over_" + key], under = t["under_" + key];
@@ -603,17 +643,20 @@ function sections(r, nm){
   out.push({ title: "Total de golos", pct: true, groups: tg });
   if (r.reach) out.push({ title: "Alcance de golos", pct: true, groups: [[4, r.reach.ge4], [5, r.reach.ge5], [6, r.reach.ge6]].filter(x => x[1] != null).map(([n, p]) => [one(`${n}+`, p, f => f.h + f.a >= n, p >= 0.5)]) });
   const by = r.btts.yes >= r.btts.no;
-  out.push({ title: "Ambas as equipas marcam", pct: false, groups: [[by ? one("Sim", r.btts.yes, f => f.h > 0 && f.a > 0, true) : one("Não", r.btts.no, f => !(f.h > 0 && f.a > 0), true)]] });
-  out.push({ title: "Resultado ao intervalo", pct: false, groups: [excl([[H, r.halftime.home, f => noHt(f) ? null : f.hh > f.ah], ["Empate", r.halftime.draw, f => noHt(f) ? null : f.hh === f.ah], [A, r.halftime.away, f => noHt(f) ? null : f.hh < f.ah]], win)] });
+  out.push({ title: "Ambas as equipas marcam", pct: true, groups: [[one("Sim", r.btts.yes, f => f.h > 0 && f.a > 0, by), one("Não", r.btts.no, f => !(f.h > 0 && f.a > 0), !by)]] });
+  out.push({ title: "Resultado ao intervalo", pct: true, groups: [excl([[H, r.halftime.home, f => noHt(f) ? null : f.hh > f.ah], ["Empate", r.halftime.draw, f => noHt(f) ? null : f.hh === f.ah], [A, r.halftime.away, f => noHt(f) ? null : f.hh < f.ah]], win)] });
   const g1 = f => f.hh + f.ah, g2 = f => f.h + f.a - (f.hh + f.ah);
-  if (r.productiveHalf) out.push({ title: "Parte mais produtiva", pct: false, groups: [excl([["Primeira parte", r.productiveHalf.first, f => noHt(f) ? null : g1(f) > g2(f)], ["Empate", r.productiveHalf.draw, f => noHt(f) ? null : g1(f) === g2(f)], ["Segunda parte", r.productiveHalf.second, f => noHt(f) ? null : g1(f) < g2(f)]])] });
+  if (r.productiveHalf) out.push({ title: "Parte mais produtiva", pct: true, groups: [excl([["Primeira parte", r.productiveHalf.first, f => noHt(f) ? null : g1(f) > g2(f)], ["Empate", r.productiveHalf.draw, f => noHt(f) ? null : g1(f) === g2(f)], ["Segunda parte", r.productiveHalf.second, f => noHt(f) ? null : g1(f) < g2(f)]])] });
   if (r.bothHalves){
     const bh = side => f => noHt(f) ? null : (side === "h" ? f.hh > 0 && f.h - f.hh > 0 : f.ah > 0 && f.a - f.ah > 0);
     const ph = r.bothHalves.home.yes, pa = r.bothHalves.away.yes, best = Math.max(ph, pa), pH = best >= 0.5 && ph >= pa, pA = best >= 0.5 && !pH;
-    out.push({ title: "Marca duas partes", pct: false, groups: [[{ l: H, p: ph, fn: bh("h"), v: pH ? "Sim" : "Não", pick: pH }, { l: A, p: pa, fn: bh("a"), v: pA ? "Sim" : "Não", pick: pA }]] });
+    const no = side => f => { const v = bh(side)(f); return v === null ? null : !v; };
+    out.push({ title: "Marca duas partes", pct: true, groups: [
+      [one(`${H}: Sim`, ph, bh("h"), ph >= 0.5), one(`${H}: Não`, 1 - ph, no("h"), ph < 0.5)],
+      [one(`${A}: Sim`, pa, bh("a"), pa >= 0.5), one(`${A}: Não`, 1 - pa, no("a"), pa < 0.5)]] });
   }
   const z10 = f => f.h + f.a === 0; // só se sabe o 1X2 aos 10 min quando o jogo acabou 0-0
-  if (r.min10) out.push({ title: "1X2 aos 10 minutos", pct: false, groups: [excl([[H, r.min10.home, f => z10(f) ? false : null], ["Empate", r.min10.draw, f => z10(f) ? true : null], [A, r.min10.away, f => z10(f) ? false : null]], win)] });
+  if (r.min10) out.push({ title: "1X2 aos 10 minutos", pct: true, groups: [excl([[H, r.min10.home, f => z10(f) ? false : null], ["Empate", r.min10.draw, f => z10(f) ? true : null], [A, r.min10.away, f => z10(f) ? false : null]], win)] });
   const bucket = (obj, side) => { const items = Object.entries(obj).map(([k, p]) => [`${k} golo${k === "1" ? "" : "s"}`, p, f => (k === "3+" ? f[side] >= 3 : f[side] === +k)]); const tp = topI(items); return items.map(([l, p, fn], i) => one(l, p, fn, i === tp)); };
   out.push({ title: "Golos da equipa da casa", pct: true, groups: [bucket(r.teamGoals.home, "h")] });
   out.push({ title: "Golos da equipa visitante", pct: true, groups: [bucket(r.teamGoals.away, "a")] });
@@ -621,7 +664,7 @@ function sections(r, nm){
   out.push({ title: "Resultado exato mais provável", pct: true, groups: [[one(ex.score, ex.p, f => `${f.h}-${f.a}` === ex.score, true)]] });
   // quem marcou primeiro só é certo se uma das equipas não marcou
   const first = f => (f.h + f.a === 0 ? "none" : f.a === 0 ? "home" : f.h === 0 ? "away" : null);
-  out.push({ title: "Quem marca primeiro", pct: false, groups: [excl([[H, r.firstToScore.home, f => { const v = first(f); return v === null ? null : v === "home"; }], ["Sem golos", r.firstToScore.none, f => f.h + f.a === 0], [A, r.firstToScore.away, f => { const v = first(f); return v === null ? null : v === "away"; }]])] });
+  out.push({ title: "Quem marca primeiro", pct: true, groups: [excl([[H, r.firstToScore.home, f => { const v = first(f); return v === null ? null : v === "home"; }], ["Sem golos", r.firstToScore.none, f => f.h + f.a === 0], [A, r.firstToScore.away, f => { const v = first(f); return v === null ? null : v === "away"; }]])] });
   return out;
 }
 const ints = (sec, g) => !sec.pct ? [] : g.length > 1 ? lr(g.map(x => x.p)) : g.map(x => Math.round(x.p * 100));
@@ -643,7 +686,8 @@ function analysisHtml(an, f, extra = ""){
   const row = (x, n, sec, sub) => {
     const lab = `<span>${esc(x.l)}${sub ? `<br><small style="color:var(--mute)">${esc(sec.title)}</small>` : ""}</span>`;
     return sec.pct
-      ? `<div class="rp">${lab}<span class="trk"><span style="width:${n}%"></span></span><strong>${n}%</strong>${dot(rowOk(x, fin))}</div>`
+      ? (x.v ? `<div class="rp wd">${lab}<b class="v">${esc(x.v)}</b><span class="trk"><span style="width:${n}%"></span></span><strong>${n}%</strong>${dot(rowOk(x, fin))}</div>`
+             : `<div class="rp">${lab}<span class="trk"><span style="width:${n}%"></span></span><strong>${n}%</strong>${dot(rowOk(x, fin))}</div>`)
       : `<div class="rp nv">${lab}<strong class="v">${esc(x.v ?? "")}</strong>${dot(rowOk(x, fin))}</div>`;
   };
   const body = secs.map(sec => `<div class="sec">${esc(sec.title)}</div>` + sec.groups.map(g => { const n = ints(sec, g); return g.map((x, i) => row(x, n[i], sec, false)).join(""); }).join("")).join("");
@@ -655,7 +699,7 @@ function analysisHtml(an, f, extra = ""){
   const legend = fin ? `<p class="note"><span class="dot g"></span> certo · <span class="dot r"></span> errado · <span class="dot n"></span> sem dados para avaliar (por exemplo, o 1X2 aos 10 minutos, ou quem marca primeiro quando as duas equipas marcam). Resultado final: ${fin.h} - ${fin.a}.</p>` : "";
   return `<h3 style="font-size:22px;margin:0">${esc(f.home_team)} vs ${esc(f.away_team)}</h3>
     <p class="note">${esc(f.competitions?.name ?? "")} · ${esc(fmtDay(f.kickoff_utc))}, ${esc(fmtHour(f.kickoff_utc))}</p>${legend}
-    <p class="note">Em cada mercado só uma opção aparece como "Sim" (ou "Vitória"). Só o total de golos, os golos de cada equipa, o alcance de golos e o resultado exato mostram percentagens.</p>${body}
+    ${body}
     <div class="sec">As 5 análises mais prováveis deste jogo</div>${topHtml}
     <p class="note">Previsão calculada em ${esc(fmtFull(an.created_at))}${fin ? (an.retro ? " (análise reconstruída depois do jogo, só com resultados anteriores a ele; não foi uma previsão feita antes)" : " (antes do jogo; nunca é alterada)") : ""}. São estimativas estatísticas, não garantias.</p>
     ${extra}
@@ -685,7 +729,7 @@ async function openAnalysis(id){
 const ADMIN_EMAIL = "abelmaridao@gmail.com";
 const MAIL_ENDPOINT = null; // URL do teu serviço de envio de e-mail; null = modo demonstração (código mostrado no ecrã)
 const DBK = "eb_db_v1", SESK = "eb_session";
-const emptyDB = () => ({ users: [], general: [], dms: [], resets: {} });
+const emptyDB = () => ({ users: [], resets: {} });
 const rawDB = () => { const d = store.get(DBK, null); return d && d.users ? d : emptyDB(); };
 let DBc = rawDB();
 const saveDB = () => store.set(DBK, DBc);
@@ -695,11 +739,9 @@ const rnd = () => { try { return crypto.getRandomValues(new Uint32Array(1))[0]; 
 const validEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
 const validName = n => n.length >= 3 && n.length <= 20 && /^[\p{L}\p{N}_. -]+$/u.test(n);
 const tm = t => { const iso = new Date(t).toISOString(); return dayKey(iso) === dayKey(new Date().toISOString()) ? fmtHour(iso) : fmtFull(iso); };
-const dk = (a, b) => [a, b].sort().join("|");
-const nameOf = id => DBc.users.find(x => x.id === id)?.name ?? "Removido";
 const userById = id => DBc.users.find(x => x.id === id);
 
-S.soc = { mode: "login", err: "", info: "", mail: null, was: false, thread: "general", showSearch: false, q: "", pwForm: false, pmsg: null, banFor: null,
+S.soc = { mode: "login", err: "", info: "", mail: null, was: false, showSearch: false, q: "", pwForm: false, pmsg: null, banFor: null,
   f: { id: "", email: "", name: "", pw: "", code: "", pw2: "" } };
 
 async function hashPw(pw, salt){
@@ -723,36 +765,6 @@ function cur(){
   return u;
 }
 const avatar = (u, s = 40) => u.photo ? `<img class="av" style="--s:${s}px" src="${esc(u.photo)}" alt="">` : `<span class="av" style="--s:${s}px" aria-hidden="true">${esc((u.name || "?").trim().charAt(0).toUpperCase())}</span>`;
-
-/* ----- mensagens não lidas ----- */
-function unreadKey(u, k){
-  const L = k === "general" ? DBc.general : DBc.dms.filter(m => m.k === k);
-  return L.filter(m => m.from !== u.id && m.t > (u.reads[k] || 0)).length;
-}
-function dmKeys(u){ return [...new Set(DBc.dms.filter(m => m.k.split("|").includes(u.id)).map(m => m.k))]; }
-function unreadTotal(){ const u = cur(); if (!u) return 0; return dmKeys(u).reduce((n, k) => n + unreadKey(u, k), unreadKey(u, "general")); }
-function bdg(){ const n = unreadTotal(); return n ? `<span class="bdg" aria-label="${n} mensagens não lidas">${n > 99 ? "99+" : n}</span>` : ""; }
-function updBadge(){
-  const b = document.querySelector('[data-nav="chat"]'); if (!b) return;
-  const o = b.querySelector(".bdg"); if (o) o.remove();
-  b.insertAdjacentHTML("beforeend", bdg());
-}
-// a conversa que está aberta conta como lida
-function markCurrent(){
-  const u = cur(); if (!u) return; let k = null;
-  if (S.view === "chat"){ if (S.soc.thread === "general") k = "general"; else if (S.soc.thread !== "list") k = dk(u.id, S.soc.thread); }
-  else if (S.view === "user" && S.compId) k = dk(u.id, S.compId);
-  if (k && unreadKey(u, k) > 0){ u.reads[k] = Date.now(); saveDB(); }
-}
-function refreshLive(){
-  markCurrent();
-  const el = $("chatlist");
-  if (el){
-    const html = chatListHtml(el.dataset.k);
-    if (el.innerHTML !== html){ const near = el.scrollHeight - el.scrollTop - el.clientHeight < 80; el.innerHTML = html; if (near) el.scrollTop = el.scrollHeight; }
-  }
-  updBadge();
-}
 
 /* ----- ecrã de entrada ----- */
 function authView(){
@@ -794,7 +806,7 @@ async function doRegister(){
   reloadDB();
   if (DBc.users.some(u => u.email === e)) return err("Este e-mail já está registado.");
   if (DBc.users.some(u => norm(u.name) === norm(n))) return err("Este nome de utilizador já existe.");
-  const u = { id: uid(), email: e, name: n, salt, hash, photo: "", friends: [], admin: e === ADMIN_EMAIL, banUntil: 0, created: Date.now(), reads: { general: Date.now() } };
+  const u = { id: uid(), email: e, name: n, salt, hash, photo: "", friends: [], admin: e === ADMIN_EMAIL, banUntil: 0, created: Date.now() };
   DBc.users.push(u); saveDB(); store.set(SESK, u.id);
   S.soc.f.pw = ""; S.soc.err = ""; S.soc.info = ""; S.view = "home"; render();
 }
@@ -857,7 +869,7 @@ function profileView(){
   const msg = s.pmsg ? `<div class="msg ${s.pmsg.ok ? "ok" : ""}" role="alert">${esc(s.pmsg.t)}</div>` : "";
   const pwForm = s.pwForm ? `<form novalidate data-sf="pw" style="margin-top:8px"><label class="fl" for="pw-c">Palavra-passe atual</label><input id="pw-c" name="c" type="password" autocomplete="current-password">
     <label class="fl" for="pw-n">Nova palavra-passe</label><input id="pw-n" name="n" type="password" autocomplete="new-password"><div class="row" style="margin-top:10px"><button class="btn">Guardar</button><button type="button" class="btn alt" data-s="pwform">Cancelar</button></div></form>` : "";
-  return `<h1 class="ttl">Meu perfil</h1>${msg}<section class="card">
+  return `${backBar()}<h1 class="ttl">Meu perfil</h1>${msg}<section class="card">
     <div class="phead">${avatar(u, 84)}<label class="btn amber" for="photoin" style="cursor:pointer">Adicionar foto de perfil</label><input id="photoin" type="file" accept="image/*" hidden></div>
     <form novalidate data-sf="rename"><label class="fl" for="pn">Editar nome:</label><div class="row"><input id="pn" name="n" type="text" maxlength="20" value="${esc(u.name)}"><button class="btn">Guardar</button></div></form>
     <div class="fl">Teu e-mail:</div><div class="val">${esc(u.email)}</div>
@@ -865,62 +877,18 @@ function profileView(){
     <p class="note">Só tu vês o teu e-mail. Os outros utilizadores veem apenas o teu nome, a foto e a lista de amigos.</p></section>
     <section class="card"><button class="link big" data-s="fsearch">Adicionar amigos</button>
     ${s.showSearch ? `<div class="sbar"><input id="usq" type="search" placeholder="Pesquisar utilizador…" autocomplete="off" value="${esc(s.q)}"><span class="lupa">${ICON.search}</span></div><div id="sres">${searchRes()}</div>` : ""}
-    <h3>Meus amigos</h3>${fr.length ? fr.map(f => `<div class="frow">${avatar(f, 36)}<button class="link nm" data-s="user" data-id="${f.id}">${esc(f.name)}</button><button class="mbtn" data-s="dm" data-id="${f.id}">mensagens</button></div>`).join("") : `<p class="note">Ainda não tens amigos. Toca em "Adicionar amigos" para pesquisar.</p>`}</section>
+    <h3>Meus amigos</h3>${fr.length ? fr.map(f => `<div class="frow">${avatar(f, 36)}<button class="link nm" data-s="user" data-id="${f.id}">${esc(f.name)}</button></div>`).join("") : `<p class="note">Ainda não tens amigos. Toca em "Adicionar amigos" para pesquisar.</p>`}</section>
     <button class="btn alt" style="width:100%" data-s="logout">Terminar sessão</button>`;
 }
 function userView(){
   const me = cur(), u = userById(S.compId);
-  const back = `<div class="row" style="margin-bottom:6px"><button class="btn alt" data-s="backhist">← Voltar</button></div>`;
+  const back = backBar();
   if (!u) return back + `<div class="empty">Este utilizador já não existe.</div>`;
   if (u.id === me.id) return profileView();
   const isF = me.friends.includes(u.id), fr = u.friends.map(userById).filter(Boolean);
   return `${back}<section class="card"><div class="phead">${avatar(u, 84)}<div style="flex:1"><h1 style="margin:0;font-size:24px">${esc(u.name)}</h1>
     <button class="btn ${isF ? "alt" : "amber"}" style="margin-top:8px" data-s="${isF ? "unfriend" : "friend"}" data-id="${u.id}">${isF ? "Remover dos amigos" : "Adicionar aos amigos"}</button></div></div>
-    <h3>Amigos de ${esc(u.name)}</h3>${fr.length ? fr.map(f => `<div class="frow">${avatar(f, 32)}<button class="link nm" data-s="user" data-id="${f.id}">${esc(f.name)}</button></div>`).join("") : `<p class="note">Sem amigos ainda.</p>`}</section>
-    <section class="card"><h3 style="margin-top:0">Mensagens privadas</h3><p class="note">Só tu e ${esc(u.name)} veem esta conversa.</p>${threadBox(dk(me.id, u.id))}</section>`;
-}
-
-/* ----- chat ----- */
-function chatListHtml(k){
-  const me = cur(); if (!me) return "";
-  const L = (k === "general" ? DBc.general : DBc.dms.filter(m => m.k === k)).slice(-100);
-  if (!L.length) return `<div class="empty" style="padding:20px">Ainda não há mensagens. Escreve a primeira.</div>`;
-  return L.map(m => { const mine = m.from === me.id; return `<div class="bub ${mine ? "me" : ""}">${mine ? "" : `<b>${esc(nameOf(m.from))}</b>`}<span>${esc(m.text)}</span><small>${esc(tm(m.t))}</small></div>`; }).join("");
-}
-function threadBox(k){
-  return `<div id="chatlist" class="chl" data-k="${esc(k)}" aria-live="polite">${chatListHtml(k)}</div>
-    <form class="send" data-sf="send" data-th="${esc(k)}"><input name="t" type="text" maxlength="500" placeholder="Escreve uma mensagem…" autocomplete="off"><button class="btn">Enviar</button></form>`;
-}
-function chatView(){
-  const u = cur(), s = S.soc, t = s.thread;
-  if (t !== "general" && t !== "list"){
-    const o = userById(t);
-    if (!o){ s.thread = "list"; return chatView(); }
-    return `<div class="row" style="margin-bottom:6px"><button class="btn alt" data-s="tab" data-v="list">← Conversas</button><button class="link nm" data-s="user" data-id="${o.id}">${avatar(o, 30)} ${esc(o.name)}</button></div>${threadBox(dk(u.id, o.id))}`;
-  }
-  const tabs = `<div class="tabs"><button class="tab" data-s="tab" data-v="general" aria-pressed="${t === "general"}">Chat geral</button><button class="tab" data-s="tab" data-v="list" aria-pressed="${t === "list"}">Privadas</button></div>`;
-  if (t === "general") return `<h1 class="ttl">Chat</h1>${tabs}<p class="note">Todas as mensagens do chat geral são visíveis para todos os utilizadores.</p>${threadBox("general")}`;
-  const ids = new Set(u.friends);
-  DBc.dms.forEach(m => { const p = m.k.split("|"); if (p.includes(u.id)) p.forEach(x => x !== u.id && ids.add(x)); });
-  const rows = [...ids].map(userById).filter(Boolean).map(o => { const k = dk(u.id, o.id), L = DBc.dms.filter(m => m.k === k); return { o, last: L[L.length - 1], n: unreadKey(u, k) }; })
-    .sort((a, b) => (b.last?.t || 0) - (a.last?.t || 0));
-  return `<h1 class="ttl">Chat</h1>${tabs}` + (rows.length ? rows.map(r => `<button class="conv" data-s="dm" data-id="${r.o.id}">${avatar(r.o, 40)}<span class="cm"><b>${esc(r.o.name)}</b><small>${r.last ? esc(r.last.text.slice(0, 50)) : "Sem mensagens"}</small></span>${r.n ? `<span class="bdg2">${r.n}</span>` : ""}</button>`).join("")
-    : `<div class="empty">Ainda não tens conversas privadas. Adiciona amigos no teu perfil.</div>`);
-}
-function doSend(form){
-  const u0 = cur(); if (!u0) return;
-  const k = form.dataset.th, inp = form.elements.t, text = inp.value.trim().slice(0, 500);
-  if (!text) return;
-  reloadDB();
-  const me = userById(u0.id); if (!me) return;
-  if (k === "general"){ DBc.general.push({ id: uid(), from: me.id, t: Date.now(), text }); DBc.general = DBc.general.slice(-300); }
-  else {
-    const p = k.split("|"), other = p.find(i => i !== me.id);
-    if (!p.includes(me.id) || !userById(other)) return;
-    DBc.dms.push({ id: uid(), k, from: me.id, t: Date.now(), text }); DBc.dms = DBc.dms.slice(-3000);
-  }
-  me.reads[k] = Date.now(); saveDB(); inp.value = "";
-  refreshLive(); const el = $("chatlist"); if (el) el.scrollTop = el.scrollHeight;
+    <h3>Amigos de ${esc(u.name)}</h3>${fr.length ? fr.map(f => `<div class="frow">${avatar(f, 32)}<button class="link nm" data-s="user" data-id="${f.id}">${esc(f.name)}</button></div>`).join("") : `<p class="note">Sem amigos ainda.</p>`}</section>`;
 }
 
 /* ----- painel do administrador ----- */
@@ -936,7 +904,7 @@ function adminView(){
     return `<div class="urow"><b>${esc(u.name)}</b>${u.admin ? `<span class="tag">ADMIN</span>` : ""}<br><small style="color:var(--mute)">${esc(u.email)} · ${b ? "Banido até " + esc(tm(u.banUntil)) : "Ativo"} · ${u.friends.length} amigo${u.friends.length === 1 ? "" : "s"}</small>
       ${self ? "" : `<div class="row">${b ? `<button class="mbtn" data-s="unban" data-id="${u.id}">Remover ban</button>` : `<button class="mbtn" data-s="banopen" data-id="${u.id}">Banir</button>`}<button class="mbtn" style="background:var(--bad)" data-s="deluser" data-id="${u.id}">Excluir conta</button></div>`}</div>`;
   }).join("");
-  return `<h1 class="ttl">Painel do administrador</h1><div class="stat"><div><b>${us.length}</b>utilizadores</div><div><b>${banned}</b>banidos agora</div><div><b>${DBc.general.length}</b>msgs no chat</div></div>
+  return `${backBar()}<h1 class="ttl">Painel do administrador</h1><div class="stat"><div><b>${us.length}</b>utilizadores</div><div><b>${banned}</b>banidos agora</div><div><b>${Math.round(us.reduce((n, x) => n + x.friends.length, 0) / 2)}</b>amizades</div></div>
     ${banForm}<section class="card"><h3 style="margin-top:0">Todos os utilizadores</h3>${rows}</section>`;
 }
 function adminOnly(){ reloadDB(); const u = cur(); return u && u.admin ? u : null; }
@@ -949,9 +917,7 @@ const ACT = {
   admin: () => go("admin"),
   vip: () => { reloadDB(); const u = cur(); if (u && u.admin) go("vip"); },
   user: d => go("user", d.id),
-  dm: d => { S.soc.thread = d.id; go("chat"); },
-  tab: d => { S.soc.thread = d.v; render(); },
-  backhist: () => { try { history.back(); } catch { go("home"); } },
+  backhist: () => goBack(),
   pwform: () => { S.soc.pwForm = !S.soc.pwForm; S.soc.pmsg = null; render(); },
   fsearch: () => { S.soc.showSearch = !S.soc.showSearch; render(); const i = $("usq"); if (i) i.focus(); },
   friend: d => { reloadDB(); const me = userById(cur()?.id), o = userById(d.id); if (!me || !o || me.id === o.id) return;
@@ -967,14 +933,11 @@ const ACT = {
     if (window.confirm && !window.confirm(`Excluir a conta de ${t.name} para sempre? Não dá para desfazer.`)) return;
     DBc.users = DBc.users.filter(x => x.id !== d.id);
     DBc.users.forEach(x => { x.friends = x.friends.filter(i => i !== d.id); });
-    DBc.dms = DBc.dms.filter(m => !m.k.split("|").includes(d.id));
-    DBc.general = DBc.general.filter(m => m.from !== d.id);
     delete DBc.resets[t.email]; saveDB(); render();
   }
 };
 const FORM = {
   login: () => doLogin(), register: () => doRegister(), forgot1: () => doForgot1(), forgot2: () => doForgot2(),
-  send: f => doSend(f),
   rename: f => {
     const n = f.elements.n.value.trim(); if (!validName(n)) return pm("O nome deve ter 3 a 20 caracteres (letras, números, espaço, _ . -).");
     reloadDB(); const me = userById(cur()?.id); if (!me) return;
@@ -1017,21 +980,17 @@ document.addEventListener("change", e => {
   img.onerror = () => pm("Não foi possível ler esta imagem.");
   img.src = url;
 });
-// atualização periódica: mensagens novas, contador de não lidas, bans em tempo real
-setInterval(() => {
-  reloadDB();
-  if (!cur()){ if (S.soc.was) render(); return; }
-  refreshLive();
-}, 3000);
-window.addEventListener("storage", e => { if (e.key === DBK || e.key === SESK){ reloadDB(); if (!cur()){ if (S.soc.was) render(); } else if (!S.soc.was) render(); else refreshLive(); } });
+// atualização periódica: banimentos aplicam-se em tempo real
+setInterval(() => { reloadDB(); if (!cur() && S.soc.was) render(); }, 3000);
+window.addEventListener("storage", e => { if (e.key === DBK || e.key === SESK){ reloadDB(); if (!cur()){ if (S.soc.was) render(); } else if (!S.soc.was) render(); } });
 
 /* ---------- Navegação e eventos ---------- */
 function go(view, compId){
   S.view = view; S.compId = compId ?? null; S.drawer = false; S.search = false; drawerHtml();
-  try { history.pushState({ v: view, c: compId ?? null }, ""); } catch {}
+  try { history.pushState({ v: view, c: compId ?? null, i: ((history.state && history.state.i) || 0) + 1 }, ""); } catch {}
   render(); window.scrollTo && window.scrollTo(0, 0);
 }
-window.addEventListener("popstate", e => { const s = e.state || { v: "home", c: null }; S.view = s.v; S.compId = s.c; render(); });
+window.addEventListener("popstate", e => { const s = e.state || { v: "home", c: null }; S.view = s.v; S.compId = s.c; S.drawer = false; S.search = false; S.lg = false; $("ov").innerHTML = ""; render(); window.scrollTo && window.scrollTo(0, 0); });
 document.addEventListener("click", e => {
   const el = e.target.closest("[data-nav],[data-comp],[data-tab],[data-day],[data-an],[data-del],[data-favtoggle],[data-favdel],[data-favopen],[data-act]"); if (!el) return;
   const d = el.dataset;
@@ -1042,6 +1001,7 @@ document.addEventListener("click", e => {
     store.set("calLeagues", S.sel); leaguesHtml(); render(); return;
   }
   if (d.act === "lgclear"){ S.sel = []; store.set("calLeagues", S.sel); leaguesHtml(); render(); return; }
+  if (d.act === "back") return goBack();
   if (d.act === "drawer"){ S.drawer = true; S.search = false; drawerHtml(); return; }
   if (d.act === "search"){ S.search = true; S.drawer = false; searchHtml(); return; }
   if (d.act === "next"){ const st = $("strip"); if (st && st.scrollBy) st.scrollBy({ left: 240, behavior: "smooth" }); return; }
@@ -1074,8 +1034,18 @@ document.addEventListener("change", e => {
 
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") load(); });
 window.addEventListener("online", load);
-let lastDayKey = dayKey(new Date().toISOString());
-setInterval(() => { const k = dayKey(new Date().toISOString()); if (k !== lastDayKey){ lastDayKey = k; render(); } }, 60000);
+// transições automáticas: começa -> Ao vivo, termina -> Histórico (sem precisar de atualizar a página)
+const stateSig = () => { reclassify(); return dayKey(new Date().toISOString()) + "|" + S.fixtures.map(f => f.id + f.status + f.home_goals + f.away_goals + (isLive(f.status) ? liveMinute(f) : "")).join(",") + "|" + S.history.length; };
+const AUTO_VIEWS = ["home", "comp", "live", "cal", "fav", "hist", "vip"];
+let lastSig = "";
+setInterval(() => { if (!cur()) return; const g = stateSig(); const first = lastSig === ""; if (g !== lastSig){ lastSig = g; if (!first && AUTO_VIEWS.includes(S.view)) render(); } }, 15000);
+// durante um jogo (ou perto do apito) vai buscar o placar ao servidor todos os minutos
+setInterval(async () => {
+  if (document.visibilityState !== "visible" || !cur()) return;
+  const now = Date.now();
+  if (S.raw.some(f => !isDone(f.status) && Math.abs(Date.parse(f.kickoff_utc) - now) < 3 * 3600e3)) await fetchData();
+}, 60000);
+try { history.replaceState({ v: "home", c: null, i: 0 }, ""); } catch {}
 applyTheme();
 load();
 setInterval(load, 30 * 60 * 1000);
