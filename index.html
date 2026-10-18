@@ -29,10 +29,11 @@ main{max-width:760px;margin:0 auto;padding:12px 12px calc(88px + env(safe-area-i
 .cnt{border:1px solid var(--line);background:var(--tint);border-radius:6px;padding:4px 10px;font-size:14px;color:var(--blue2);white-space:nowrap}
 .cnt b{font-size:24px}
 .msg{margin:8px 0;padding:10px 12px;border-radius:8px;font-size:14px;background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
+.msg.ok{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
 .tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px}
 .tab{white-space:nowrap;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 14px}
 .tab[aria-pressed=true]{background:var(--blue);color:#fff;border-color:var(--blue)}
-select,input[type=search],input[type=text]{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+select,input[type=search],input[type=text],input[type=email],input[type=password],input[type=number]{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card)}
 .day{margin:18px 0 6px;font-size:18px;text-transform:capitalize;border-bottom:3px solid var(--amber);display:inline-block;padding-right:12px}
 .cn{margin:10px 0 6px;color:var(--mute);font-weight:600;font-size:14px}
 .match{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--blue);border-radius:10px;padding:12px;margin-bottom:8px}
@@ -58,10 +59,10 @@ select,input[type=search],input[type=text]{width:100%;padding:11px 12px;border:1
 .btn[disabled]{opacity:.5}
 .fav{background:none;border:0;font-size:22px;color:var(--amber);line-height:1}
 .empty{text-align:center;color:var(--mute);padding:36px 12px}
-nav.bot{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--hdr);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
-nav.bot button{background:none;border:0;color:#cfe1fb;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;padding:4px 2px}
+nav.bot{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--hdr);display:grid;grid-template-columns:repeat(6,1fr);padding:6px 2px calc(6px + env(safe-area-inset-bottom,0px))}
+nav.bot button{position:relative;background:none;border:0;color:#cfe1fb;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;padding:4px 1px}
 nav.bot button[aria-current=page]{color:#fff;font-weight:800}
-nav.bot svg{width:28px;height:28px}
+nav.bot svg{width:26px;height:26px}
 .ov{position:fixed;inset:0;z-index:20;background:#0009;display:flex}
 .drawer{background:var(--card);width:min(320px,86vw);height:100%;padding:calc(16px + env(safe-area-inset-top,0px)) 16px 16px;overflow:auto}
 .drawer h3{margin:18px 0 8px}
@@ -91,10 +92,54 @@ dialog::backdrop{background:#0009}
 .dy[aria-pressed=true] i.has{background:#fff}
 .nx{background:none;border:0;font-size:26px;color:var(--mute);padding:0 10px}
 .sum{background:var(--tint);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:0 0 8px;font-size:14px}
+
+/* ---- contas, perfil, chat, painel ---- */
+.bdg{position:absolute;top:0;left:calc(50% + 4px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#e11d2e;color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;line-height:1}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.card h3{margin:16px 0 4px}
+.auth{max-width:420px;margin:0 auto;padding:18px 14px}
+.av{width:var(--s,40px);height:var(--s,40px);border-radius:50%;object-fit:cover;background:var(--blue);color:#fff;display:inline-grid;place-items:center;font-weight:800;font-size:calc(var(--s,40px)*.45);flex:none}
+.phead{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.val{padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--tint);overflow-wrap:anywhere}
+.mbtn{background:var(--blue);color:#fff;border:0;border-radius:6px;padding:7px 12px;font-weight:700}
+.frow,.conv{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);width:100%}
+.conv{background:none;border-width:0 0 1px;text-align:left}
+.nm{font-weight:700;text-align:left;flex:1;text-decoration:none;padding:4px 0}
+.cm{flex:1;display:flex;flex-direction:column;min-width:0}
+.cm small{color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bdg2{background:#e11d2e;color:#fff;border-radius:9px;min-width:20px;padding:1px 6px;text-align:center;font-size:12px;font-weight:800}
+.chl{height:min(52vh,420px);overflow:auto;background:var(--tint);border:1px solid var(--line);border-radius:10px;padding:8px;margin:8px 0;display:flex;flex-direction:column;gap:6px}
+.bub{max-width:82%;align-self:flex-start;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 10px;display:flex;flex-direction:column;overflow-wrap:anywhere}
+.bub.me{align-self:flex-end;background:var(--blue);color:#fff;border-color:var(--blue)}
+.bub b{font-size:12px;color:var(--blue2)}
+.bub small{font-size:11px;opacity:.7;align-self:flex-end}
+.send{display:flex;gap:8px}
+.sbar{position:relative;margin:8px 0}
+.sbar input{padding-right:42px}
+.lupa{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--mute);display:grid}
+.lupa svg{width:22px;height:22px}
+.big{font-size:18px;font-weight:800;text-decoration:none;color:var(--ink)}
+.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center;font-size:13px;color:var(--mute)}
+.stat b{display:block;font-size:26px;color:var(--ink)}
+.urow{padding:10px 0;border-bottom:1px solid var(--line)}
+.urow .row{flex-wrap:wrap;margin-top:6px}
+.tag{background:var(--amber);color:#1b1500;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:800;margin-left:6px}
+.mail{background:var(--tint);border:2px dashed var(--amber);border-radius:10px;padding:10px 12px;margin:10px 0;font-size:14px}
+.mail strong{font-size:22px;letter-spacing:4px}
+.mrow{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.rp.nv{grid-template-columns:1fr auto 14px}
+.rp .v{font-weight:800;text-align:right}
+.mo{font-style:normal;font-size:10px;color:var(--amber);min-height:12px;line-height:12px}
+.lgb{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:6px}
+.lgb[aria-pressed=true]{border-color:var(--blue);background:var(--tint)}
+.lgb .ck{width:24px;height:24px;border:2px solid var(--grey);border-radius:6px;display:grid;place-items:center;font-weight:800;color:#fff;flex:none}
+.lgb[aria-pressed=true] .ck{background:var(--blue);border-color:var(--blue)}
 </style>
 </head>
 <body>
-<div id="app"></div>
+<noscript><p style="padding:20px;font:16px system-ui">Este site precisa de JavaScript ativo no navegador.</p></noscript>
+<div id="app"><p style="text-align:center;padding:40px 12px;font:16px system-ui;color:#5b6b85">A carregar Elephalpit Bet…</p></div>
 <div id="ov"></div>
 <dialog id="dlg"></dialog>
 <script>
@@ -238,7 +283,8 @@ const ICON = {
   live: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="2.6" fill="currentColor"/><path d="M7.5 7.5a6.4 6.4 0 0 0 0 9M16.5 7.5a6.4 6.4 0 0 1 0 9M4.5 4.5a10.6 10.6 0 0 0 0 15M19.5 4.5a10.6 10.6 0 0 1 0 15"/></svg>',
   cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="8" cy="14" r=".8" fill="currentColor"/><circle cx="12" cy="14" r=".8" fill="currentColor"/><circle cx="16" cy="14" r=".8" fill="currentColor"/></svg>',
   star: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 17.5 6.1 20.7l1.2-6.6L2.5 9.5l6.6-.9z"/></svg>',
-  hist: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5M3.5 4v4.5H8"/><path d="M12 7.5V12l3 2"/></svg>'
+  hist: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5M3.5 4v4.5H8"/><path d="M12 7.5V12l3 2"/></svg>',
+  chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5h-8l-5 3.5V17.5H4A1.5 1.5 0 0 1 2.5 16V7A1.5 1.5 0 0 1 4 5.5z"/><path d="M7 10h10M7 13.5h6"/></svg>'
 };
 function header(){
   return `<header class="top"><button class="ib" data-act="drawer" aria-label="Definições">${ICON.menu}</button>
@@ -246,8 +292,8 @@ function header(){
     <button class="ib" data-act="search" aria-label="Pesquisar equipas">${ICON.search}</button></header>`;
 }
 function nav(){
-  const it = [["home","Home",ICON.home],["live","AO VIVO",ICON.live],["cal","Calendário",ICON.cal],["fav","Favoritos",ICON.star],["hist","Histórico",ICON.hist]];
-  return `<nav class="bot">${it.map(([k,l,i]) => `<button data-nav="${k}" ${S.view === k || (k === "home" && S.view === "comp") ? 'aria-current="page"' : ""}>${i}<span>${l}</span></button>`).join("")}</nav>`;
+  const it = [["home","Home",ICON.home],["live","AO VIVO",ICON.live],["cal","Calendário",ICON.cal],["chat","Chat",ICON.chat],["fav","Favoritos",ICON.star],["hist","Histórico",ICON.hist]];
+  return `<nav class="bot">${it.map(([k,l,i]) => `<button data-nav="${k}" ${S.view === k || (k === "home" && S.view === "comp") ? 'aria-current="page"' : ""}>${i}<span>${l}</span>${k === "chat" ? bdg() : ""}</button>`).join("")}</nav>`;
 }
 function matchCard(f, mode){
   const logo = u => u ? `<img src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : "";
@@ -301,13 +347,16 @@ function liveView(){
   return `<h1 class="ttl">Ao Vivo</h1>${updLine()}${msgHtml()}` + (list.length ? grouped(list)
     : `<div class="empty">Sem jogos ao vivo neste momento. O calendário é atualizado duas vezes por dia, por isso o ao vivo só aparece se um jogo estiver a decorrer nessa altura.</div>`);
 }
+S.sel = (store.get("calLeagues", []) || []).filter(id => ORDER.includes(id)).slice(0, 3); S.lg = false;
+const leagueSel = f => !S.sel.length || S.sel.includes(f.competition_id);
 function dayList(){
   const out = [];
-  for (let i = 0; i < 7; i++){
+  for (let i = 0; i < 30; i++){ // hoje + 29 dias; o dia que passa sai e entra um novo
     const d = new Date(Date.now() + i * 86400e3), iso = d.toISOString();
     const wd = new Intl.DateTimeFormat("pt", { timeZone: S.tz, weekday: "short" }).format(d).replace(".", "");
     const dn = new Intl.DateTimeFormat("pt", { timeZone: S.tz, day: "numeric" }).format(d);
-    out.push({ key: dayKey(iso), wd: wd.charAt(0).toUpperCase() + wd.slice(1), dn });
+    const mo = (i === 0 || dn === "1") ? new Intl.DateTimeFormat("pt", { timeZone: S.tz, month: "short" }).format(d).replace(".", "") : "";
+    out.push({ key: dayKey(iso), wd: wd.charAt(0).toUpperCase() + wd.slice(1), dn, mo });
   }
   return out;
 }
@@ -323,13 +372,28 @@ function byComp(list){
 function calView(){
   const days = dayList();
   if (!days.some(d => d.key === S.day)) S.day = days[0].key;
-  const count = new Map(); S.fixtures.forEach(f => { const k = dayKey(f.kickoff_utc); count.set(k, (count.get(k) || 0) + 1); });
-  const strip = days.map(d => `<button class="dy" data-day="${esc(d.key)}" aria-pressed="${S.day === d.key}"><span>${esc(d.wd)}</span><b>${esc(d.dn)}</b><i class="${count.get(d.key) ? "has" : ""}"></i></button>`).join("");
-  let list = S.fixtures.filter(f => dayKey(f.kickoff_utc) === S.day);
+  const count = new Map(); S.fixtures.filter(leagueSel).forEach(f => { const k = dayKey(f.kickoff_utc); count.set(k, (count.get(k) || 0) + 1); });
+  const strip = days.map(d => `<button class="dy" data-day="${esc(d.key)}" aria-pressed="${S.day === d.key}"><span>${esc(d.wd)}</span><b>${esc(d.dn)}</b><em class="mo">${esc(d.mo)}</em><i class="${count.get(d.key) ? "has" : ""}"></i></button>`).join("");
+  let list = S.fixtures.filter(f => dayKey(f.kickoff_utc) === S.day && leagueSel(f));
   list.sort((a, b) => (a.competitions?.name ?? "").localeCompare(b.competitions?.name ?? "") || a.kickoff_utc.localeCompare(b.kickoff_utc));
+  const names = S.sel.map(id => labelById(id, S.leagues.find(l => l.id === id)?.name, "")[1]).join(" · ");
+  const pick = `<div class="row" style="margin:0 0 10px;flex-wrap:wrap"><button class="btn alt" data-act="leagues">Selecionar ligas${S.sel.length ? ` (${S.sel.length}/3)` : ""}</button>${names ? `<span class="note" style="margin:0">${esc(names)}</span>` : ""}</div>`;
   return `<div class="stripw"><div class="strip" id="strip">${strip}</div><button class="nx" data-act="next" aria-label="Mais dias">→</button></div>
-    ${updLine()}${msgHtml()}` +
-    (S.loading ? `<div class="empty">A carregar…</div>` : list.length ? byComp(list) : `<div class="empty">Sem jogos neste dia nas competições importadas.</div>`);
+    ${pick}${msgHtml()}` +
+    (S.loading ? `<div class="empty">A carregar…</div>` : list.length ? byComp(list) : `<div class="empty">${S.sel.length ? "Sem jogos das ligas selecionadas neste dia." : "Sem jogos neste dia nas competições importadas."}</div>`);
+}
+function leaguesHtml(){
+  if (!S.lg) return;
+  const keep = document.querySelector("#ov .sp"), top = keep ? keep.scrollTop : 0, full = S.sel.length >= 3;
+  const items = ORDER.map(id => {
+    const on = S.sel.includes(id), l = S.leagues.find(x => x.id === id) ?? {}, [c, n] = labelById(id, l.name, l.country);
+    return `<button class="lgb" data-act="lgtoggle" data-id="${esc(id)}" aria-pressed="${on}" ${!on && full ? 'aria-disabled="true" style="opacity:.55"' : ""}><span class="ck" aria-hidden="true">${on ? "✓" : ""}</span><span class="ct"><b>${esc(n)}</b><span class="note" style="margin:0">${esc(c)}</span></span></button>`;
+  }).join("");
+  $("ov").innerHTML = `<div class="ov"><div class="sp">
+    <div class="row" style="justify-content:space-between"><b style="font-size:22px">Selecionar ligas</b><button class="btn alt" data-act="close">Concluir</button></div>
+    <p class="note">${full ? "Já escolheste 3 ligas. Tira uma para escolher outra." : "Escolhe até 3 ligas. Sem nenhuma escolhida, o calendário mostra todas."}</p>${items}
+    <button class="btn alt" style="width:100%;margin-top:8px" data-act="lgclear">Limpar seleção</button></div></div>`;
+  const sp = document.querySelector("#ov .sp"); if (sp) sp.scrollTop = top;
 }
 function finalOf(f){
   if (!(Number.isFinite(f.home_goals) && Number.isFinite(f.away_goals))) return null;
@@ -343,7 +407,7 @@ function histView(){
   for (const f of list){
     const fin = finalOf(f); if (!f.analysis?.result?.totals || !fin) continue;
     const t = f.analysis.retro ? T.retro : T.live; t.n++;
-    for (const sec of sections(f.analysis.result)) for (const g of sec.groups){ const e = evalGroup(g, fin); if (e.hit !== null){ t.tot++; if (e.hit) t.hit++; } }
+    for (const sec of sections(f.analysis.result, { h: f.home_team, a: f.away_team })) for (const g of sec.groups){ const hit = groupHit(g, fin); if (hit !== null){ t.tot++; if (hit) t.hit++; } }
   }
   const line = (t, label) => t.tot ? `<div>${label}: <b>${Math.round(t.hit / t.tot * 100)}%</b> certas (${t.hit} de ${t.tot} mercados, em ${t.n} jogo${t.n === 1 ? "" : "s"}).</div>` : "";
   const sum = (T.live.tot || T.retro.tot) ? `<div class="sum">${line(T.live, "Previsões feitas antes do jogo")}${line(T.retro, "Análises reconstruídas depois do jogo")}</div>` : "";
@@ -363,7 +427,30 @@ function favView(){
   return `<h1 class="ttl">Favoritos</h1><p class="sub">Jogos analisados na lupa e guardados por ti.</p>` +
     (list.length ? list.map(favCard).join("") : `<div class="empty">Ainda não tens favoritos. Toca na lupa, analisa um jogo e adiciona-o aqui.</div>`);
 }
-function view(){ return ({ home: homeView, comp: compView, live: liveView, cal: calView, fav: favView, hist: histView })[S.view](); }
+function vipPick(f){
+  const r = f.analysis?.result?.result; if (!r || !Number.isFinite(r.home) || !Number.isFinite(r.away)) return null;
+  const p = Math.max(r.home, r.away); if (p < 0.5) return null;
+  return { team: r.home >= r.away ? f.home_team : f.away_team };
+}
+function vipView(){
+  const u = cur(); if (!u || !u.admin) return `<div class="empty">Sem permissão.</div>`;
+  const now = Date.now(), list = S.fixtures.filter(f => ["NS", "TBD"].includes(f.status) && Date.parse(f.kickoff_utc) >= now && vipPick(f))
+    .sort((a, b) => a.kickoff_utc.localeCompare(b.kickoff_utc));
+  const note = list.length ? `<p class="sub">${list.length} jogo${list.length === 1 ? "" : "s"} com uma equipa a partir de 50% de probabilidade de vitória.</p>` : "";
+  return `<h1 class="ttl">VIP</h1>${note}${msgHtml()}` + (list.length ? vipGrouped(list) : `<div class="empty">Neste momento não há jogos em que uma equipa tenha 50% ou mais de probabilidade de vitória.</div>`);
+}
+function vipGrouped(list){
+  let h = "", ld = "";
+  for (const f of list){
+    const d = dayKey(f.kickoff_utc);
+    if (d !== ld){ h += `<h2 class="day">${esc(fmtDay(f.kickoff_utc))}</h2>`; ld = d; }
+    const c = f.competitions?.name ?? "";
+    h += matchCard(f).replace('<div class="meta">', `<div class="cn" style="margin:8px 0 0">${esc(c)}</div><div class="meta"><span style="font-weight:700;color:var(--ink)">${esc(vipPick(f).team)} vitória: Sim</span>`);
+  }
+  return h;
+}
+function view(){ return ({ vip: vipView, home: homeView, comp: compView, live: liveView, cal: calView, fav: favView, hist: histView,
+  chat: chatView, profile: profileView, user: userView, admin: adminView })[S.view](); }
 function pruneFavs(){
   const keep = S.favs.filter(f => Date.parse(f.kickoff_utc) >= Date.now() - 86400e3);
   if (keep.length !== S.favs.length){ S.favs = keep; store.set("favSearch", S.favs); }
@@ -379,21 +466,35 @@ function reclassify(){
   for (const f of S.rawHist) if (before(f)) m.set(f.id, f.analysis || !m.has(f.id) ? f : m.get(f.id)); // prefere a versão com previsão
   S.history = [...m.values()].filter(f => !S.hidden.has(f.id)).sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc)); // removidos ficam removidos
 }
-function render(){ reclassify(); $("app").innerHTML = header() + `<main>${view()}</main>` + nav(); }
+function render(){
+  reclassify();
+  const u = cur();
+  if (!u){ S.soc.was = false; $("ov").innerHTML = ""; $("app").innerHTML = authView(); return; }
+  S.soc.was = true;
+  markCurrent();
+  $("app").innerHTML = header() + `<main>${view()}</main>` + nav();
+  const cl = $("chatlist"); if (cl) cl.scrollTop = cl.scrollHeight;
+}
 
 /* ---------- Menu (definições) e pesquisa ---------- */
 function drawerHtml(){
-  if (!S.drawer){ if (!S.search) $("ov").innerHTML = ""; return; }
-  const dark = isDark();
-  $("ov").innerHTML = `<div class="ov" data-act="close"><div class="drawer" role="dialog" aria-label="Menu">
-    <button class="btn" style="width:100%;font-size:18px;padding:14px" data-act="toggle" aria-pressed="${dark}">${dark ? "☀️ Modo claro" : "🌙 Modo escuro"}</button></div></div>`;
+  if (!S.drawer){ if (!S.search && !S.lg) $("ov").innerHTML = ""; return; }
+  const dark = isDark(), u = cur(), B = "width:100%;font-size:18px;padding:14px;margin-bottom:8px";
+  const top = u ? `<div class="mrow">${avatar(u, 44)}<b>${esc(u.name)}</b></div>
+    <button class="btn" style="${B}" data-s="profile">Ver perfil</button>
+    ${u.admin ? `<button class="btn" style="${B};background:#7a1fa2" data-s="admin">Painel</button><button class="btn" style="${B};background:#b8860b" data-s="vip">VIP</button>` : ""}` : "";
+  $("ov").innerHTML = `<div class="ov" data-act="close"><div class="drawer" role="dialog" aria-label="Menu">${top}
+    <button class="btn" style="${B}" data-act="toggle" aria-pressed="${dark}">${dark ? "☀️ Modo claro" : "🌙 Modo escuro"}</button>
+    <button class="btn" style="${B}">Adicionar tempo</button>
+    <button class="btn" style="${B}">Chat</button>
+    ${u ? `<button class="btn alt" style="width:100%;margin-top:8px" data-s="logout">Terminar sessão</button>` : ""}</div></div>`;
 }
 function searchHtml(){
   if (!S.search){ drawerHtml(); return; }
   const fld = (id, label, key) => `<label class="fl" for="${id}">${label}</label><input id="${id}" type="text" autocomplete="off" value="${esc(S.na[key])}">`;
   $("ov").innerHTML = `<div class="ov"><div class="sp">
     <div class="row" style="justify-content:space-between"><b style="font-size:22px">Nova análise</b><button class="btn alt" data-act="close">Fechar</button></div>
-    <p class="note">Procura nas 10 competições do app e, quando houver fonte, noutras ligas. Só aparecem jogos já publicados e dentro dos próximos 7 dias.</p>
+    <p class="note">Procura nas 10 competições do app e, quando houver fonte, noutras ligas. Só aparecem jogos já publicados e dentro dos próximos 30 dias.</p>
     ${fld("na-home", "Equipa da casa", "home")}${fld("na-away", "Equipa de fora", "away")}${fld("na-league", "Liga", "league")}
     <button class="btn" style="width:100%;margin-top:14px;font-size:17px;padding:13px" data-act="analyze">Analisar</button><div id="nas"></div></div></div>`;
 }
@@ -403,7 +504,7 @@ const loose = (a, b) => { a = norm(a).trim(); b = norm(b).trim(); return !!a && 
 function errText(e){
   return ({ nosource: "Essa liga não está nas 10 do app e a fonte de dados para outras ligas ainda não está ligada, por isso não é possível procurar o jogo.",
     offline: "Sem ligação à internet. Esta análise precisa de estar online.",
-    notfound: "Jogo não encontrado. Só aparecem jogos já publicados e dentro dos próximos 7 dias." })[e.code] || e.message || "Não foi possível fazer a análise.";
+    notfound: "Jogo não encontrado. Só aparecem jogos já publicados e dentro dos próximos 30 dias." })[e.code] || e.message || "Não foi possível fazer a análise.";
 }
 const nameOk = (typed, name) => { const t = norm(typed).split(/\s+/).filter(w => w.length >= 2), n = norm(name); return t.length > 0 && t.every(w => n.includes(w)); };
 const aliasesOf = f => [f.competitions?.name, f.competitions?.country, ...(LABEL[f.competition_id] ?? [])].filter(Boolean);
@@ -429,18 +530,18 @@ async function lookupInternal(q, now, to){
     note: `Base: últimos ${qa.homeMatches ?? "?"} jogos da casa e ${qa.awayMatches ?? "?"} do visitante. Qualidade dos dados: ${qa.level ?? "?"}. Fonte: football-data.org (competições do app).` };
 }
 async function lookup(q){
-  const now0 = Date.now(), to0 = now0 + 7 * DAY;
+  const now0 = Date.now(), to0 = now0 + 30 * DAY;
   const internal = await lookupInternal(q, now0, to0);
   if (internal) return internal;
   if (!EXTRA_SOURCE) throw coded(knownLeague(q.league) ? "notfound" : "nosource");
-  const now = Date.now(), to = now + 7 * DAY;
+  const now = Date.now(), to = now + 30 * DAY;
   let res;
   try { res = await EXTRA_SOURCE.find({ ...q, from: new Date(now).toISOString(), to: new Date(to).toISOString() }); }
   catch (err){ throw err && err.code ? err : coded("offline"); }
   const ev = res && res.event;
   if (!ev) throw coded("notfound");
   const t = Date.parse(ev.kickoff_utc);
-  if (!(t >= now && t <= to)) throw coded("notfound"); // regra do app: só jogos publicados dos próximos 7 dias
+  if (!(t >= now && t <= to)) throw coded("notfound"); // regra do app: só jogos publicados dos próximos 30 dias
   if (ev.league && !loose(ev.league, q.league)) throw coded("league", `Encontrei esse jogo noutra competição (${ev.league}). Escreve essa liga para analisar.`);
   const out = MODEL.analyze({ home: res.homeHistory ?? [], away: res.awayHistory ?? [] });
   if (!out.ok) throw coded("insufficient", out.reason);
@@ -474,70 +575,87 @@ async function openFav(id){
 function saveFavs(){ store.set("favSearch", S.favs); }
 
 /* ---------- Análise e avaliação (círculos verde/vermelho) ---------- */
-const pc = p => p == null ? "—" : (p * 100).toFixed(0) + "%";
 const ck = k => k.replace(".", ",");
-function sections(r){
-  const t = r.totals, S1 = [];
-  S1.push({ title: "Resultado final", groups: [[["Casa", r.result.home, f => f.h > f.a], ["Empate", r.result.draw, f => f.h === f.a], ["Fora", r.result.away, f => f.h < f.a]]] });
-  const tg = [];
-  for (const [k, key] of [["0.5","0_5"],["1.5","1_5"],["2.5","2_5"],["3.5","3_5"]]){
-    const g = [[`Mais de ${ck(k)}`, t["over_" + key], f => f.h + f.a > +k]];
-    if (t["under_" + key] != null) g.push([`Menos de ${ck(k)}`, t["under_" + key], f => f.h + f.a < +k]);
-    tg.push(g);
-  }
-  S1.push({ title: "Total de golos", groups: tg });
-  if (r.reach) S1.push({ title: "Alcance de golos", groups: [[3, r.reach.ge3], [4, r.reach.ge4], [5, r.reach.ge5], [6, r.reach.ge6]].map(([n, p]) => [[`${n}+`, p, f => f.h + f.a >= n]]) });
-  S1.push({ title: "Ambas as equipas marcam", groups: [[["Sim", r.btts.yes, f => f.h > 0 && f.a > 0], ["Não", r.btts.no, f => !(f.h > 0 && f.a > 0)]]] });
-  const ht = f => f.hh == null || f.ah == null;
-  S1.push({ title: "Resultado ao intervalo", groups: [[["Casa", r.halftime.home, f => ht(f) ? null : f.hh > f.ah], ["Empate", r.halftime.draw, f => ht(f) ? null : f.hh === f.ah], ["Fora", r.halftime.away, f => ht(f) ? null : f.hh < f.ah]]] });
+// arredonda as percentagens de um mercado para inteiros que somam sempre 100
+function lr(ps){
+  const f = ps.map(p => Math.floor(p * 100 + 1e-9));
+  let rest = 100 - f.reduce((a, b) => a + b, 0);
+  ps.map((p, i) => [p * 100 - f[i], i]).sort((a, b) => b[0] - a[0]).forEach(([, i]) => { if (rest > 0){ f[i]++; rest--; } });
+  return f;
+}
+// Cada linha: l = texto, p = probabilidade, fn = "isto aconteceu?" (true/false/null se não há dados), v = Sim/Não/Vitória, pick = escolha do modelo
+function sections(r, nm){
+  const H = nm?.h || "Casa", A = nm?.a || "Fora", out = [];
+  const topI = items => items.reduce((b, x, i) => (x[1] > items[b][1] ? i : b), 0);
+  const excl = (items, yes = () => "Sim") => { const t = topI(items); return items.map(([l, p, fn], i) => ({ l, p, fn, v: i === t ? yes(i) : "Não", pick: i === t })); };
+  const one = (l, p, fn, pick) => ({ l, p, fn, v: null, pick });
   const noHt = f => f.hh == null || f.ah == null;
+  const win = i => (i === 1 ? "Sim" : "Vitória");
+  out.push({ title: "Resultado final", pct: false, groups: [excl([[`${H} vitória`, r.result.home, f => f.h > f.a], ["Empate", r.result.draw, f => f.h === f.a], [`${A} vitória`, r.result.away, f => f.h < f.a]])] });
+  const t = r.totals, tg = [];
+  for (const [k, key] of [["0.5", "0_5"], ["1.5", "1_5"], ["2.5", "2_5"], ["3.5", "3_5"]]){
+    const over = t["over_" + key], under = t["under_" + key];
+    if (over == null) continue;
+    const ov = f => f.h + f.a > +k, un = f => f.h + f.a < +k;
+    if (under != null){ const o = over >= under; tg.push([one(`Mais de ${ck(k)}`, over, ov, o), one(`Menos de ${ck(k)}`, under, un, !o)]); }
+    else tg.push([one(`Mais de ${ck(k)}`, over, ov, over >= 0.5)]);
+  }
+  out.push({ title: "Total de golos", pct: true, groups: tg });
+  if (r.reach) out.push({ title: "Alcance de golos", pct: true, groups: [[4, r.reach.ge4], [5, r.reach.ge5], [6, r.reach.ge6]].filter(x => x[1] != null).map(([n, p]) => [one(`${n}+`, p, f => f.h + f.a >= n, p >= 0.5)]) });
+  const by = r.btts.yes >= r.btts.no;
+  out.push({ title: "Ambas as equipas marcam", pct: false, groups: [[by ? one("Sim", r.btts.yes, f => f.h > 0 && f.a > 0, true) : one("Não", r.btts.no, f => !(f.h > 0 && f.a > 0), true)]] });
+  out.push({ title: "Resultado ao intervalo", pct: false, groups: [excl([[H, r.halftime.home, f => noHt(f) ? null : f.hh > f.ah], ["Empate", r.halftime.draw, f => noHt(f) ? null : f.hh === f.ah], [A, r.halftime.away, f => noHt(f) ? null : f.hh < f.ah]], win)] });
   const g1 = f => f.hh + f.ah, g2 = f => f.h + f.a - (f.hh + f.ah);
-  if (r.productiveHalf) S1.push({ title: "Parte mais produtiva", groups: [[["Primeira parte", r.productiveHalf.first, f => noHt(f) ? null : g1(f) > g2(f)], ["Empate", r.productiveHalf.draw, f => noHt(f) ? null : g1(f) === g2(f)], ["Segunda parte", r.productiveHalf.second, f => noHt(f) ? null : g1(f) < g2(f)]]] });
+  if (r.productiveHalf) out.push({ title: "Parte mais produtiva", pct: false, groups: [excl([["Primeira parte", r.productiveHalf.first, f => noHt(f) ? null : g1(f) > g2(f)], ["Empate", r.productiveHalf.draw, f => noHt(f) ? null : g1(f) === g2(f)], ["Segunda parte", r.productiveHalf.second, f => noHt(f) ? null : g1(f) < g2(f)]])] });
   if (r.bothHalves){
-    const bh = (side, key) => { const y = f => noHt(f) ? null : (side === "h" ? f.hh > 0 && f.h - f.hh > 0 : f.ah > 0 && f.a - f.ah > 0); return [["Sim", r.bothHalves[key].yes, y], ["Não", r.bothHalves[key].no, f => { const v = y(f); return v === null ? null : !v; }]]; };
-    S1.push({ title: "1 marca duas partes (casa)", groups: [bh("h", "home")] });
-    S1.push({ title: "2 marca duas partes (fora)", groups: [bh("a", "away")] });
+    const bh = side => f => noHt(f) ? null : (side === "h" ? f.hh > 0 && f.h - f.hh > 0 : f.ah > 0 && f.a - f.ah > 0);
+    const ph = r.bothHalves.home.yes, pa = r.bothHalves.away.yes, best = Math.max(ph, pa), pH = best >= 0.5 && ph >= pa, pA = best >= 0.5 && !pH;
+    out.push({ title: "Marca duas partes", pct: false, groups: [[{ l: H, p: ph, fn: bh("h"), v: pH ? "Sim" : "Não", pick: pH }, { l: A, p: pa, fn: bh("a"), v: pA ? "Sim" : "Não", pick: pA }]] });
   }
   const z10 = f => f.h + f.a === 0; // só se sabe o 1X2 aos 10 min quando o jogo acabou 0-0
-  if (r.min10) S1.push({ title: "1X2 aos 10 minutos", groups: [[["Casa vence", r.min10.home, f => z10(f) ? false : null], ["Empate", r.min10.draw, f => z10(f) ? true : null], ["Fora vence", r.min10.away, f => z10(f) ? false : null]]] });
-  const bucket = (obj, side) => Object.entries(obj).map(([k, p]) => [`${k} golo${k === "1" ? "" : "s"}`, p, f => (k === "3+" ? f[side] >= 3 : f[side] === +k)]);
-  S1.push({ title: "Golos da equipa da casa", groups: [bucket(r.teamGoals.home, "h")] });
-  S1.push({ title: "Golos da equipa visitante", groups: [bucket(r.teamGoals.away, "a")] });
-  S1.push({ title: "Resultados exatos mais prováveis", groups: [r.exactScores.map(x => [x.score, x.p, f => `${f.h}-${f.a}` === x.score])] });
+  if (r.min10) out.push({ title: "1X2 aos 10 minutos", pct: false, groups: [excl([[H, r.min10.home, f => z10(f) ? false : null], ["Empate", r.min10.draw, f => z10(f) ? true : null], [A, r.min10.away, f => z10(f) ? false : null]], win)] });
+  const bucket = (obj, side) => { const items = Object.entries(obj).map(([k, p]) => [`${k} golo${k === "1" ? "" : "s"}`, p, f => (k === "3+" ? f[side] >= 3 : f[side] === +k)]); const tp = topI(items); return items.map(([l, p, fn], i) => one(l, p, fn, i === tp)); };
+  out.push({ title: "Golos da equipa da casa", pct: true, groups: [bucket(r.teamGoals.home, "h")] });
+  out.push({ title: "Golos da equipa visitante", pct: true, groups: [bucket(r.teamGoals.away, "a")] });
+  const ex = r.exactScores[0];
+  out.push({ title: "Resultado exato mais provável", pct: true, groups: [[one(ex.score, ex.p, f => `${f.h}-${f.a}` === ex.score, true)]] });
   // quem marcou primeiro só é certo se uma das equipas não marcou
   const first = f => (f.h + f.a === 0 ? "none" : f.a === 0 ? "home" : f.h === 0 ? "away" : null);
-  S1.push({ title: "Quem marca primeiro", groups: [[["Casa", r.firstToScore.home, f => { const v = first(f); return v === null ? null : v === "home"; }], ["Fora", r.firstToScore.away, f => { const v = first(f); return v === null ? null : v === "away"; }], ["Sem golos", r.firstToScore.none, f => f.h + f.a === 0]]] });
-  S1.push({ title: "Total de cantos", groups: [6, 7, 8, 9, 10].map(n => [[`${n}+`, null, () => null]]), note: "Sem percentagens: a fonte de dados gratuita não fornece cantos, por isso não é possível calcular esta previsão com dados reais." });
-  return S1;
+  out.push({ title: "Quem marca primeiro", pct: false, groups: [excl([[H, r.firstToScore.home, f => { const v = first(f); return v === null ? null : v === "home"; }], ["Sem golos", r.firstToScore.none, f => f.h + f.a === 0], [A, r.firstToScore.away, f => { const v = first(f); return v === null ? null : v === "away"; }]])] });
+  return out;
 }
-// Regra: num mercado com várias opções o modelo "escolhe" a mais provável; com uma só linha, escolhe "acontece" se p >= 50%.
-// Cada linha fica verde se a escolha do modelo para essa linha coincidiu com o que aconteceu, vermelha se não, cinzenta se não há dados.
-function evalGroup(items, fin){
-  const top = items.length > 1 ? items.reduce((b, x, i) => (x[1] > items[b][1] ? i : b), 0) : -1;
-  const rows = items.map(([l, p, fn], i) => {
-    let ok = null;
-    if (fin){ const occ = fn(fin); if (occ !== null && occ !== undefined){ const pred = items.length === 1 ? p >= 0.5 : i === top; ok = pred ? occ : !occ; } }
-    return { l, p, ok };
-  });
-  let hit = null;
-  if (fin){ const i = items.length === 1 ? 0 : top, o = items[i][2](fin); if (o !== null && o !== undefined) hit = items.length === 1 ? ((items[0][1] >= 0.5) === o) : o; }
-  return { rows, hit };
+const ints = (sec, g) => !sec.pct ? [] : g.length > 1 ? lr(g.map(x => x.p)) : g.map(x => Math.round(x.p * 100));
+const occ = (x, fin) => { if (!fin) return null; const o = x.fn(fin); return o === null || o === undefined ? null : o; };
+// verde/vermelho: a frase mostrada (ex.: "Empate Não") estava certa?
+const rowOk = (x, fin) => { const o = occ(x, fin); return o === null ? null : (x.v === "Não" ? !o : o); };
+// o modelo acertou neste mercado? (a opção escolhida aconteceu; se não escolheu nenhuma, nenhuma das linhas aconteceu)
+function groupHit(g, fin){
+  if (!fin) return null;
+  const pk = g.find(x => x.pick);
+  if (pk) return occ(pk, fin);
+  const os = g.map(x => occ(x, fin));
+  return os.some(o => o === null) ? null : os.every(o => !o);
 }
 function analysisHtml(an, f, extra = ""){
-  const r = an.result, q = r.quality, fin = isDone(f.status) ? finalOf(f) : null;
+  const r = an.result, fin = isDone(f.status) ? finalOf(f) : null;
+  const secs = sections(r, { h: f.home_team, a: f.away_team });
   const dot = ok => !fin ? "<span></span>" : `<span class="dot ${ok === true ? "g" : ok === false ? "r" : "n"}" role="img" aria-label="${ok === true ? "Acertou" : ok === false ? "Falhou" : "Sem dados para avaliar"}"></span>`;
-  const secs = sections(r).map(sec => `<div class="sec">${esc(sec.title)}</div>` + (sec.note ? `<p class="note">${esc(sec.note)}</p>` : "") + sec.groups.map(g => evalGroup(g, fin).rows.map(x =>
-    `<div class="rp"><span>${esc(x.l)}</span><span class="trk"><span style="width:${x.p == null ? 0 : Math.max(0, x.p * 100).toFixed(0)}%"></span></span><strong>${x.p == null ? "—" : pc(x.p)}</strong>${dot(x.ok)}</div>`).join("")).join("")).join("");
-  const legend = fin ? `<p class="note"><span class="dot g"></span> o modelo acertou nesta linha · <span class="dot r"></span> falhou · <span class="dot n"></span> sem dados para avaliar (por exemplo, quem marcou primeiro quando as duas equipas marcaram, o 1X2 aos 10 minutos e os cantos). Resultado final: ${fin.h} - ${fin.a}.</p>` : "";
-  // As 5 linhas com maior probabilidade em todos os mercados (sem repetir probabilidades idênticas, ex.: "3+" = "Mais de 2,5")
-  const all = [];
-  for (const sec of sections(r)) for (const g of sec.groups) evalGroup(g, fin).rows.forEach(x => { if (x.p != null) all.push({ ...x, sec: sec.title }); });
-  all.sort((a, b) => b.p - a.p);
-  const top5 = [];
-  for (const x of all){ if (top5.some(t => Math.abs(t.p - x.p) < 1e-9)) continue; top5.push(x); if (top5.length === 5) break; }
-  const topHtml = top5.map(x => `<div class="rp"><span>${esc(x.l)}<br><small style="color:var(--mute)">${esc(x.sec)}</small></span><span class="trk"><span style="width:${Math.max(0, x.p * 100).toFixed(0)}%"></span></span><strong>${pc(x.p)}</strong>${dot(x.ok)}</div>`).join("");
+  const row = (x, n, sec, sub) => {
+    const lab = `<span>${esc(x.l)}${sub ? `<br><small style="color:var(--mute)">${esc(sec.title)}</small>` : ""}</span>`;
+    return sec.pct
+      ? `<div class="rp">${lab}<span class="trk"><span style="width:${n}%"></span></span><strong>${n}%</strong>${dot(rowOk(x, fin))}</div>`
+      : `<div class="rp nv">${lab}<strong class="v">${esc(x.v ?? "")}</strong>${dot(rowOk(x, fin))}</div>`;
+  };
+  const body = secs.map(sec => `<div class="sec">${esc(sec.title)}</div>` + sec.groups.map(g => { const n = ints(sec, g); return g.map((x, i) => row(x, n[i], sec, false)).join(""); }).join("")).join("");
+  // as 5 análises mais prováveis: só a mais provável de cada mercado
+  const cand = [];
+  for (const sec of secs){ let best = null; for (const g of sec.groups){ const n = ints(sec, g); g.forEach((x, i) => { if (x.pick && (!best || x.p > best.x.p)) best = { x, n: n[i], sec }; }); } if (best) cand.push(best); }
+  cand.sort((a, b) => b.x.p - a.x.p);
+  const topHtml = cand.slice(0, 5).map(c => row(c.x, c.n, c.sec, true)).join("");
+  const legend = fin ? `<p class="note"><span class="dot g"></span> certo · <span class="dot r"></span> errado · <span class="dot n"></span> sem dados para avaliar (por exemplo, o 1X2 aos 10 minutos, ou quem marca primeiro quando as duas equipas marcam). Resultado final: ${fin.h} - ${fin.a}.</p>` : "";
   return `<h3 style="font-size:22px;margin:0">${esc(f.home_team)} vs ${esc(f.away_team)}</h3>
-    <p class="note">${esc(f.competitions?.name ?? "")} · ${esc(fmtDay(f.kickoff_utc))}, ${esc(fmtHour(f.kickoff_utc))}</p>${legend}${secs}
+    <p class="note">${esc(f.competitions?.name ?? "")} · ${esc(fmtDay(f.kickoff_utc))}, ${esc(fmtHour(f.kickoff_utc))}</p>${legend}
+    <p class="note">Em cada mercado só uma opção aparece como "Sim" (ou "Vitória"). Só o total de golos, os golos de cada equipa, o alcance de golos e o resultado exato mostram percentagens.</p>${body}
     <div class="sec">As 5 análises mais prováveis deste jogo</div>${topHtml}
     <p class="note">Previsão calculada em ${esc(fmtFull(an.created_at))}${fin ? (an.retro ? " (análise reconstruída depois do jogo, só com resultados anteriores a ele; não foi uma previsão feita antes)" : " (antes do jogo; nunca é alterada)") : ""}. São estimativas estatísticas, não garantias.</p>
     ${extra}
@@ -556,6 +674,357 @@ async function openAnalysis(id){
     : `<h3 style="margin:0">${esc(f.home_team)} vs ${esc(f.away_team)}</h3><div class="msg">${esc(f.analysis_note || (isDone(f.status) ? "Não há análise guardada para este jogo." : "Ainda não há análise para esta partida."))}</div>${close}`;
 }
 
+/* =====================================================================
+   CONTAS, PERFIL, AMIGOS, CHAT E PAINEL
+   ATENÇÃO: nesta versão os dados ficam no armazenamento do próprio aparelho
+   (localStorage). Serve para testar e demonstrar. Para os utilizadores se
+   verem entre aparelhos diferentes, e para o e-mail com código ser enviado
+   de verdade, é preciso ligar um servidor (ver MAIL_ENDPOINT e as funções
+   reloadDB/saveDB, que são o único ponto de acesso aos dados).
+   ===================================================================== */
+const ADMIN_EMAIL = "abelmaridao@gmail.com";
+const MAIL_ENDPOINT = null; // URL do teu serviço de envio de e-mail; null = modo demonstração (código mostrado no ecrã)
+const DBK = "eb_db_v1", SESK = "eb_session";
+const emptyDB = () => ({ users: [], general: [], dms: [], resets: {} });
+const rawDB = () => { const d = store.get(DBK, null); return d && d.users ? d : emptyDB(); };
+let DBc = rawDB();
+const saveDB = () => store.set(DBK, DBc);
+const reloadDB = () => { DBc = rawDB(); };
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const rnd = () => { try { return crypto.getRandomValues(new Uint32Array(1))[0]; } catch { return Math.floor(Math.random() * 4294967295); } };
+const validEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
+const validName = n => n.length >= 3 && n.length <= 20 && /^[\p{L}\p{N}_. -]+$/u.test(n);
+const tm = t => { const iso = new Date(t).toISOString(); return dayKey(iso) === dayKey(new Date().toISOString()) ? fmtHour(iso) : fmtFull(iso); };
+const dk = (a, b) => [a, b].sort().join("|");
+const nameOf = id => DBc.users.find(x => x.id === id)?.name ?? "Removido";
+const userById = id => DBc.users.find(x => x.id === id);
+
+S.soc = { mode: "login", err: "", info: "", mail: null, was: false, thread: "general", showSearch: false, q: "", pwForm: false, pmsg: null, banFor: null,
+  f: { id: "", email: "", name: "", pw: "", code: "", pw2: "" } };
+
+async function hashPw(pw, salt){
+  try {
+    const enc = new TextEncoder();
+    const k = await crypto.subtle.importKey("raw", enc.encode(pw), "PBKDF2", false, ["deriveBits"]);
+    const b = await crypto.subtle.deriveBits({ name: "PBKDF2", salt: enc.encode(salt), iterations: 100000, hash: "SHA-256" }, k, 256);
+    return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
+  } catch {
+    let h = 2166136261; const s = salt + "|" + pw;
+    for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return "f" + (h >>> 0).toString(16);
+  }
+}
+// utilizador com sessão válida (conta existe e não está banida)
+function cur(){
+  const id = store.get(SESK, null); if (!id) return null;
+  const u = userById(id);
+  if (!u){ store.set(SESK, null); return null; }
+  if (u.banUntil > Date.now()){ store.set(SESK, null); S.soc.mode = "login"; S.soc.err = `A tua conta está banida até ${tm(u.banUntil)}.`; return null; }
+  return u;
+}
+const avatar = (u, s = 40) => u.photo ? `<img class="av" style="--s:${s}px" src="${esc(u.photo)}" alt="">` : `<span class="av" style="--s:${s}px" aria-hidden="true">${esc((u.name || "?").trim().charAt(0).toUpperCase())}</span>`;
+
+/* ----- mensagens não lidas ----- */
+function unreadKey(u, k){
+  const L = k === "general" ? DBc.general : DBc.dms.filter(m => m.k === k);
+  return L.filter(m => m.from !== u.id && m.t > (u.reads[k] || 0)).length;
+}
+function dmKeys(u){ return [...new Set(DBc.dms.filter(m => m.k.split("|").includes(u.id)).map(m => m.k))]; }
+function unreadTotal(){ const u = cur(); if (!u) return 0; return dmKeys(u).reduce((n, k) => n + unreadKey(u, k), unreadKey(u, "general")); }
+function bdg(){ const n = unreadTotal(); return n ? `<span class="bdg" aria-label="${n} mensagens não lidas">${n > 99 ? "99+" : n}</span>` : ""; }
+function updBadge(){
+  const b = document.querySelector('[data-nav="chat"]'); if (!b) return;
+  const o = b.querySelector(".bdg"); if (o) o.remove();
+  b.insertAdjacentHTML("beforeend", bdg());
+}
+// a conversa que está aberta conta como lida
+function markCurrent(){
+  const u = cur(); if (!u) return; let k = null;
+  if (S.view === "chat"){ if (S.soc.thread === "general") k = "general"; else if (S.soc.thread !== "list") k = dk(u.id, S.soc.thread); }
+  else if (S.view === "user" && S.compId) k = dk(u.id, S.compId);
+  if (k && unreadKey(u, k) > 0){ u.reads[k] = Date.now(); saveDB(); }
+}
+function refreshLive(){
+  markCurrent();
+  const el = $("chatlist");
+  if (el){
+    const html = chatListHtml(el.dataset.k);
+    if (el.innerHTML !== html){ const near = el.scrollHeight - el.scrollTop - el.clientHeight < 80; el.innerHTML = html; if (near) el.scrollTop = el.scrollHeight; }
+  }
+  updBadge();
+}
+
+/* ----- ecrã de entrada ----- */
+function authView(){
+  const s = S.soc, f = s.f, m = s.mode;
+  const fld = (k, label, type = "text", ac = "off") => `<label class="fl" for="a-${k}">${label}</label><input id="a-${k}" data-f="${k}" type="${type}" autocomplete="${ac}" value="${esc(f[k])}">`;
+  const lnk = (v, t) => `<button type="button" class="link" data-s="mode" data-v="${v}">${t}</button>`;
+  let title, body;
+  if (m === "register"){
+    title = "Criar conta";
+    body = `<form novalidate data-sf="register">${fld("email", "E-mail (tem de ser válido)", "email", "email")}${fld("name", "Nome de utilizador", "text", "username")}${fld("pw", "Palavra-passe (mínimo 6 caracteres)", "password", "new-password")}
+      <button class="btn" style="width:100%;margin-top:14px;padding:13px">Criar conta</button></form>${lnk("login", "Já tenho conta. Entrar")}`;
+  } else if (m === "forgot1"){
+    title = "Recuperar conta";
+    body = `<p class="note">Escreve o e-mail da tua conta. Vamos enviar um código de 6 dígitos.</p><form novalidate data-sf="forgot1">${fld("email", "E-mail", "email", "email")}
+      <button class="btn" style="width:100%;margin-top:14px;padding:13px">Enviar código</button></form>${lnk("login", "Voltar a entrar")}`;
+  } else if (m === "forgot2"){
+    const mail = s.mail ? `<div class="mail">📧 <b>Caixa de e-mail simulada (demonstração)</b><br>Para: ${esc(s.mail.to)}<br>O teu código de recuperação é <strong>${esc(s.mail.code)}</strong><br><small>Num app ligado a um servidor de e-mail, este código chega à caixa de entrada e não aparece aqui.</small></div>` : "";
+    title = "Novo código";
+    body = `${mail}<form novalidate data-sf="forgot2">${fld("code", "Código de 6 dígitos", "text", "one-time-code")}${fld("pw2", "Nova palavra-passe", "password", "new-password")}
+      <button class="btn" style="width:100%;margin-top:14px;padding:13px">Alterar palavra-passe</button></form>${lnk("forgot1", "Pedir outro código")}`;
+  } else {
+    title = "Entrar";
+    body = `<form novalidate data-sf="login">${fld("id", "E-mail ou nome de utilizador", "text", "username")}${fld("pw", "Palavra-passe", "password", "current-password")}
+      <button class="btn" style="width:100%;margin-top:14px;padding:13px">Entrar</button></form>
+      ${lnk("forgot1", "Esqueci a palavra-passe")}<br>${lnk("register", "Não tenho conta. Criar conta")}`;
+  }
+  return `<header class="top"><div style="width:40px"></div><div class="brand"><span class="mark" aria-hidden="true">🦁</span><span>Elephalpit <em>Bet</em></span></div><div style="width:40px"></div></header>
+    <div class="auth"><h1 class="ttl">${title}</h1><p class="sub">O registo é obrigatório para usar o app.</p>
+    ${s.err ? `<div class="msg" role="alert">${esc(s.err)}</div>` : ""}${s.info ? `<div class="msg ok">${esc(s.info)}</div>` : ""}
+    <div class="card">${body}</div></div>`;
+}
+const err = t => { S.soc.err = t; S.soc.info = ""; render(); return false; };
+async function doRegister(){
+  const f = S.soc.f, e = f.email.trim().toLowerCase(), n = f.name.trim();
+  if (!validEmail(e)) return err("Escreve um e-mail válido.");
+  if (!validName(n)) return err("O nome de utilizador deve ter 3 a 20 caracteres (letras, números, espaço, _ . -).");
+  if (f.pw.length < 6) return err("A palavra-passe deve ter pelo menos 6 caracteres.");
+  const salt = uid(), hash = await hashPw(f.pw, salt);
+  reloadDB();
+  if (DBc.users.some(u => u.email === e)) return err("Este e-mail já está registado.");
+  if (DBc.users.some(u => norm(u.name) === norm(n))) return err("Este nome de utilizador já existe.");
+  const u = { id: uid(), email: e, name: n, salt, hash, photo: "", friends: [], admin: e === ADMIN_EMAIL, banUntil: 0, created: Date.now(), reads: { general: Date.now() } };
+  DBc.users.push(u); saveDB(); store.set(SESK, u.id);
+  S.soc.f.pw = ""; S.soc.err = ""; S.soc.info = ""; S.view = "home"; render();
+}
+async function doLogin(){
+  const { id, pw } = S.soc.f, key = id.trim();
+  if (!key || !pw) return err("Escreve o e-mail (ou nome) e a palavra-passe.");
+  reloadDB();
+  const u = DBc.users.find(x => x.email === key.toLowerCase() || norm(x.name) === norm(key));
+  const ok = u && u.hash === await hashPw(pw, u.salt);
+  if (!ok) return err("E-mail/nome ou palavra-passe incorretos.");
+  if (u.banUntil > Date.now()) return err(`Esta conta está banida até ${tm(u.banUntil)}.`);
+  store.set(SESK, u.id); S.soc.f.pw = ""; S.soc.err = ""; S.soc.info = ""; S.view = "home"; render();
+}
+async function sendMail(to, code){
+  if (MAIL_ENDPOINT){
+    try { const r = await fetch(MAIL_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ to, subject: "Código de recuperação - Elephalpit Bet", code }) }); if (r.ok) return; } catch {}
+  }
+  S.soc.mail = { to, code }; // modo demonstração
+}
+async function doForgot1(){
+  const e = S.soc.f.email.trim().toLowerCase();
+  if (!validEmail(e)) return err("Escreve um e-mail válido.");
+  S.soc.mail = null;
+  reloadDB();
+  if (DBc.users.some(u => u.email === e)){
+    const code = String(rnd() % 900000 + 100000), h = await hashPw(code, e);
+    reloadDB(); DBc.resets[e] = { h, exp: Date.now() + 600000, tries: 0 }; saveDB();
+    await sendMail(e, code);
+  }
+  S.soc.mode = "forgot2"; S.soc.err = "";
+  S.soc.info = "Se este e-mail estiver registado, foi enviado um código de 6 dígitos (válido 10 minutos).";
+  render();
+}
+async function doForgot2(){
+  const e = S.soc.f.email.trim().toLowerCase(), code = S.soc.f.code.trim(), pw2 = S.soc.f.pw2;
+  if (pw2.length < 6) return err("A nova palavra-passe deve ter pelo menos 6 caracteres.");
+  const h = await hashPw(code, e), salt = uid(), nh = await hashPw(pw2, salt);
+  reloadDB();
+  const r = DBc.resets[e];
+  if (!r || r.exp < Date.now()) return err("Código inválido ou expirado. Pede um novo.");
+  if (r.tries >= 5){ delete DBc.resets[e]; saveDB(); return err("Demasiadas tentativas. Pede um novo código."); }
+  if (r.h !== h){ r.tries++; saveDB(); return err("Código incorreto."); }
+  const u = DBc.users.find(x => x.email === e); if (!u) return err("Conta não encontrada.");
+  u.salt = salt; u.hash = nh; delete DBc.resets[e]; saveDB();
+  Object.assign(S.soc.f, { id: e, pw: "", code: "", pw2: "" }); S.soc.mail = null; S.soc.mode = "login"; S.soc.err = "";
+  S.soc.info = "Palavra-passe alterada. Já podes entrar."; render();
+}
+
+/* ----- perfil ----- */
+const pm = (t, ok) => { S.soc.pmsg = t ? { t, ok: !!ok } : null; render(); return false; };
+function searchRes(){
+  const me = cur(), q = norm(S.soc.q).trim();
+  if (!q) return `<p class="note">Escreve um nome para pesquisar.</p>`;
+  const L = DBc.users.filter(u => u.id !== me.id && norm(u.name).includes(q)).slice(0, 20);
+  return L.length ? L.map(u => `<div class="frow">${avatar(u, 36)}<span class="nm">${esc(u.name)}</span><button class="mbtn" data-s="user" data-id="${u.id}">Ver perfil</button></div>`).join("") : `<p class="note">Nenhum utilizador encontrado.</p>`;
+}
+function profileView(){
+  const u = cur(), s = S.soc;
+  const fr = u.friends.map(userById).filter(Boolean);
+  const msg = s.pmsg ? `<div class="msg ${s.pmsg.ok ? "ok" : ""}" role="alert">${esc(s.pmsg.t)}</div>` : "";
+  const pwForm = s.pwForm ? `<form novalidate data-sf="pw" style="margin-top:8px"><label class="fl" for="pw-c">Palavra-passe atual</label><input id="pw-c" name="c" type="password" autocomplete="current-password">
+    <label class="fl" for="pw-n">Nova palavra-passe</label><input id="pw-n" name="n" type="password" autocomplete="new-password"><div class="row" style="margin-top:10px"><button class="btn">Guardar</button><button type="button" class="btn alt" data-s="pwform">Cancelar</button></div></form>` : "";
+  return `<h1 class="ttl">Meu perfil</h1>${msg}<section class="card">
+    <div class="phead">${avatar(u, 84)}<label class="btn amber" for="photoin" style="cursor:pointer">Adicionar foto de perfil</label><input id="photoin" type="file" accept="image/*" hidden></div>
+    <form novalidate data-sf="rename"><label class="fl" for="pn">Editar nome:</label><div class="row"><input id="pn" name="n" type="text" maxlength="20" value="${esc(u.name)}"><button class="btn">Guardar</button></div></form>
+    <div class="fl">Teu e-mail:</div><div class="val">${esc(u.email)}</div>
+    <div class="fl">Tua palavra-passe:</div><div class="row"><div class="val" style="flex:1" aria-label="palavra-passe oculta">••••••••</div><button class="btn alt" data-s="pwform">Alterar</button></div>${pwForm}
+    <p class="note">Só tu vês o teu e-mail. Os outros utilizadores veem apenas o teu nome, a foto e a lista de amigos.</p></section>
+    <section class="card"><button class="link big" data-s="fsearch">Adicionar amigos</button>
+    ${s.showSearch ? `<div class="sbar"><input id="usq" type="search" placeholder="Pesquisar utilizador…" autocomplete="off" value="${esc(s.q)}"><span class="lupa">${ICON.search}</span></div><div id="sres">${searchRes()}</div>` : ""}
+    <h3>Meus amigos</h3>${fr.length ? fr.map(f => `<div class="frow">${avatar(f, 36)}<button class="link nm" data-s="user" data-id="${f.id}">${esc(f.name)}</button><button class="mbtn" data-s="dm" data-id="${f.id}">mensagens</button></div>`).join("") : `<p class="note">Ainda não tens amigos. Toca em "Adicionar amigos" para pesquisar.</p>`}</section>
+    <button class="btn alt" style="width:100%" data-s="logout">Terminar sessão</button>`;
+}
+function userView(){
+  const me = cur(), u = userById(S.compId);
+  const back = `<div class="row" style="margin-bottom:6px"><button class="btn alt" data-s="backhist">← Voltar</button></div>`;
+  if (!u) return back + `<div class="empty">Este utilizador já não existe.</div>`;
+  if (u.id === me.id) return profileView();
+  const isF = me.friends.includes(u.id), fr = u.friends.map(userById).filter(Boolean);
+  return `${back}<section class="card"><div class="phead">${avatar(u, 84)}<div style="flex:1"><h1 style="margin:0;font-size:24px">${esc(u.name)}</h1>
+    <button class="btn ${isF ? "alt" : "amber"}" style="margin-top:8px" data-s="${isF ? "unfriend" : "friend"}" data-id="${u.id}">${isF ? "Remover dos amigos" : "Adicionar aos amigos"}</button></div></div>
+    <h3>Amigos de ${esc(u.name)}</h3>${fr.length ? fr.map(f => `<div class="frow">${avatar(f, 32)}<button class="link nm" data-s="user" data-id="${f.id}">${esc(f.name)}</button></div>`).join("") : `<p class="note">Sem amigos ainda.</p>`}</section>
+    <section class="card"><h3 style="margin-top:0">Mensagens privadas</h3><p class="note">Só tu e ${esc(u.name)} veem esta conversa.</p>${threadBox(dk(me.id, u.id))}</section>`;
+}
+
+/* ----- chat ----- */
+function chatListHtml(k){
+  const me = cur(); if (!me) return "";
+  const L = (k === "general" ? DBc.general : DBc.dms.filter(m => m.k === k)).slice(-100);
+  if (!L.length) return `<div class="empty" style="padding:20px">Ainda não há mensagens. Escreve a primeira.</div>`;
+  return L.map(m => { const mine = m.from === me.id; return `<div class="bub ${mine ? "me" : ""}">${mine ? "" : `<b>${esc(nameOf(m.from))}</b>`}<span>${esc(m.text)}</span><small>${esc(tm(m.t))}</small></div>`; }).join("");
+}
+function threadBox(k){
+  return `<div id="chatlist" class="chl" data-k="${esc(k)}" aria-live="polite">${chatListHtml(k)}</div>
+    <form class="send" data-sf="send" data-th="${esc(k)}"><input name="t" type="text" maxlength="500" placeholder="Escreve uma mensagem…" autocomplete="off"><button class="btn">Enviar</button></form>`;
+}
+function chatView(){
+  const u = cur(), s = S.soc, t = s.thread;
+  if (t !== "general" && t !== "list"){
+    const o = userById(t);
+    if (!o){ s.thread = "list"; return chatView(); }
+    return `<div class="row" style="margin-bottom:6px"><button class="btn alt" data-s="tab" data-v="list">← Conversas</button><button class="link nm" data-s="user" data-id="${o.id}">${avatar(o, 30)} ${esc(o.name)}</button></div>${threadBox(dk(u.id, o.id))}`;
+  }
+  const tabs = `<div class="tabs"><button class="tab" data-s="tab" data-v="general" aria-pressed="${t === "general"}">Chat geral</button><button class="tab" data-s="tab" data-v="list" aria-pressed="${t === "list"}">Privadas</button></div>`;
+  if (t === "general") return `<h1 class="ttl">Chat</h1>${tabs}<p class="note">Todas as mensagens do chat geral são visíveis para todos os utilizadores.</p>${threadBox("general")}`;
+  const ids = new Set(u.friends);
+  DBc.dms.forEach(m => { const p = m.k.split("|"); if (p.includes(u.id)) p.forEach(x => x !== u.id && ids.add(x)); });
+  const rows = [...ids].map(userById).filter(Boolean).map(o => { const k = dk(u.id, o.id), L = DBc.dms.filter(m => m.k === k); return { o, last: L[L.length - 1], n: unreadKey(u, k) }; })
+    .sort((a, b) => (b.last?.t || 0) - (a.last?.t || 0));
+  return `<h1 class="ttl">Chat</h1>${tabs}` + (rows.length ? rows.map(r => `<button class="conv" data-s="dm" data-id="${r.o.id}">${avatar(r.o, 40)}<span class="cm"><b>${esc(r.o.name)}</b><small>${r.last ? esc(r.last.text.slice(0, 50)) : "Sem mensagens"}</small></span>${r.n ? `<span class="bdg2">${r.n}</span>` : ""}</button>`).join("")
+    : `<div class="empty">Ainda não tens conversas privadas. Adiciona amigos no teu perfil.</div>`);
+}
+function doSend(form){
+  const u0 = cur(); if (!u0) return;
+  const k = form.dataset.th, inp = form.elements.t, text = inp.value.trim().slice(0, 500);
+  if (!text) return;
+  reloadDB();
+  const me = userById(u0.id); if (!me) return;
+  if (k === "general"){ DBc.general.push({ id: uid(), from: me.id, t: Date.now(), text }); DBc.general = DBc.general.slice(-300); }
+  else {
+    const p = k.split("|"), other = p.find(i => i !== me.id);
+    if (!p.includes(me.id) || !userById(other)) return;
+    DBc.dms.push({ id: uid(), k, from: me.id, t: Date.now(), text }); DBc.dms = DBc.dms.slice(-3000);
+  }
+  me.reads[k] = Date.now(); saveDB(); inp.value = "";
+  refreshLive(); const el = $("chatlist"); if (el) el.scrollTop = el.scrollHeight;
+}
+
+/* ----- painel do administrador ----- */
+function adminView(){
+  const me = cur(), s = S.soc;
+  if (!me.admin) return `<div class="empty">Sem permissão.</div>`;
+  const now = Date.now(), us = DBc.users, banned = us.filter(x => x.banUntil > now).length;
+  const target = s.banFor && userById(s.banFor);
+  const banForm = target ? `<form class="card" data-sf="ban"><b>Banir ${esc(target.name)}</b><div class="row" style="margin-top:8px"><input name="n" type="number" min="1" max="3650" value="1" aria-label="Duração"><select name="u" aria-label="Unidade"><option value="60000">minutos</option><option value="3600000" selected>horas</option><option value="86400000">dias</option></select></div>
+    <div class="row" style="margin-top:10px"><button class="btn">Confirmar ban</button><button type="button" class="btn alt" data-s="banx">Cancelar</button></div></form>` : "";
+  const rows = us.map(u => {
+    const b = u.banUntil > now, self = u.id === me.id;
+    return `<div class="urow"><b>${esc(u.name)}</b>${u.admin ? `<span class="tag">ADMIN</span>` : ""}<br><small style="color:var(--mute)">${esc(u.email)} · ${b ? "Banido até " + esc(tm(u.banUntil)) : "Ativo"} · ${u.friends.length} amigo${u.friends.length === 1 ? "" : "s"}</small>
+      ${self ? "" : `<div class="row">${b ? `<button class="mbtn" data-s="unban" data-id="${u.id}">Remover ban</button>` : `<button class="mbtn" data-s="banopen" data-id="${u.id}">Banir</button>`}<button class="mbtn" style="background:var(--bad)" data-s="deluser" data-id="${u.id}">Excluir conta</button></div>`}</div>`;
+  }).join("");
+  return `<h1 class="ttl">Painel do administrador</h1><div class="stat"><div><b>${us.length}</b>utilizadores</div><div><b>${banned}</b>banidos agora</div><div><b>${DBc.general.length}</b>msgs no chat</div></div>
+    ${banForm}<section class="card"><h3 style="margin-top:0">Todos os utilizadores</h3>${rows}</section>`;
+}
+function adminOnly(){ reloadDB(); const u = cur(); return u && u.admin ? u : null; }
+
+/* ----- ações (cliques e formulários) ----- */
+const ACT = {
+  mode: d => { S.soc.mode = d.v; S.soc.err = ""; S.soc.info = ""; if (d.v !== "forgot2") S.soc.mail = null; render(); },
+  logout: () => { store.set(SESK, null); S.soc.mode = "login"; S.soc.err = ""; S.soc.info = ""; S.soc.f.pw = ""; S.view = "home"; S.drawer = false; render(); },
+  profile: () => go("profile"),
+  admin: () => go("admin"),
+  vip: () => { reloadDB(); const u = cur(); if (u && u.admin) go("vip"); },
+  user: d => go("user", d.id),
+  dm: d => { S.soc.thread = d.id; go("chat"); },
+  tab: d => { S.soc.thread = d.v; render(); },
+  backhist: () => { try { history.back(); } catch { go("home"); } },
+  pwform: () => { S.soc.pwForm = !S.soc.pwForm; S.soc.pmsg = null; render(); },
+  fsearch: () => { S.soc.showSearch = !S.soc.showSearch; render(); const i = $("usq"); if (i) i.focus(); },
+  friend: d => { reloadDB(); const me = userById(cur()?.id), o = userById(d.id); if (!me || !o || me.id === o.id) return;
+    if (!me.friends.includes(o.id)) me.friends.push(o.id); if (!o.friends.includes(me.id)) o.friends.push(me.id); saveDB(); render(); },
+  unfriend: d => { reloadDB(); const me = userById(cur()?.id), o = userById(d.id); if (!me || !o) return;
+    me.friends = me.friends.filter(i => i !== o.id); o.friends = o.friends.filter(i => i !== me.id); saveDB(); render(); },
+  banopen: d => { S.soc.banFor = d.id; render(); },
+  banx: () => { S.soc.banFor = null; render(); },
+  unban: d => { if (!adminOnly()) return; const t = userById(d.id); if (t){ t.banUntil = 0; saveDB(); } render(); },
+  deluser: d => {
+    if (!adminOnly() || d.id === cur().id) return;
+    const t = userById(d.id); if (!t) return;
+    if (window.confirm && !window.confirm(`Excluir a conta de ${t.name} para sempre? Não dá para desfazer.`)) return;
+    DBc.users = DBc.users.filter(x => x.id !== d.id);
+    DBc.users.forEach(x => { x.friends = x.friends.filter(i => i !== d.id); });
+    DBc.dms = DBc.dms.filter(m => !m.k.split("|").includes(d.id));
+    DBc.general = DBc.general.filter(m => m.from !== d.id);
+    delete DBc.resets[t.email]; saveDB(); render();
+  }
+};
+const FORM = {
+  login: () => doLogin(), register: () => doRegister(), forgot1: () => doForgot1(), forgot2: () => doForgot2(),
+  send: f => doSend(f),
+  rename: f => {
+    const n = f.elements.n.value.trim(); if (!validName(n)) return pm("O nome deve ter 3 a 20 caracteres (letras, números, espaço, _ . -).");
+    reloadDB(); const me = userById(cur()?.id); if (!me) return;
+    if (DBc.users.some(x => x.id !== me.id && norm(x.name) === norm(n))) return pm("Este nome de utilizador já existe.");
+    me.name = n; saveDB(); pm("Nome atualizado.", true);
+  },
+  pw: async f => {
+    const c = f.elements.c.value, n = f.elements.n.value, u0 = cur(); if (!u0) return;
+    if (n.length < 6) return pm("A nova palavra-passe deve ter pelo menos 6 caracteres.");
+    const ch = await hashPw(c, u0.salt), salt = uid(), nh = await hashPw(n, salt);
+    reloadDB(); const u = userById(u0.id);
+    if (!u || u.hash !== ch) return pm("A palavra-passe atual está incorreta.");
+    u.salt = salt; u.hash = nh; saveDB(); S.soc.pwForm = false; pm("Palavra-passe alterada.", true);
+  },
+  ban: f => {
+    if (!adminOnly()) return;
+    const n = Math.min(3650, Math.max(1, Math.floor(+f.elements.n.value || 1))), ms = n * (+f.elements.u.value || 3600000);
+    const t = userById(S.soc.banFor); if (!t || t.id === cur().id) return;
+    t.banUntil = Date.now() + ms; saveDB(); S.soc.banFor = null; render();
+  }
+};
+document.addEventListener("click", e => { const el = e.target.closest("[data-s]"); if (el && ACT[el.dataset.s]){ e.preventDefault(); ACT[el.dataset.s](el.dataset, el, e); } });
+document.addEventListener("submit", e => { const f = e.target.closest("[data-sf]"); if (f && FORM[f.dataset.sf]){ e.preventDefault(); FORM[f.dataset.sf](f); } });
+document.addEventListener("input", e => {
+  const t = e.target;
+  if (t.dataset && t.dataset.f) S.soc.f[t.dataset.f] = t.value;
+  if (t.id === "usq"){ S.soc.q = t.value; const r = $("sres"); if (r) r.innerHTML = searchRes(); }
+});
+document.addEventListener("change", e => {
+  if (e.target.id !== "photoin") return;
+  const file = e.target.files && e.target.files[0]; if (!file) return;
+  const img = new Image(), url = URL.createObjectURL(file);
+  img.onload = () => {
+    const c = document.createElement("canvas"); c.width = c.height = 160;
+    const s = Math.min(img.width, img.height);
+    c.getContext("2d").drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, 160, 160);
+    URL.revokeObjectURL(url); reloadDB();
+    const u = userById(cur()?.id); if (u){ u.photo = c.toDataURL("image/jpeg", .8); saveDB(); pm("Foto atualizada.", true); }
+  };
+  img.onerror = () => pm("Não foi possível ler esta imagem.");
+  img.src = url;
+});
+// atualização periódica: mensagens novas, contador de não lidas, bans em tempo real
+setInterval(() => {
+  reloadDB();
+  if (!cur()){ if (S.soc.was) render(); return; }
+  refreshLive();
+}, 3000);
+window.addEventListener("storage", e => { if (e.key === DBK || e.key === SESK){ reloadDB(); if (!cur()){ if (S.soc.was) render(); } else if (!S.soc.was) render(); else refreshLive(); } });
+
 /* ---------- Navegação e eventos ---------- */
 function go(view, compId){
   S.view = view; S.compId = compId ?? null; S.drawer = false; S.search = false; drawerHtml();
@@ -566,7 +1035,13 @@ window.addEventListener("popstate", e => { const s = e.state || { v: "home", c: 
 document.addEventListener("click", e => {
   const el = e.target.closest("[data-nav],[data-comp],[data-tab],[data-day],[data-an],[data-del],[data-favtoggle],[data-favdel],[data-favopen],[data-act]"); if (!el) return;
   const d = el.dataset;
-  if (d.act === "close"){ if (e.target !== el && el.classList.contains("ov") && e.target.closest(".drawer")) return; S.drawer = false; S.search = false; $("ov").innerHTML = ""; return; }
+  if (d.act === "close"){ if (e.target !== el && el.classList.contains("ov") && e.target.closest(".drawer")) return; S.drawer = false; S.search = false; S.lg = false; $("ov").innerHTML = ""; return; }
+  if (d.act === "leagues"){ S.lg = true; S.drawer = false; S.search = false; leaguesHtml(); return; }
+  if (d.act === "lgtoggle"){
+    if (S.sel.includes(d.id)) S.sel = S.sel.filter(x => x !== d.id); else if (S.sel.length < 3) S.sel = [...S.sel, d.id];
+    store.set("calLeagues", S.sel); leaguesHtml(); render(); return;
+  }
+  if (d.act === "lgclear"){ S.sel = []; store.set("calLeagues", S.sel); leaguesHtml(); render(); return; }
   if (d.act === "drawer"){ S.drawer = true; S.search = false; drawerHtml(); return; }
   if (d.act === "search"){ S.search = true; S.drawer = false; searchHtml(); return; }
   if (d.act === "next"){ const st = $("strip"); if (st && st.scrollBy) st.scrollBy({ left: 240, behavior: "smooth" }); return; }
@@ -599,9 +1074,11 @@ document.addEventListener("change", e => {
 
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") load(); });
 window.addEventListener("online", load);
+let lastDayKey = dayKey(new Date().toISOString());
+setInterval(() => { const k = dayKey(new Date().toISOString()); if (k !== lastDayKey){ lastDayKey = k; render(); } }, 60000);
 applyTheme();
 load();
 setInterval(load, 30 * 60 * 1000);
 </script>
 </body>
-  </html>
+</html>
