@@ -768,12 +768,23 @@ async function openAnalysis(id){
    ===================================================================== */
 const ADMIN_EMAIL = "abelmaridao@gmail.com";
 const MAIL_ENDPOINT = null; // URL do teu serviço de envio de e-mail; null = modo demonstração (código mostrado no ecrã)
-const DBK = "eb_db_v1", SESK = "eb_session";
+const API_URL = null; // endereço do accounts-worker.js (ex.: "https://contas.teu-nome.workers.dev"). null = modo local (só neste aparelho)
+const DBK = "eb_db_v1", SESK = "eb_session", MEK = "eb_me";
 const emptyDB = () => ({ users: [], resets: {} });
 const rawDB = () => { const d = store.get(DBK, null); return d && d.users ? d : emptyDB(); };
 let DBc = rawDB();
-const saveDB = () => store.set(DBK, DBc);
-const reloadDB = () => { DBc = rawDB(); };
+const saveDB = () => { if (!API_URL) store.set(DBK, DBc); };
+const reloadDB = () => { if (!API_URL) DBc = rawDB(); };
+// ligação ao servidor de contas (modo partilhado entre aparelhos)
+async function api(op, body){
+  try {
+    const t = store.get(SESK, null);
+    const r = await fetch(API_URL.replace(/\/$/, "") + "/" + op, { method: "POST", headers: { "Content-Type": "application/json", ...(t ? { Authorization: "Bearer " + t } : {}) }, body: JSON.stringify(body || {}) });
+    let d = {}; try { d = await r.json(); } catch {}
+    return { ...d, status: r.status };
+  } catch { return { status: 0, error: "Sem ligação ao servidor. Tenta outra vez." }; }
+}
+const banMsg = (t, who) => `${who} está banida até ${tm(t)}.`;
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 const rnd = () => { try { return crypto.getRandomValues(new Uint32Array(1))[0]; } catch { return Math.floor(Math.random() * 4294967295); } };
 const validEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
@@ -798,12 +809,20 @@ async function hashPw(pw, salt){
 }
 // utilizador com sessão válida (conta existe e não está banida)
 function cur(){
+  if (API_URL){
+    const m = S.soc.me; if (!m) return null;
+    if (m.banUntil > Date.now()){ dropSession(banMsg(m.banUntil, "A tua conta")); return null; }
+    return m;
+  }
   const id = store.get(SESK, null); if (!id) return null;
   const u = userById(id);
   if (!u){ store.set(SESK, null); return null; }
   if (u.banUntil > Date.now()){ store.set(SESK, null); S.soc.mode = "login"; S.soc.err = `A tua conta está banida até ${tm(u.banUntil)}.`; return null; }
   return u;
 }
+function dropSession(msg){ store.set(SESK, null); store.set(MEK, null); S.soc.me = null; S.pwPlain = ""; S.soc.mode = "login"; S.soc.err = msg || ""; S.soc.info = ""; S.soc.f.pw = ""; S.view = "home"; S.drawer = false; }
+const startSession = r => { store.set(SESK, r.token); store.set(MEK, r.user); S.soc.me = r.user; S.pwPlain = S.soc.f.pw; S.soc.f.pw = ""; S.soc.err = ""; S.soc.info = ""; S.view = "home"; startBusy(); render(); };
+if (API_URL) S.soc.me = store.get(SESK, null) ? store.get(MEK, null) : null;
 const avatar = (u, s = 40) => u.photo ? `<img class="av" style="--s:${s}px" src="${esc(u.photo)}" alt="">` : `<span class="av" style="--s:${s}px" aria-hidden="true">${esc((u.name || "?").trim().charAt(0).toUpperCase())}</span>`;
 
 /* ----- ecrã de entrada ----- */
@@ -843,6 +862,10 @@ async function doRegister(){
   if (!validName(n)) return err("O nome de utilizador deve ter 3 a 20 caracteres (letras, números, espaço, _ . -).");
   if (f.pw.length < 6) return err("A palavra-passe deve ter pelo menos 6 caracteres.");
   const salt = uid(), hash = await hashPw(f.pw, salt);
+  if (API_URL){
+    const r = await api("register", { email: e, name: n, salt, hash });
+    return r.ok ? startSession(r) : err(r.error || "Não foi possível criar a conta.");
+  }
   reloadDB();
   if (DBc.users.some(u => u.email === e)) return err("Este e-mail já está registado.");
   if (DBc.users.some(u => norm(u.name) === norm(n))) return err("Este nome de utilizador já existe.");
@@ -853,6 +876,12 @@ async function doRegister(){
 async function doLogin(){
   const { id, pw } = S.soc.f, key = id.trim();
   if (!key || !pw) return err("Escreve o e-mail (ou nome) e a palavra-passe.");
+  if (API_URL){
+    const s1 = await api("salt", { id: key }); if (!s1.salt) return err(s1.error || "Sem ligação ao servidor. Tenta outra vez.");
+    const r = await api("login", { id: key, hash: await hashPw(pw, s1.salt) });
+    if (r.ok) return startSession(r);
+    return err(r.error === "banned" ? banMsg(r.banUntil, "Esta conta") : (r.error || "E-mail/nome ou palavra-passe incorretos."));
+  }
   reloadDB();
   const u = DBc.users.find(x => x.email === key.toLowerCase() || norm(x.name) === norm(key));
   const ok = u && u.hash === await hashPw(pw, u.salt);
@@ -870,11 +899,16 @@ async function doForgot1(){
   const e = S.soc.f.email.trim().toLowerCase();
   if (!validEmail(e)) return err("Escreve um e-mail válido.");
   S.soc.mail = null;
+  if (API_URL){
+    const r = await api("forgot1", { email: e }); if (!r.ok) return err(r.error || "Sem ligação ao servidor.");
+    if (r.demoCode) S.soc.mail = { to: e, code: r.demoCode };
+  } else {
   reloadDB();
   if (DBc.users.some(u => u.email === e)){
     const code = String(rnd() % 900000 + 100000), h = await hashPw(code, e);
     reloadDB(); DBc.resets[e] = { h, exp: Date.now() + 600000, tries: 0 }; saveDB();
     await sendMail(e, code);
+  }
   }
   S.soc.mode = "forgot2"; S.soc.err = "";
   S.soc.info = "Se este e-mail estiver registado, foi enviado um código de 6 dígitos (válido 10 minutos).";
@@ -884,6 +918,11 @@ async function doForgot2(){
   const e = S.soc.f.email.trim().toLowerCase(), code = S.soc.f.code.trim(), pw2 = S.soc.f.pw2;
   if (pw2.length < 6) return err("A nova palavra-passe deve ter pelo menos 6 caracteres.");
   const h = await hashPw(code, e), salt = uid(), nh = await hashPw(pw2, salt);
+  if (API_URL){
+    const r = await api("forgot2", { email: e, code, salt, hash: nh }); if (!r.ok) return err(r.error || "Sem ligação ao servidor.");
+    Object.assign(S.soc.f, { id: e, pw: "", code: "", pw2: "" }); S.soc.mail = null; S.soc.mode = "login"; S.soc.err = "";
+    S.soc.info = "Palavra-passe alterada. Já podes entrar."; return render();
+  }
   reloadDB();
   const r = DBc.resets[e];
   if (!r || r.exp < Date.now()) return err("Código inválido ou expirado. Pede um novo.");
@@ -903,7 +942,7 @@ function adminView(){
   const target = s.banFor && userById(s.banFor);
   const banForm = target ? `<form class="card" data-sf="ban"><b>Banir ${esc(target.name)}</b><div class="row" style="margin-top:8px"><input name="n" type="number" min="1" max="3650" value="1" aria-label="Duração"><select name="u" aria-label="Unidade"><option value="60000">minutos</option><option value="3600000" selected>horas</option><option value="86400000">dias</option></select></div>
     <div class="row" style="margin-top:10px"><button class="btn">Confirmar ban</button><button type="button" class="btn alt" data-s="banx">Cancelar</button></div></form>` : "";
-  return `${backBar()}<h1 class="ttl">Painel do administrador</h1><div class="stat"><div><b>${us.length}</b>utilizadores</div><div><b>${banned}</b>banidos agora</div></div>
+  return `${backBar()}<h1 class="ttl">Painel do administrador</h1><div class="stat" id="adstat"><div><b>${us.length}</b>utilizadores</div><div><b>${banned}</b>banidos agora</div></div>
     ${banForm}<section class="card"><h3 style="margin-top:0">Todos os utilizadores</h3>
     <div class="sbar"><input id="adq" type="search" placeholder="Pesquisar utilizador…" autocomplete="off" value="${esc(s.aq || "")}" aria-label="Pesquisar utilizador"><span class="lupa">${ICON.search}</span></div>
     <div id="adlist">${adminRows(me)}</div></section>`;
@@ -923,17 +962,18 @@ function adminOnly(){ reloadDB(); const u = cur(); return u && u.admin ? u : nul
 /* ----- ações (cliques e formulários) ----- */
 const ACT = {
   mode: d => { S.soc.mode = d.v; S.soc.err = ""; S.soc.info = ""; if (d.v !== "forgot2") S.soc.mail = null; render(); },
-  logout: () => { S.pwPlain = ""; store.set(SESK, null); S.soc.mode = "login"; S.soc.err = ""; S.soc.info = ""; S.soc.f.pw = ""; S.view = "home"; S.drawer = false; render(); },
+  logout: () => { if (API_URL){ api("logout"); dropSession(""); return render(); } S.pwPlain = ""; store.set(SESK, null); S.soc.mode = "login"; S.soc.err = ""; S.soc.info = ""; S.soc.f.pw = ""; S.view = "home"; S.drawer = false; render(); },
   eye: (d, el) => { const i = el.parentNode.querySelector("input"); if (!i) return; const show = i.type === "password"; i.type = show ? "text" : "password"; el.innerHTML = show ? EYE_OFF : EYE; el.setAttribute("aria-label", show ? "Esconder palavra-passe" : "Mostrar palavra-passe"); },
-  admin: () => go("admin"),
+  admin: () => { go("admin"); refreshAdmin(); },
   vip: () => { reloadDB(); const u = cur(); if (u && u.admin) go("vip"); },
   banopen: d => { S.soc.banFor = d.id; render(); },
   banx: () => { S.soc.banFor = null; render(); },
-  unban: d => { if (!adminOnly()) return; const t = userById(d.id); if (t){ t.banUntil = 0; saveDB(); } render(); },
+  unban: d => { if (API_URL){ api("admin/unban", { id: d.id }).then(refreshAdmin); return; } if (!adminOnly()) return; const t = userById(d.id); if (t){ t.banUntil = 0; saveDB(); } render(); },
   deluser: d => {
     if (!adminOnly() || d.id === cur().id) return;
     const t = userById(d.id); if (!t) return;
     if (window.confirm && !window.confirm(`Excluir a conta de ${t.name} para sempre? Não dá para desfazer.`)) return;
+    if (API_URL){ api("admin/delete", { id: d.id }).then(refreshAdmin); return; }
     DBc.users = DBc.users.filter(x => x.id !== d.id);
     DBc.users.forEach(x => { x.friends = x.friends.filter(i => i !== d.id); });
     delete DBc.resets[t.email]; saveDB(); render();
@@ -945,6 +985,7 @@ const FORM = {
     if (!adminOnly()) return;
     const n = Math.min(3650, Math.max(1, Math.floor(+f.elements.n.value || 1))), ms = n * (+f.elements.u.value || 3600000);
     const t = userById(S.soc.banFor); if (!t || t.id === cur().id) return;
+    if (API_URL){ api("admin/ban", { id: t.id, until: Date.now() + ms }).then(() => { S.soc.banFor = null; render(); refreshAdmin(); }); return; }
     t.banUntil = Date.now() + ms; saveDB(); S.soc.banFor = null; render();
   }
 };
@@ -955,18 +996,38 @@ document.addEventListener("input", e => {
   if (t.dataset && t.dataset.f) S.soc.f[t.dataset.f] = t.value;
   if (t.id === "adq"){ S.soc.aq = t.value; reloadDB(); const me = cur(), el = $("adlist"); if (el && me && me.admin) el.innerHTML = adminRows(me); }
 });
+// lista de utilizadores (servidor): atualiza o número e a lista em tempo real
+async function refreshAdmin(){
+  if (!API_URL) return; const me = cur(); if (!me || !me.admin) return;
+  const r = await api("admin/list"); if (!r.ok) return;
+  DBc.users = r.users; if (S.view !== "admin") return;
+  const now = Date.now(), el = $("adstat"), ls = $("adlist");
+  if (el) el.innerHTML = `<div><b>${DBc.users.length}</b>utilizadores</div><div><b>${DBc.users.filter(x => x.banUntil > now).length}</b>banidos agora</div>`;
+  if (ls && !S.soc.banFor) ls.innerHTML = adminRows(me);
+}
+// sessão no servidor: conta apagada ou banida perde o acesso em poucos segundos
+async function checkSession(){
+  if (!API_URL || !store.get(SESK, null)) return;
+  const r = await api("me"); if (r.status === 0) return;
+  if (r.ok){ S.soc.me = r.user; store.set(MEK, r.user); return; }
+  if (r.status === 403 && r.error === "banned") dropSession(banMsg(r.banUntil, "A tua conta"));
+  else if (r.status === 401) dropSession("A tua sessão terminou ou a conta foi removida.");
+  else return;
+  render();
+}
+if (API_URL){ setInterval(checkSession, 4000); setInterval(() => { if (cur() && cur().admin && S.view === "admin" && document.visibilityState === "visible") refreshAdmin(); }, 4000); checkSession(); }
 // atualização periódica: banimentos aplicam-se em tempo real
 setInterval(() => { reloadDB(); if (!cur() && S.soc.was) render(); }, 3000);
 window.addEventListener("storage", e => { if (e.key === DBK || e.key === SESK){ reloadDB(); if (!cur()){ if (S.soc.was) render(); } else if (!S.soc.was) render(); } });
 
 /* ---------- Navegação e eventos ---------- */
-const TRANSITION_MS = 2500; // duração da transição entre ecrãs (entre 2 e 3 segundos)
+const TRANSITION_MS = 1500; // duração da transição entre ecrãs (1 a 2 segundos)
 let busyTimer = null;
 function startBusy(){
   S.busy = true; S.fade = false; clearTimeout(busyTimer);
   busyTimer = setTimeout(() => { S.busy = false; S.fade = true; render(); window.scrollTo && window.scrollTo(0, 0); }, TRANSITION_MS);
 }
-const loaderHtml = () => `<div class="ldr" role="status" aria-live="polite"><div class="ring"></div><p>A carregar…</p><div class="bar"><span style="animation-duration:${TRANSITION_MS}ms"></span></div></div>`;
+const loaderHtml = () => `<div class="ldr" role="status" aria-live="polite"></div>`;
 function go(view, compId){
   if (view === S.view && (compId ?? null) === S.compId){ S.drawer = false; S.search = false; S.lg = false; $("ov").innerHTML = ""; return; }
   S.view = view; S.compId = compId ?? null; S.drawer = false; S.search = false; drawerHtml();
@@ -1028,6 +1089,11 @@ const hotNow = () => { const now = Date.now(); return S.raw.some(f => !isDone(f.
 // durante um jogo (ou perto do apito): placar e minuto reais de 20 em 20 s (fonte em tempo real) e o fixtures.json de minuto a minuto
 setInterval(async () => { if (document.visibilityState !== "visible" || !cur() || !hotNow()) return; if (await fetchLive()) checkState(); }, 20000);
 setInterval(async () => { if (document.visibilityState !== "visible" || !cur() || !hotNow()) return; await fetchData(); checkState(); }, 60000);
+// calendário automático: volta a ler o fixtures.json de 1 em 1 minuto (e ao voltar ao separador), sem recarregar a página
+let lastPull = Date.now();
+const pullCal = async () => { lastPull = Date.now(); await fetchData(); checkState(); };
+setInterval(() => { if (document.visibilityState === "visible" && cur() && Date.now() - lastPull > 55000) pullCal(); }, 60000);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && cur() && Date.now() - lastPull > 30000) pullCal(); });
 try { history.replaceState({ v: "home", c: null, i: 0 }, ""); } catch {}
 applyTheme();
 load();
