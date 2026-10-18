@@ -119,7 +119,7 @@ dialog::backdrop{background:#0009}
 .lupa{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--mute);display:grid}
 .lupa svg{width:22px;height:22px}
 .big{font-size:18px;font-weight:800;text-decoration:none;color:var(--ink)}
-.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
 .stat div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center;font-size:13px;color:var(--mute)}
 .stat b{display:block;font-size:26px;color:var(--ink)}
 .urow{padding:10px 0;border-bottom:1px solid var(--line)}
@@ -135,6 +135,20 @@ dialog::backdrop{background:#0009}
 .lgb[aria-pressed=true]{border-color:var(--blue);background:var(--tint)}
 .lgb .ck{width:24px;height:24px;border:2px solid var(--grey);border-radius:6px;display:grid;place-items:center;font-weight:800;color:#fff;flex:none}
 .lgb[aria-pressed=true] .ck{background:var(--blue);border-color:var(--blue)}
+/* olho, transição */
+.pwbox{position:relative}
+.pwbox input{padding-right:46px}
+.eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:0;padding:8px;color:var(--mute);display:grid;place-items:center}
+.val.pwv{position:relative;padding-right:46px}
+.val.pwv .eye{right:2px}
+.ldr{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;min-height:55vh;color:var(--mute)}
+.ring{width:48px;height:48px;border-radius:50%;border:5px solid var(--line);border-top-color:var(--blue2);animation:sp 0.9s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.bar{width:min(240px,70vw);height:6px;border-radius:3px;background:var(--tint);overflow:hidden}
+.bar span{display:block;height:100%;width:0;background:var(--blue2);animation:bar linear forwards}
+@keyframes bar{to{width:100%}}
+@keyframes fi{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+main.fi{animation:fi .5s ease}
 /* Sim/Não com percentagem */
 .rp.wd{grid-template-columns:1fr 52px 40px 40px 14px}
 .rp.wd .v{text-align:right;font-weight:800}
@@ -297,6 +311,9 @@ function liveMinute(f){
   if (e <= 60) return f.status === "2H" ? "46'" : "Intervalo";
   const mm = e - 15; return mm > 90 ? "90+'" : mm + "'";
 }
+const EYE = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYE_OFF = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/></svg>';
+const eyeWrap = h => `<div class="pwbox">${h}<button type="button" class="eye" data-s="eye" aria-label="Mostrar palavra-passe">${EYE}</button></div>`;
 const withEff = f => { const st = effStatus(f); return st === f.status ? f : { ...f, status: st, _est: true }; };
 const fmtDay = iso => new Intl.DateTimeFormat("pt", { timeZone: S.tz, weekday:"long", day:"numeric", month:"long" }).format(new Date(iso));
 const fmtHour = iso => new Intl.DateTimeFormat("pt", { timeZone: S.tz, hour:"2-digit", minute:"2-digit" }).format(new Date(iso));
@@ -355,7 +372,7 @@ function grouped(list, mode){
   }
   return h;
 }
-const updLine = () => `<p class="sub">${S.lastSync ? "Última atualização do calendário: " + esc(fmtFull(S.lastSync)) : "O calendário ainda não foi sincronizado."}</p>`;
+const updLine = () => "";
 const msgHtml = () => S.msg ? `<div class="msg" role="alert">${esc(S.msg)}</div>` : "";
 
 /* ---------- Vistas ---------- */
@@ -470,10 +487,14 @@ function vipPick(f){
 }
 function vipView(){
   const u = cur(); if (!u || !u.admin) return `<div class="empty">Sem permissão.</div>`;
-  const now = Date.now(), list = S.fixtures.filter(f => ["NS", "TBD"].includes(f.status) && Date.parse(f.kickoff_utc) >= now && vipPick(f))
-    .sort((a, b) => a.kickoff_utc.localeCompare(b.kickoff_utc));
-  const note = list.length ? `<p class="sub">${list.length} jogo${list.length === 1 ? "" : "s"} com uma equipa a partir de 50% de probabilidade de vitória.</p>` : "";
-  return `${backBar()}<h1 class="ttl">VIP</h1>${note}${msgHtml()}` + (list.length ? vipGrouped(list) : `<div class="empty">Neste momento não há jogos em que uma equipa tenha 50% ou mais de probabilidade de vitória.</div>`);
+  const days = dayList().slice(0, 7);
+  if (!days.some(d => d.key === S.vday)) S.vday = days[0].key;
+  const now = Date.now(), all = S.fixtures.filter(f => ["NS", "TBD"].includes(f.status) && Date.parse(f.kickoff_utc) >= now && vipPick(f));
+  const count = new Map(); all.forEach(f => { const k = dayKey(f.kickoff_utc); count.set(k, (count.get(k) || 0) + 1); });
+  const strip = days.map(d => `<button class="dy" data-vday="${esc(d.key)}" aria-pressed="${S.vday === d.key}"><span>${esc(d.wd)}</span><b>${esc(d.dn)}</b><em class="mo">${esc(d.mo)}</em><i class="${count.get(d.key) ? "has" : ""}"></i></button>`).join("");
+  const list = all.filter(f => dayKey(f.kickoff_utc) === S.vday).sort((a, b) => a.kickoff_utc.localeCompare(b.kickoff_utc));
+  return `${backBar()}<h1 class="ttl">VIP</h1><div class="stripw"><div class="strip" id="vstrip">${strip}</div></div>${msgHtml()}` +
+    (list.length ? vipGrouped(list) : `<div class="empty">Sem jogos com 50% ou mais de probabilidade de vitória neste dia.</div>`);
 }
 function vipGrouped(list){
   let h = "", ld = "";
@@ -491,7 +512,7 @@ function goBack(){
   const i = history.state && history.state.i;
   if (i > 0) { try { history.back(); return; } catch {} }
   S.view = "home"; S.compId = null; try { history.replaceState({ v: "home", c: null, i: 0 }, ""); } catch {}
-  render(); window.scrollTo && window.scrollTo(0, 0);
+  startBusy(); render(); window.scrollTo && window.scrollTo(0, 0);
 }
 function view(){ return ({ vip: vipView, home: homeView, comp: compView, live: liveView, cal: calView, fav: favView, hist: histView,
   profile: profileView, user: userView, admin: adminView })[S.view](); }
@@ -514,7 +535,8 @@ function render(){
   const u = cur();
   if (!u){ S.soc.was = false; $("ov").innerHTML = ""; $("app").innerHTML = authView(); return; }
   S.soc.was = true;
-  $("app").innerHTML = header() + `<main>${view()}</main>` + nav();
+  const fade = S.fade; S.fade = false;
+  $("app").innerHTML = header() + `<main class="${fade ? "fi" : ""}">${S.busy ? loaderHtml() : view()}</main>` + nav();
 }
 
 /* ---------- Menu (definições) e pesquisa ---------- */
@@ -603,7 +625,11 @@ async function runNewAnalysis(){
   if (!q.home || !q.away || !q.league) return say("Preenche a equipa da casa, a equipa de fora e a liga.");
   if (norm(q.home).trim() === norm(q.away).trim()) return say("A equipa da casa e a de fora têm de ser diferentes.");
   say("A procurar o jogo…", "info");
-  try { const r = await lookup(q); say(""); showExternal(r); }
+  try {
+    const r = await lookup(q); say(""); showExternal(r);
+    S.na = { home: "", away: "", league: "" }; // campos limpos para a próxima pesquisa
+    ["na-home", "na-away", "na-league"].forEach(id => { const el = $(id); if (el) el.value = ""; });
+  }
   catch (e){ say(errText(e)); }
 }
 async function openFav(id){
@@ -769,7 +795,7 @@ const avatar = (u, s = 40) => u.photo ? `<img class="av" style="--s:${s}px" src=
 /* ----- ecrã de entrada ----- */
 function authView(){
   const s = S.soc, f = s.f, m = s.mode;
-  const fld = (k, label, type = "text", ac = "off") => `<label class="fl" for="a-${k}">${label}</label><input id="a-${k}" data-f="${k}" type="${type}" autocomplete="${ac}" value="${esc(f[k])}">`;
+  const fld = (k, label, type = "text", ac = "off") => { const i = `<input id="a-${k}" data-f="${k}" type="${type}" autocomplete="${ac}" value="${esc(f[k])}">`; return `<label class="fl" for="a-${k}">${label}</label>${type === "password" ? eyeWrap(i) : i}`; };
   const lnk = (v, t) => `<button type="button" class="link" data-s="mode" data-v="${v}">${t}</button>`;
   let title, body;
   if (m === "register"){
@@ -808,7 +834,7 @@ async function doRegister(){
   if (DBc.users.some(u => norm(u.name) === norm(n))) return err("Este nome de utilizador já existe.");
   const u = { id: uid(), email: e, name: n, salt, hash, photo: "", friends: [], admin: e === ADMIN_EMAIL, banUntil: 0, created: Date.now() };
   DBc.users.push(u); saveDB(); store.set(SESK, u.id);
-  S.soc.f.pw = ""; S.soc.err = ""; S.soc.info = ""; S.view = "home"; render();
+  S.pwPlain = S.soc.f.pw; S.soc.f.pw = ""; S.soc.err = ""; S.soc.info = ""; S.view = "home"; startBusy(); render();
 }
 async function doLogin(){
   const { id, pw } = S.soc.f, key = id.trim();
@@ -818,7 +844,7 @@ async function doLogin(){
   const ok = u && u.hash === await hashPw(pw, u.salt);
   if (!ok) return err("E-mail/nome ou palavra-passe incorretos.");
   if (u.banUntil > Date.now()) return err(`Esta conta está banida até ${tm(u.banUntil)}.`);
-  store.set(SESK, u.id); S.soc.f.pw = ""; S.soc.err = ""; S.soc.info = ""; S.view = "home"; render();
+  store.set(SESK, u.id); S.pwPlain = S.soc.f.pw; S.soc.f.pw = ""; S.soc.err = ""; S.soc.info = ""; S.view = "home"; startBusy(); render();
 }
 async function sendMail(to, code){
   if (MAIL_ENDPOINT){
@@ -867,17 +893,16 @@ function profileView(){
   const u = cur(), s = S.soc;
   const fr = u.friends.map(userById).filter(Boolean);
   const msg = s.pmsg ? `<div class="msg ${s.pmsg.ok ? "ok" : ""}" role="alert">${esc(s.pmsg.t)}</div>` : "";
-  const pwForm = s.pwForm ? `<form novalidate data-sf="pw" style="margin-top:8px"><label class="fl" for="pw-c">Palavra-passe atual</label><input id="pw-c" name="c" type="password" autocomplete="current-password">
-    <label class="fl" for="pw-n">Nova palavra-passe</label><input id="pw-n" name="n" type="password" autocomplete="new-password"><div class="row" style="margin-top:10px"><button class="btn">Guardar</button><button type="button" class="btn alt" data-s="pwform">Cancelar</button></div></form>` : "";
+  const pwForm = s.pwForm ? `<form novalidate data-sf="pw" style="margin-top:8px"><label class="fl" for="pw-c">Palavra-passe atual</label>${eyeWrap(`<input id="pw-c" name="c" type="password" autocomplete="current-password">`)}
+    <label class="fl" for="pw-n">Nova palavra-passe</label>${eyeWrap(`<input id="pw-n" name="n" type="password" autocomplete="new-password">`)}<div class="row" style="margin-top:10px"><button class="btn">Guardar</button><button type="button" class="btn alt" data-s="pwform">Cancelar</button></div></form>` : "";
   return `${backBar()}<h1 class="ttl">Meu perfil</h1>${msg}<section class="card">
-    <div class="phead">${avatar(u, 84)}<label class="btn amber" for="photoin" style="cursor:pointer">Adicionar foto de perfil</label><input id="photoin" type="file" accept="image/*" hidden></div>
+    <div class="phead">${avatar(u, 84)}<b style="font-size:22px">${esc(u.name)}</b></div>
     <form novalidate data-sf="rename"><label class="fl" for="pn">Editar nome:</label><div class="row"><input id="pn" name="n" type="text" maxlength="20" value="${esc(u.name)}"><button class="btn">Guardar</button></div></form>
     <div class="fl">Teu e-mail:</div><div class="val">${esc(u.email)}</div>
-    <div class="fl">Tua palavra-passe:</div><div class="row"><div class="val" style="flex:1" aria-label="palavra-passe oculta">••••••••</div><button class="btn alt" data-s="pwform">Alterar</button></div>${pwForm}
-    <p class="note">Só tu vês o teu e-mail. Os outros utilizadores veem apenas o teu nome, a foto e a lista de amigos.</p></section>
-    <section class="card"><button class="link big" data-s="fsearch">Adicionar amigos</button>
-    ${s.showSearch ? `<div class="sbar"><input id="usq" type="search" placeholder="Pesquisar utilizador…" autocomplete="off" value="${esc(s.q)}"><span class="lupa">${ICON.search}</span></div><div id="sres">${searchRes()}</div>` : ""}
-    <h3>Meus amigos</h3>${fr.length ? fr.map(f => `<div class="frow">${avatar(f, 36)}<button class="link nm" data-s="user" data-id="${f.id}">${esc(f.name)}</button></div>`).join("") : `<p class="note">Ainda não tens amigos. Toca em "Adicionar amigos" para pesquisar.</p>`}</section>
+    <div class="fl">Tua palavra-passe:</div><div class="row"><div class="val pwv" style="flex:1"><span id="pwshow">••••••••</span><button type="button" class="eye" data-s="pweye" aria-label="Ver palavra-passe">${EYE}</button></div><button class="btn alt" data-s="pwform">Alterar</button></div>
+    <p id="pwnote" class="note" hidden>Por segurança, a palavra-passe não fica guardada no aparelho. Só a podes ver aqui se a escreveste nesta sessão. Usa "Alterar" para escolher uma nova.</p>${pwForm}
+    <p class="note">Só tu vês o teu e-mail. Os outros utilizadores veem apenas o teu nome e a lista de amigos.</p></section>
+    <section class="card"><h3 style="margin-top:0">Meus amigos</h3>${fr.length ? fr.map(f => `<div class="frow">${avatar(f, 36)}<button class="link nm" data-s="user" data-id="${f.id}">${esc(f.name)}</button></div>`).join("") : `<p class="note">Ainda não tens amigos.</p>`}</section>
     <button class="btn alt" style="width:100%" data-s="logout">Terminar sessão</button>`;
 }
 function userView(){
@@ -899,20 +924,31 @@ function adminView(){
   const target = s.banFor && userById(s.banFor);
   const banForm = target ? `<form class="card" data-sf="ban"><b>Banir ${esc(target.name)}</b><div class="row" style="margin-top:8px"><input name="n" type="number" min="1" max="3650" value="1" aria-label="Duração"><select name="u" aria-label="Unidade"><option value="60000">minutos</option><option value="3600000" selected>horas</option><option value="86400000">dias</option></select></div>
     <div class="row" style="margin-top:10px"><button class="btn">Confirmar ban</button><button type="button" class="btn alt" data-s="banx">Cancelar</button></div></form>` : "";
-  const rows = us.map(u => {
+  return `${backBar()}<h1 class="ttl">Painel do administrador</h1><div class="stat"><div><b>${us.length}</b>utilizadores</div><div><b>${banned}</b>banidos agora</div></div>
+    ${banForm}<section class="card"><h3 style="margin-top:0">Todos os utilizadores</h3>
+    <div class="sbar"><input id="adq" type="search" placeholder="Pesquisar utilizador…" autocomplete="off" value="${esc(s.aq || "")}" aria-label="Pesquisar utilizador"><span class="lupa">${ICON.search}</span></div>
+    <div id="adlist">${adminRows(me)}</div></section>`;
+}
+function adminRows(me){
+  const now = Date.now(), q = norm(S.soc.aq || "").trim();
+  const list = DBc.users.filter(u => !q || norm(u.name).includes(q) || norm(u.email).includes(q));
+  if (!list.length) return `<p class="note">Nenhum utilizador encontrado.</p>`;
+  return list.map(u => {
     const b = u.banUntil > now, self = u.id === me.id;
     return `<div class="urow"><b>${esc(u.name)}</b>${u.admin ? `<span class="tag">ADMIN</span>` : ""}<br><small style="color:var(--mute)">${esc(u.email)} · ${b ? "Banido até " + esc(tm(u.banUntil)) : "Ativo"} · ${u.friends.length} amigo${u.friends.length === 1 ? "" : "s"}</small>
       ${self ? "" : `<div class="row">${b ? `<button class="mbtn" data-s="unban" data-id="${u.id}">Remover ban</button>` : `<button class="mbtn" data-s="banopen" data-id="${u.id}">Banir</button>`}<button class="mbtn" style="background:var(--bad)" data-s="deluser" data-id="${u.id}">Excluir conta</button></div>`}</div>`;
   }).join("");
-  return `${backBar()}<h1 class="ttl">Painel do administrador</h1><div class="stat"><div><b>${us.length}</b>utilizadores</div><div><b>${banned}</b>banidos agora</div><div><b>${Math.round(us.reduce((n, x) => n + x.friends.length, 0) / 2)}</b>amizades</div></div>
-    ${banForm}<section class="card"><h3 style="margin-top:0">Todos os utilizadores</h3>${rows}</section>`;
 }
 function adminOnly(){ reloadDB(); const u = cur(); return u && u.admin ? u : null; }
 
 /* ----- ações (cliques e formulários) ----- */
 const ACT = {
   mode: d => { S.soc.mode = d.v; S.soc.err = ""; S.soc.info = ""; if (d.v !== "forgot2") S.soc.mail = null; render(); },
-  logout: () => { store.set(SESK, null); S.soc.mode = "login"; S.soc.err = ""; S.soc.info = ""; S.soc.f.pw = ""; S.view = "home"; S.drawer = false; render(); },
+  logout: () => { S.pwPlain = ""; store.set(SESK, null); S.soc.mode = "login"; S.soc.err = ""; S.soc.info = ""; S.soc.f.pw = ""; S.view = "home"; S.drawer = false; render(); },
+  eye: (d, el) => { const i = el.parentNode.querySelector("input"); if (!i) return; const show = i.type === "password"; i.type = show ? "text" : "password"; el.innerHTML = show ? EYE_OFF : EYE; el.setAttribute("aria-label", show ? "Esconder palavra-passe" : "Mostrar palavra-passe"); },
+  pweye: (d, el) => { const sp = $("pwshow"), nt = $("pwnote"); if (!sp) return;
+    if (S.pwPlain){ const on = sp.dataset.on === "1"; sp.textContent = on ? "••••••••" : S.pwPlain; sp.dataset.on = on ? "0" : "1"; el.innerHTML = on ? EYE : EYE_OFF; }
+    else if (nt) nt.hidden = !nt.hidden; },
   profile: () => go("profile"),
   admin: () => go("admin"),
   vip: () => { reloadDB(); const u = cur(); if (u && u.admin) go("vip"); },
@@ -950,7 +986,7 @@ const FORM = {
     const ch = await hashPw(c, u0.salt), salt = uid(), nh = await hashPw(n, salt);
     reloadDB(); const u = userById(u0.id);
     if (!u || u.hash !== ch) return pm("A palavra-passe atual está incorreta.");
-    u.salt = salt; u.hash = nh; saveDB(); S.soc.pwForm = false; pm("Palavra-passe alterada.", true);
+    u.salt = salt; u.hash = nh; saveDB(); S.pwPlain = n; S.soc.pwForm = false; pm("Palavra-passe alterada.", true);
   },
   ban: f => {
     if (!adminOnly()) return;
@@ -964,35 +1000,29 @@ document.addEventListener("submit", e => { const f = e.target.closest("[data-sf]
 document.addEventListener("input", e => {
   const t = e.target;
   if (t.dataset && t.dataset.f) S.soc.f[t.dataset.f] = t.value;
-  if (t.id === "usq"){ S.soc.q = t.value; const r = $("sres"); if (r) r.innerHTML = searchRes(); }
-});
-document.addEventListener("change", e => {
-  if (e.target.id !== "photoin") return;
-  const file = e.target.files && e.target.files[0]; if (!file) return;
-  const img = new Image(), url = URL.createObjectURL(file);
-  img.onload = () => {
-    const c = document.createElement("canvas"); c.width = c.height = 160;
-    const s = Math.min(img.width, img.height);
-    c.getContext("2d").drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, 160, 160);
-    URL.revokeObjectURL(url); reloadDB();
-    const u = userById(cur()?.id); if (u){ u.photo = c.toDataURL("image/jpeg", .8); saveDB(); pm("Foto atualizada.", true); }
-  };
-  img.onerror = () => pm("Não foi possível ler esta imagem.");
-  img.src = url;
+  if (t.id === "adq"){ S.soc.aq = t.value; reloadDB(); const me = cur(), el = $("adlist"); if (el && me && me.admin) el.innerHTML = adminRows(me); }
 });
 // atualização periódica: banimentos aplicam-se em tempo real
 setInterval(() => { reloadDB(); if (!cur() && S.soc.was) render(); }, 3000);
 window.addEventListener("storage", e => { if (e.key === DBK || e.key === SESK){ reloadDB(); if (!cur()){ if (S.soc.was) render(); } else if (!S.soc.was) render(); } });
 
 /* ---------- Navegação e eventos ---------- */
+const TRANSITION_MS = 2500; // duração da transição entre ecrãs (entre 2 e 3 segundos)
+let busyTimer = null;
+function startBusy(){
+  S.busy = true; S.fade = false; clearTimeout(busyTimer);
+  busyTimer = setTimeout(() => { S.busy = false; S.fade = true; render(); window.scrollTo && window.scrollTo(0, 0); }, TRANSITION_MS);
+}
+const loaderHtml = () => `<div class="ldr" role="status" aria-live="polite"><div class="ring"></div><p>A carregar…</p><div class="bar"><span style="animation-duration:${TRANSITION_MS}ms"></span></div></div>`;
 function go(view, compId){
+  if (view === S.view && (compId ?? null) === S.compId){ S.drawer = false; S.search = false; S.lg = false; $("ov").innerHTML = ""; return; }
   S.view = view; S.compId = compId ?? null; S.drawer = false; S.search = false; drawerHtml();
   try { history.pushState({ v: view, c: compId ?? null, i: ((history.state && history.state.i) || 0) + 1 }, ""); } catch {}
-  render(); window.scrollTo && window.scrollTo(0, 0);
+  startBusy(); render(); window.scrollTo && window.scrollTo(0, 0);
 }
-window.addEventListener("popstate", e => { const s = e.state || { v: "home", c: null }; S.view = s.v; S.compId = s.c; S.drawer = false; S.search = false; S.lg = false; $("ov").innerHTML = ""; render(); window.scrollTo && window.scrollTo(0, 0); });
+window.addEventListener("popstate", e => { const s = e.state || { v: "home", c: null }; S.view = s.v; S.compId = s.c; S.drawer = false; S.search = false; S.lg = false; $("ov").innerHTML = ""; startBusy(); render(); window.scrollTo && window.scrollTo(0, 0); });
 document.addEventListener("click", e => {
-  const el = e.target.closest("[data-nav],[data-comp],[data-tab],[data-day],[data-an],[data-del],[data-favtoggle],[data-favdel],[data-favopen],[data-act]"); if (!el) return;
+  const el = e.target.closest("[data-nav],[data-comp],[data-tab],[data-day],[data-vday],[data-an],[data-del],[data-favtoggle],[data-favdel],[data-favopen],[data-act]"); if (!el) return;
   const d = el.dataset;
   if (d.act === "close"){ if (e.target !== el && el.classList.contains("ov") && e.target.closest(".drawer")) return; S.drawer = false; S.search = false; S.lg = false; $("ov").innerHTML = ""; return; }
   if (d.act === "leagues"){ S.lg = true; S.drawer = false; S.search = false; leaguesHtml(); return; }
@@ -1021,6 +1051,7 @@ document.addEventListener("click", e => {
   }
   if (d.del){ if (window.confirm && !window.confirm("Remover este jogo do histórico para sempre? Não dá para desfazer.")) return; S.hidden.add(d.del); store.set("hiddenHist", [...S.hidden]); return render(); }
   if (d.act === "toggle"){ setTheme(isDark() ? "light" : "dark"); return; }
+  if (d.vday){ const st = $("vstrip"), sc = st ? st.scrollLeft : 0; S.vday = d.vday; render(); const n = $("vstrip"); if (n) n.scrollLeft = sc; return; }
   if (d.day){ const st = $("strip"), sc = st ? st.scrollLeft : 0; S.day = d.day; render(); const n = $("strip"); if (n) n.scrollLeft = sc; return; }
   if (d.nav) return go(d.nav);
   if (d.comp) return go("comp", d.comp);
