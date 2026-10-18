@@ -150,8 +150,8 @@ dialog::backdrop{background:#0009}
 @keyframes fi{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 main.fi{animation:fi .5s ease}
 /* Sim/Não com percentagem */
-.rp.wd{grid-template-columns:1fr 52px 40px 40px 14px}
-.rp.wd .v{text-align:right;font-weight:800}
+.rp.wd{grid-template-columns:minmax(0,1fr) auto 40px 40px 14px}
+.rp.wd .v{text-align:right;font-weight:800;white-space:nowrap}
 .vsw{text-align:center}
 .mn{color:var(--bad);font-weight:800;font-size:14px;margin-top:2px}
 /* ao vivo */
@@ -282,7 +282,7 @@ async function fetchData(){
 async function load(){ S.loading = true; render(); await fetchData(); await fetchLive(); S.loading = false; render(); }
 
 /* ---------- Formatação ---------- */
-const STATUS = { NS:"Agendada", TBD:"Hora por confirmar", "1H":"Ao vivo", HT:"Intervalo", "2H":"Ao vivo", ET:"Ao vivo", P:"Ao vivo", LIVE:"Ao vivo",
+const STATUS = { NS:"Agendada", TBD:"Hora por confirmar", "1H":"Em jogo", HT:"Em jogo", "2H":"Em jogo", ET:"Em jogo", P:"Em jogo", LIVE:"Em jogo",
   FT:"Terminada", AWD:"Resultado atribuído", PST:"Adiada", CANC:"Cancelada", SUSP:"Suspensa" };
 const isLive = s => ["1H","HT","2H","ET","P","LIVE"].includes(s);
 const isDone = s => ["FT","AWD"].includes(s);
@@ -365,23 +365,23 @@ function header(){
     <button class="ib" data-act="search" aria-label="Pesquisar equipas">${ICON.search}</button></header>`;
 }
 function nav(){
-  const it = [["home","Home",ICON.home],["live","AO VIVO",ICON.live],["cal","Calendário",ICON.cal],["fav","Favoritos",ICON.star],["hist","Histórico",ICON.hist]];
+  const it = [["home","Home",ICON.home],["cal","Calendário",ICON.cal],["fav","Favoritos",ICON.star],["hist","Histórico",ICON.hist]];
   return `<nav class="bot">${it.map(([k,l,i]) => `<button data-nav="${k}" ${S.view === k || (k === "home" && S.view === "comp") ? 'aria-current="page"' : ""}>${i}<span>${l}</span></button>`).join("")}</nav>`;
 }
 function matchCard(f, mode){
   const logo = u => u ? `<img src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : "";
   const done = isDone(f.status);
-  const has = f.home_goals != null && f.away_goals != null && f.status !== "NS" && f.status !== "TBD";
-  const score = has ? `${f.home_goals} - ${f.away_goals}` : (isLive(f.status) || done ? "– –" : "vs");
+  const has = f.home_goals != null && f.away_goals != null && isDone(f.status);
+  const score = has ? `${f.home_goals} - ${f.away_goals}` : (done ? "– –" : "vs");
   const top = f.time_confirmed ? `${dayKey(f.kickoff_utc)} ${fmtHour(f.kickoff_utc)}` : `${dayKey(f.kickoff_utc)} · hora por confirmar`;
   let action;
   if (done) action = `<button class="btn" data-an="${esc(f.id)}">Ver estatísticas</button>`;
   else action = `<button class="btn amber" data-an="${esc(f.id)}" ${["NS","TBD"].includes(f.status) ? "" : "disabled"}>Analisar com IA</button>`;
   const del = mode === "hist" ? `<button class="x" data-del="${esc(f.id)}" aria-label="Remover este jogo do histórico">✕</button>` : "";
   return `<article class="match">${del}<div class="dt">${esc(top)}</div><div class="teams">
-    <div class="t">${logo(f.home_logo)}<span>${esc(f.home_team)}</span></div><div class="vsw"><div class="vs${isLive(f.status) ? " lv" : ""}">${esc(score)}</div>${isLive(f.status) && liveMinute(f) ? `<div class="mn">${esc(liveMinute(f))}</div>` : ""}</div>
+    <div class="t">${logo(f.home_logo)}<span>${esc(f.home_team)}</span></div><div class="vsw"><div class="vs">${esc(score)}</div></div>
     <div class="t r"><span>${esc(f.away_team)}</span>${logo(f.away_logo)}</div></div>
-    <div class="meta"><span><span class="st ${isLive(f.status) ? "live" : ""}">${esc(STATUS[f.status] ?? f.status)}</span></span>
+    <div class="meta"><span><span class="st">${esc(STATUS[f.status] ?? f.status)}</span></span>
     <span class="row">${action}</span></div></article>`;
 }
 function grouped(list, mode){
@@ -415,11 +415,6 @@ function compView(){
   const name = labelById(S.compId, l.name ?? list[0]?.competitions?.name, l.country)[1];
   return `${backBar()}<h1 class="ttl">${esc(name)}</h1>
     ${list.length ? grouped(list) : `<div class="empty">Sem jogos desta competição nos próximos dias.</div>`}`;
-}
-function liveView(){
-  const list = S.fixtures.filter(f => isLive(f.status));
-  return `<h1 class="ttl">Ao Vivo</h1>${updLine()}${msgHtml()}` + (list.length ? grouped(list)
-    : `<div class="empty">Sem jogos ao vivo neste momento. Os jogos aparecem aqui quando começam e passam para o Histórico assim que terminam.</div>`);
 }
 S.sel = (store.get("calLeagues", []) || []).filter(id => ORDER.includes(id)).slice(0, 3); S.lg = false;
 const leagueSel = f => !S.sel.length || S.sel.includes(f.competition_id);
@@ -529,7 +524,7 @@ function goBack(){
   S.view = "home"; S.compId = null; try { history.replaceState({ v: "home", c: null, i: 0 }, ""); } catch {}
   startBusy(); render(); window.scrollTo && window.scrollTo(0, 0);
 }
-function view(){ return ({ vip: vipView, home: homeView, comp: compView, live: liveView, cal: calView, fav: favView, hist: histView,
+function view(){ return ({ vip: vipView, home: homeView, comp: compView, cal: calView, fav: favView, hist: histView,
   admin: adminView })[S.view](); }
 function pruneFavs(){
   const keep = S.favs.filter(f => Date.parse(f.kickoff_utc) >= Date.now() - 86400e3);
@@ -663,15 +658,32 @@ function lr(ps){
   ps.map((p, i) => [p * 100 - f[i], i]).sort((a, b) => b[0] - a[0]).forEach(([, i]) => { if (rest > 0){ f[i]++; rest--; } });
   return f;
 }
-// Cada linha: l = texto, p = probabilidade, fn = "isto aconteceu?" (true/false/null se não há dados), v = Sim/Não/Vitória, pick = escolha do modelo
+// Cada linha: l = texto, p = probabilidade, fn = "isto aconteceu?" (true/false/null se não há dados), v = Sim/Não/Vence, pick = escolha do modelo
+const poi = (k, l) => { let f = 1; for (let i = 2; i <= k; i++) f *= i; return Math.exp(-l) * Math.pow(l, k) / f; };
 function sections(r, nm){
   const H = nm?.h || "Casa", A = nm?.a || "Fora", out = [];
   const topI = items => items.reduce((b, x, i) => (x[1] > items[b][1] ? i : b), 0);
   const excl = (items, yes = () => "Sim") => { const t = topI(items); return items.map(([l, p, fn], i) => ({ l, p, fn, v: i === t ? yes(i) : "Não", pick: i === t })); };
   const one = (l, p, fn, pick) => ({ l, p, fn, v: null, pick });
   const noHt = f => f.hh == null || f.ah == null;
-  const win = i => (i === 1 ? "Sim" : "Vitória");
-  out.push({ title: "Resultado final", pct: true, groups: [excl([[`${H} vitória`, r.result.home, f => f.h > f.a], ["Empate", r.result.draw, f => f.h === f.a], [`${A} vitória`, r.result.away, f => f.h < f.a]])] });
+  const win = i => (i === 1 ? "Sim" : "Vence");
+  // 1X2: diferença entre as duas equipas < 5 pontos => uma só linha "Qualquer vence"; senão 3 linhas por ordem de probabilidade
+  { const it = [[H, r.result.home, f => f.h > f.a, "h"], ["Empate", r.result.draw, f => f.h === f.a, "d"], [A, r.result.away, f => f.h < f.a, "a"]];
+    const n = lr(it.map(x => x[1]));
+    if (Math.abs(n[0] - n[2]) < 5){
+      out.push({ title: "Resultado final", pct: true, groups: [[{ l: "1X2", p: r.result.home + r.result.away, fn: f => f.h !== f.a, v: "Qualquer vence", pick: true }]], one: true });
+    } else {
+      const rank = it.map((x, i) => [x[1], i]).sort((a, b) => b[0] - a[0] || a[1] - b[1]).map(x => x[1]);
+      const rows = it.map(([l, p, fn, k], i) => {
+        const rk = rank.indexOf(i);
+        if (rk === 0) return k === "d" ? { l, p, fn, v: "Sim", pick: true }
+          : { l, p, fn: k === "h" ? (f => f.h >= f.a) : (f => f.h <= f.a), v: "Empata/vence", pick: true };
+        if (rk === 1) return { l, p, fn, v: "Talvez sim", pick: false };
+        return { l: k === "d" ? l : `${l} vence`, p, fn, v: "Não", pick: false };
+      });
+      out.push({ title: "Resultado final", pct: true, groups: [rows] });
+    }
+  }
   const t = r.totals, tg = [];
   for (const [k, key] of [["0.5", "0_5"], ["1.5", "1_5"], ["2.5", "2_5"], ["3.5", "3_5"]]){
     const over = t["over_" + key], under = t["under_" + key];
@@ -687,6 +699,15 @@ function sections(r, nm){
   out.push({ title: "Resultado ao intervalo", pct: true, groups: [excl([[H, r.halftime.home, f => noHt(f) ? null : f.hh > f.ah], ["Empate", r.halftime.draw, f => noHt(f) ? null : f.hh === f.ah], [A, r.halftime.away, f => noHt(f) ? null : f.hh < f.ah]], win)] });
   const g1 = f => f.hh + f.ah, g2 = f => f.h + f.a - (f.hh + f.ah);
   if (r.productiveHalf) out.push({ title: "Parte mais produtiva", pct: true, groups: [excl([["Primeira parte", r.productiveHalf.first, f => noHt(f) ? null : g1(f) > g2(f)], ["Empate", r.productiveHalf.draw, f => noHt(f) ? null : g1(f) === g2(f)], ["Segunda parte", r.productiveHalf.second, f => noHt(f) ? null : g1(f) < g2(f)]])] });
+  if (r.lambda){
+    const wh = (l1, l2) => { let w = 0; for (let i = 0; i <= 10; i++) for (let j = 0; j < i; j++) w += poi(i, l1) * poi(j, l2); return w; };
+    const anyHalf = (lf, lo) => 1 - (1 - wh(lf * 0.45, lo * 0.45)) * (1 - wh(lf * 0.55, lo * 0.55)); // vence pelo menos uma das partes
+    const ph = anyHalf(r.lambda.home, r.lambda.away), pa = anyHalf(r.lambda.away, r.lambda.home);
+    const hw = side => f => noHt(f) ? null : side === "h" ? (f.hh > f.ah || (f.h - f.hh) > (f.a - f.ah)) : (f.ah > f.hh || (f.a - f.ah) > (f.h - f.hh));
+    out.push({ title: "Vence qualquer parte", pct: true, groups: [
+      [{ l: H, p: ph, fn: hw("h"), v: ph >= 0.5 ? "Sim" : "Não", pick: ph >= 0.5 }],
+      [{ l: A, p: pa, fn: hw("a"), v: pa >= 0.5 ? "Sim" : "Não", pick: pa >= 0.5 }]] });
+  }
   if (r.bothHalves){
     const bh = side => f => noHt(f) ? null : (side === "h" ? f.hh > 0 && f.h - f.hh > 0 : f.ah > 0 && f.a - f.ah > 0);
     const ph = r.bothHalves.home.yes, pa = r.bothHalves.away.yes, best = Math.max(ph, pa), pH = best >= 0.5 && ph >= pa, pA = best >= 0.5 && !pH;
@@ -1079,9 +1100,9 @@ document.addEventListener("change", e => {
 
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") load(); });
 window.addEventListener("online", load);
-// transições automáticas: começa -> Ao vivo, termina -> Histórico (sem precisar de atualizar a página)
-const stateSig = () => { reclassify(); return dayKey(new Date().toISOString()) + "|" + S.fixtures.map(f => f.id + f.status + f.home_goals + f.away_goals + (isLive(f.status) ? liveMinute(f) : "")).join(",") + "|" + S.history.length; };
-const AUTO_VIEWS = ["home", "comp", "live", "cal", "fav", "hist", "vip"];
+// transições automáticas: jogo terminado -> Histórico (sem precisar de atualizar a página)
+const stateSig = () => { reclassify(); return dayKey(new Date().toISOString()) + "|" + S.fixtures.map(f => f.id + f.status + f.home_goals + f.away_goals + "").join(",") + "|" + S.history.length; };
+const AUTO_VIEWS = ["home", "comp", "cal", "fav", "hist", "vip"];
 let lastSig = "";
 const checkState = () => { if (!cur()) return; const g = stateSig(); const first = lastSig === ""; if (g !== lastSig){ lastSig = g; if (!first && AUTO_VIEWS.includes(S.view)) render(); } };
 setInterval(checkState, 15000);
