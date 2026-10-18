@@ -59,7 +59,7 @@ select,input[type=search],input[type=text],input[type=email],input[type=password
 .btn[disabled]{opacity:.5}
 .fav{background:none;border:0;font-size:22px;color:var(--amber);line-height:1}
 .empty{text-align:center;color:var(--mute);padding:36px 12px}
-nav.bot{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--hdr);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 2px calc(6px + env(safe-area-inset-bottom,0px))}
+nav.bot{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--hdr);display:grid;grid-template-columns:repeat(4,1fr);padding:6px 2px calc(6px + env(safe-area-inset-bottom,0px))}
 nav.bot button{position:relative;background:none;border:0;color:#cfe1fb;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;padding:4px 1px}
 nav.bot button[aria-current=page]{color:#fff;font-weight:800}
 nav.bot svg{width:26px;height:26px}
@@ -376,7 +376,7 @@ function matchCard(f, mode){
   const top = f.time_confirmed ? `${dayKey(f.kickoff_utc)} ${fmtHour(f.kickoff_utc)}` : `${dayKey(f.kickoff_utc)} · hora por confirmar`;
   let action;
   if (done) action = `<button class="btn" data-an="${esc(f.id)}">Ver estatísticas</button>`;
-  else action = `<button class="btn amber" data-an="${esc(f.id)}" ${["NS","TBD"].includes(f.status) ? "" : "disabled"}>Analisar com IA</button>`;
+  else action = `<button class="btn amber" data-an="${esc(f.id)}" ${["NS","TBD"].includes(f.status) || isLive(f.status) ? "" : "disabled"}>Analisar com IA</button>`;
   const del = mode === "hist" ? `<button class="x" data-del="${esc(f.id)}" aria-label="Remover este jogo do histórico">✕</button>` : "";
   return `<article class="match">${del}<div class="dt">${esc(top)}</div><div class="teams">
     <div class="t">${logo(f.home_logo)}<span>${esc(f.home_team)}</span></div><div class="vsw"><div class="vs">${esc(score)}</div></div>
