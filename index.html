@@ -279,7 +279,7 @@ async function fetchData(){
     return true;
   } catch { S.msg = "Sem ligação ao servidor. O app precisa de internet para mostrar os jogos e as análises."; return false; }
 }
-async function load(){ S.loading = true; render(); await fetchData(); S.loading = false; render(); }
+async function load(){ S.loading = true; render(); await fetchData(); await fetchLive(); S.loading = false; render(); }
 
 /* ---------- Formatação ---------- */
 const STATUS = { NS:"Agendada", TBD:"Hora por confirmar", "1H":"Ao vivo", HT:"Intervalo", "2H":"Ao vivo", ET:"Ao vivo", P:"Ao vivo", LIVE:"Ao vivo",
@@ -295,26 +295,42 @@ function effStatus(f){
   if (st === "NS" && f.time_confirmed !== false && now >= t) return now - t < LIVE_MAX ? "LIVE" : "FT";
   return st;
 }
-// minuto do jogo: usa o do servidor se existir; senão calcula a partir da hora do apito (45' + 15' de intervalo + 45')
+/* Fonte em tempo real (opcional): endereço do live-worker.js (Cloudflare Worker). Sem endereço, usam-se só os dados do fixtures.json. */
+const LIVE_URL = null;
+S.liveMap = new Map(); S.liveKeys = new Map();
+const lkey = (h, a, iso) => norm(h) + "|" + norm(a) + "|" + dayKey(iso);
+async function fetchLive(){
+  if (!LIVE_URL) return false;
+  try {
+    const r = await fetch(LIVE_URL, { cache: "no-store" }); if (!r.ok) return false;
+    const d = await r.json(), at = Date.now(), byId = new Map(), byKey = new Map();
+    for (const x of d.matches ?? []){ const o = { ...x, at }; byId.set(String(x.id), o); if (x.home && x.away && x.kickoff) byKey.set(lkey(x.home, x.away, x.kickoff), o); }
+    S.liveMap = byId; S.liveKeys = byKey; return true;
+  } catch { return false; }
+}
+const liveOf = f => S.liveMap.get(String(f.id)) || S.liveMap.get(String(f.id).replace(/\D/g, "")) || S.liveKeys.get(lkey(f.home_team, f.away_team, f.kickoff_utc));
+// minuto REAL (vindo do servidor). Nunca se calcula a partir da hora do jogo: sem dado fresco, não mostra minuto.
 function liveMinute(f){
   if (f.status === "HT") return "Intervalo";
-  const m = Number(f.minute ?? f.elapsed);
-  if (Number.isFinite(m) && m > 0){ // o minuto do servidor continua a contar até à atualização seguinte
-    const base = Date.parse(S.lastSync) || S.fetchedAt || Date.now(); // hora a que o ficheiro foi gerado
-    const mm = m + Math.max(0, Math.floor((Date.now() - base) / 60000));
-    if (f.status === "1H" && mm > 45) return "45+'";
-    return mm > 90 && f.status !== "ET" ? "90+'" : mm + "'";
-  }
-  const t = Date.parse(f.kickoff_utc); if (!Number.isFinite(t)) return "";
-  const e = Math.floor((Date.now() - t) / 60000); if (e < 0) return "";
-  if (e <= 45) return Math.max(1, e) + "'";
-  if (e <= 60) return f.status === "2H" ? "46'" : "Intervalo";
-  const mm = e - 15; return mm > 90 ? "90+'" : mm + "'";
+  const m = Number(f.minute);
+  if (!Number.isFinite(m) || m <= 0) return "";
+  const at = f._at || Date.parse(S.lastSync) || 0;
+  const age = Math.floor((Date.now() - at) / 60000);
+  if (!at || age > 3) return "";
+  const mm = m + Math.max(0, age);
+  if (f.status === "1H" && mm > 45) return "45+'";
+  if (mm > 90 && f.status !== "ET") return "90+'";
+  return mm + "'";
 }
 const EYE = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>';
 const EYE_OFF = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/></svg>';
 const eyeWrap = h => `<div class="pwbox">${h}<button type="button" class="eye" data-s="eye" aria-label="Mostrar palavra-passe">${EYE}</button></div>`;
-const withEff = f => { const st = effStatus(f); return st === f.status ? f : { ...f, status: st, _est: true }; };
+const withEff = f => {
+  const lv = liveOf(f);
+  const b = lv ? { ...f, status: lv.status || f.status, home_goals: lv.home_goals ?? f.home_goals, away_goals: lv.away_goals ?? f.away_goals,
+    home_ht: lv.home_ht ?? f.home_ht, away_ht: lv.away_ht ?? f.away_ht, minute: lv.minute ?? null, _at: lv.at } : f;
+  const st = effStatus(b); return st === b.status ? b : { ...b, status: st, _est: true };
+};
 const fmtDay = iso => new Intl.DateTimeFormat("pt", { timeZone: S.tz, weekday:"long", day:"numeric", month:"long" }).format(new Date(iso));
 const fmtHour = iso => new Intl.DateTimeFormat("pt", { timeZone: S.tz, hour:"2-digit", minute:"2-digit" }).format(new Date(iso));
 const fmtFull = iso => new Intl.DateTimeFormat("pt", { timeZone: S.tz, dateStyle:"short", timeStyle:"short" }).format(new Date(iso));
@@ -357,7 +373,7 @@ function matchCard(f, mode){
   else action = `<button class="btn amber" data-an="${esc(f.id)}" ${["NS","TBD"].includes(f.status) ? "" : "disabled"}>Analisar com IA</button>`;
   const del = mode === "hist" ? `<button class="x" data-del="${esc(f.id)}" aria-label="Remover este jogo do histórico">✕</button>` : "";
   return `<article class="match">${del}<div class="dt">${esc(top)}</div><div class="teams">
-    <div class="t">${logo(f.home_logo)}<span>${esc(f.home_team)}</span></div><div class="vsw"><div class="vs${isLive(f.status) ? " lv" : ""}">${esc(score)}</div>${isLive(f.status) ? `<div class="mn">${esc(liveMinute(f))}</div>` : ""}</div>
+    <div class="t">${logo(f.home_logo)}<span>${esc(f.home_team)}</span></div><div class="vsw"><div class="vs${isLive(f.status) ? " lv" : ""}">${esc(score)}</div>${isLive(f.status) && liveMinute(f) ? `<div class="mn">${esc(liveMinute(f))}</div>` : ""}</div>
     <div class="t r"><span>${esc(f.away_team)}</span>${logo(f.away_logo)}</div></div>
     <div class="meta"><span><span class="st ${isLive(f.status) ? "live" : ""}">${esc(STATUS[f.status] ?? f.status)}</span></span>
     <span class="row">${action}</span></div></article>`;
@@ -455,16 +471,8 @@ function finalOf(f){
 function histList(){ return S.history; }
 function histView(){
   const list = histList();
-  const T = { live: { hit: 0, tot: 0, n: 0 }, retro: { hit: 0, tot: 0, n: 0 } };
-  for (const f of list){
-    const fin = finalOf(f); if (!f.analysis?.result?.totals || !fin) continue;
-    const t = f.analysis.retro ? T.retro : T.live; t.n++;
-    for (const sec of sections(f.analysis.result, { h: f.home_team, a: f.away_team })) for (const g of sec.groups){ const hit = groupHit(g, fin); if (hit !== null){ t.tot++; if (hit) t.hit++; } }
-  }
-  const line = (t, label) => t.tot ? `<div>${label}: <b>${Math.round(t.hit / t.tot * 100)}%</b> certas (${t.hit} de ${t.tot} mercados, em ${t.n} jogo${t.n === 1 ? "" : "s"}).</div>` : "";
-  const sum = (T.live.tot || T.retro.tot) ? `<div class="sum">${line(T.live, "Previsões feitas antes do jogo")}${line(T.retro, "Análises reconstruídas depois do jogo")}</div>` : "";
   const upd = updLine();
-  return `<h1 class="ttl">Histórico</h1>${upd}${msgHtml()}${sum}` + (list.length ? grouped(list, "hist")
+  return `<h1 class="ttl">Histórico</h1>${upd}${msgHtml()}` + (list.length ? grouped(list, "hist")
     : `<div class="empty">Ainda não há jogos terminados. Os jogos passam para aqui assim que terminam.</div>`);
 }
 function favCard(f){
@@ -489,7 +497,8 @@ function vipView(){
   const u = cur(); if (!u || !u.admin) return `<div class="empty">Sem permissão.</div>`;
   const days = dayList().slice(0, 7);
   if (!days.some(d => d.key === S.vday)) S.vday = days[0].key;
-  const now = Date.now(), all = S.fixtures.filter(f => ["NS", "TBD"].includes(f.status) && Date.parse(f.kickoff_utc) >= now && vipPick(f));
+  const today = dayKey(new Date().toISOString()); // jogo que começa ou termina continua no VIP até ao dia seguinte
+  const all = [...S.fixtures, ...S.history].filter(f => !["PST", "CANC"].includes(f.status) && dayKey(f.kickoff_utc) >= today && vipPick(f));
   const count = new Map(); all.forEach(f => { const k = dayKey(f.kickoff_utc); count.set(k, (count.get(k) || 0) + 1); });
   const strip = days.map(d => `<button class="dy" data-vday="${esc(d.key)}" aria-pressed="${S.vday === d.key}"><span>${esc(d.wd)}</span><b>${esc(d.dn)}</b><em class="mo">${esc(d.mo)}</em><i class="${count.get(d.key) ? "has" : ""}"></i></button>`).join("");
   const list = all.filter(f => dayKey(f.kickoff_utc) === S.vday).sort((a, b) => a.kickoff_utc.localeCompare(b.kickoff_utc));
@@ -515,7 +524,7 @@ function goBack(){
   startBusy(); render(); window.scrollTo && window.scrollTo(0, 0);
 }
 function view(){ return ({ vip: vipView, home: homeView, comp: compView, live: liveView, cal: calView, fav: favView, hist: histView,
-  profile: profileView, user: userView, admin: adminView })[S.view](); }
+  admin: adminView })[S.view](); }
 function pruneFavs(){
   const keep = S.favs.filter(f => Date.parse(f.kickoff_utc) >= Date.now() - 86400e3);
   if (keep.length !== S.favs.length){ S.favs = keep; store.set("favSearch", S.favs); }
@@ -544,7 +553,6 @@ function drawerHtml(){
   if (!S.drawer){ if (!S.search && !S.lg) $("ov").innerHTML = ""; return; }
   const dark = isDark(), u = cur(), B = "width:100%;font-size:18px;padding:14px;margin-bottom:8px";
   const top = u ? `<div class="mrow">${avatar(u, 44)}<b>${esc(u.name)}</b></div>
-    <button class="btn" style="${B}" data-s="profile">Ver perfil</button>
     ${u.admin ? `<button class="btn" style="${B};background:#7a1fa2" data-s="admin">Painel</button><button class="btn" style="${B};background:#b8860b" data-s="vip">VIP</button>` : ""}` : "";
   $("ov").innerHTML = `<div class="ov" data-act="close"><div class="drawer" role="dialog" aria-label="Menu">${top}
     <button class="btn" style="${B}" data-act="toggle" aria-pressed="${dark}">${dark ? "☀️ Modo claro" : "🌙 Modo escuro"}</button>
@@ -881,41 +889,6 @@ async function doForgot2(){
   S.soc.info = "Palavra-passe alterada. Já podes entrar."; render();
 }
 
-/* ----- perfil ----- */
-const pm = (t, ok) => { S.soc.pmsg = t ? { t, ok: !!ok } : null; render(); return false; };
-function searchRes(){
-  const me = cur(), q = norm(S.soc.q).trim();
-  if (!q) return `<p class="note">Escreve um nome para pesquisar.</p>`;
-  const L = DBc.users.filter(u => u.id !== me.id && norm(u.name).includes(q)).slice(0, 20);
-  return L.length ? L.map(u => `<div class="frow">${avatar(u, 36)}<span class="nm">${esc(u.name)}</span><button class="mbtn" data-s="user" data-id="${u.id}">Ver perfil</button></div>`).join("") : `<p class="note">Nenhum utilizador encontrado.</p>`;
-}
-function profileView(){
-  const u = cur(), s = S.soc;
-  const fr = u.friends.map(userById).filter(Boolean);
-  const msg = s.pmsg ? `<div class="msg ${s.pmsg.ok ? "ok" : ""}" role="alert">${esc(s.pmsg.t)}</div>` : "";
-  const pwForm = s.pwForm ? `<form novalidate data-sf="pw" style="margin-top:8px"><label class="fl" for="pw-c">Palavra-passe atual</label>${eyeWrap(`<input id="pw-c" name="c" type="password" autocomplete="current-password">`)}
-    <label class="fl" for="pw-n">Nova palavra-passe</label>${eyeWrap(`<input id="pw-n" name="n" type="password" autocomplete="new-password">`)}<div class="row" style="margin-top:10px"><button class="btn">Guardar</button><button type="button" class="btn alt" data-s="pwform">Cancelar</button></div></form>` : "";
-  return `${backBar()}<h1 class="ttl">Meu perfil</h1>${msg}<section class="card">
-    <div class="phead">${avatar(u, 84)}<b style="font-size:22px">${esc(u.name)}</b></div>
-    <form novalidate data-sf="rename"><label class="fl" for="pn">Editar nome:</label><div class="row"><input id="pn" name="n" type="text" maxlength="20" value="${esc(u.name)}"><button class="btn">Guardar</button></div></form>
-    <div class="fl">Teu e-mail:</div><div class="val">${esc(u.email)}</div>
-    <div class="fl">Tua palavra-passe:</div><div class="row"><div class="val pwv" style="flex:1"><span id="pwshow">••••••••</span><button type="button" class="eye" data-s="pweye" aria-label="Ver palavra-passe">${EYE}</button></div><button class="btn alt" data-s="pwform">Alterar</button></div>
-    <p id="pwnote" class="note" hidden>Por segurança, a palavra-passe não fica guardada no aparelho. Só a podes ver aqui se a escreveste nesta sessão. Usa "Alterar" para escolher uma nova.</p>${pwForm}
-    <p class="note">Só tu vês o teu e-mail. Os outros utilizadores veem apenas o teu nome e a lista de amigos.</p></section>
-    <section class="card"><h3 style="margin-top:0">Meus amigos</h3>${fr.length ? fr.map(f => `<div class="frow">${avatar(f, 36)}<button class="link nm" data-s="user" data-id="${f.id}">${esc(f.name)}</button></div>`).join("") : `<p class="note">Ainda não tens amigos.</p>`}</section>
-    <button class="btn alt" style="width:100%" data-s="logout">Terminar sessão</button>`;
-}
-function userView(){
-  const me = cur(), u = userById(S.compId);
-  const back = backBar();
-  if (!u) return back + `<div class="empty">Este utilizador já não existe.</div>`;
-  if (u.id === me.id) return profileView();
-  const isF = me.friends.includes(u.id), fr = u.friends.map(userById).filter(Boolean);
-  return `${back}<section class="card"><div class="phead">${avatar(u, 84)}<div style="flex:1"><h1 style="margin:0;font-size:24px">${esc(u.name)}</h1>
-    <button class="btn ${isF ? "alt" : "amber"}" style="margin-top:8px" data-s="${isF ? "unfriend" : "friend"}" data-id="${u.id}">${isF ? "Remover dos amigos" : "Adicionar aos amigos"}</button></div></div>
-    <h3>Amigos de ${esc(u.name)}</h3>${fr.length ? fr.map(f => `<div class="frow">${avatar(f, 32)}<button class="link nm" data-s="user" data-id="${f.id}">${esc(f.name)}</button></div>`).join("") : `<p class="note">Sem amigos ainda.</p>`}</section>`;
-}
-
 /* ----- painel do administrador ----- */
 function adminView(){
   const me = cur(), s = S.soc;
@@ -935,7 +908,7 @@ function adminRows(me){
   if (!list.length) return `<p class="note">Nenhum utilizador encontrado.</p>`;
   return list.map(u => {
     const b = u.banUntil > now, self = u.id === me.id;
-    return `<div class="urow"><b>${esc(u.name)}</b>${u.admin ? `<span class="tag">ADMIN</span>` : ""}<br><small style="color:var(--mute)">${esc(u.email)} · ${b ? "Banido até " + esc(tm(u.banUntil)) : "Ativo"} · ${u.friends.length} amigo${u.friends.length === 1 ? "" : "s"}</small>
+    return `<div class="urow"><b>${esc(u.name)}</b>${u.admin ? `<span class="tag">ADMIN</span>` : ""}<br><small style="color:var(--mute)">${esc(u.email)} · ${b ? "Banido até " + esc(tm(u.banUntil)) : "Ativo"}</small>
       ${self ? "" : `<div class="row">${b ? `<button class="mbtn" data-s="unban" data-id="${u.id}">Remover ban</button>` : `<button class="mbtn" data-s="banopen" data-id="${u.id}">Banir</button>`}<button class="mbtn" style="background:var(--bad)" data-s="deluser" data-id="${u.id}">Excluir conta</button></div>`}</div>`;
   }).join("");
 }
@@ -946,20 +919,8 @@ const ACT = {
   mode: d => { S.soc.mode = d.v; S.soc.err = ""; S.soc.info = ""; if (d.v !== "forgot2") S.soc.mail = null; render(); },
   logout: () => { S.pwPlain = ""; store.set(SESK, null); S.soc.mode = "login"; S.soc.err = ""; S.soc.info = ""; S.soc.f.pw = ""; S.view = "home"; S.drawer = false; render(); },
   eye: (d, el) => { const i = el.parentNode.querySelector("input"); if (!i) return; const show = i.type === "password"; i.type = show ? "text" : "password"; el.innerHTML = show ? EYE_OFF : EYE; el.setAttribute("aria-label", show ? "Esconder palavra-passe" : "Mostrar palavra-passe"); },
-  pweye: (d, el) => { const sp = $("pwshow"), nt = $("pwnote"); if (!sp) return;
-    if (S.pwPlain){ const on = sp.dataset.on === "1"; sp.textContent = on ? "••••••••" : S.pwPlain; sp.dataset.on = on ? "0" : "1"; el.innerHTML = on ? EYE : EYE_OFF; }
-    else if (nt) nt.hidden = !nt.hidden; },
-  profile: () => go("profile"),
   admin: () => go("admin"),
   vip: () => { reloadDB(); const u = cur(); if (u && u.admin) go("vip"); },
-  user: d => go("user", d.id),
-  backhist: () => goBack(),
-  pwform: () => { S.soc.pwForm = !S.soc.pwForm; S.soc.pmsg = null; render(); },
-  fsearch: () => { S.soc.showSearch = !S.soc.showSearch; render(); const i = $("usq"); if (i) i.focus(); },
-  friend: d => { reloadDB(); const me = userById(cur()?.id), o = userById(d.id); if (!me || !o || me.id === o.id) return;
-    if (!me.friends.includes(o.id)) me.friends.push(o.id); if (!o.friends.includes(me.id)) o.friends.push(me.id); saveDB(); render(); },
-  unfriend: d => { reloadDB(); const me = userById(cur()?.id), o = userById(d.id); if (!me || !o) return;
-    me.friends = me.friends.filter(i => i !== o.id); o.friends = o.friends.filter(i => i !== me.id); saveDB(); render(); },
   banopen: d => { S.soc.banFor = d.id; render(); },
   banx: () => { S.soc.banFor = null; render(); },
   unban: d => { if (!adminOnly()) return; const t = userById(d.id); if (t){ t.banUntil = 0; saveDB(); } render(); },
@@ -974,20 +935,6 @@ const ACT = {
 };
 const FORM = {
   login: () => doLogin(), register: () => doRegister(), forgot1: () => doForgot1(), forgot2: () => doForgot2(),
-  rename: f => {
-    const n = f.elements.n.value.trim(); if (!validName(n)) return pm("O nome deve ter 3 a 20 caracteres (letras, números, espaço, _ . -).");
-    reloadDB(); const me = userById(cur()?.id); if (!me) return;
-    if (DBc.users.some(x => x.id !== me.id && norm(x.name) === norm(n))) return pm("Este nome de utilizador já existe.");
-    me.name = n; saveDB(); pm("Nome atualizado.", true);
-  },
-  pw: async f => {
-    const c = f.elements.c.value, n = f.elements.n.value, u0 = cur(); if (!u0) return;
-    if (n.length < 6) return pm("A nova palavra-passe deve ter pelo menos 6 caracteres.");
-    const ch = await hashPw(c, u0.salt), salt = uid(), nh = await hashPw(n, salt);
-    reloadDB(); const u = userById(u0.id);
-    if (!u || u.hash !== ch) return pm("A palavra-passe atual está incorreta.");
-    u.salt = salt; u.hash = nh; saveDB(); S.pwPlain = n; S.soc.pwForm = false; pm("Palavra-passe alterada.", true);
-  },
   ban: f => {
     if (!adminOnly()) return;
     const n = Math.min(3650, Math.max(1, Math.floor(+f.elements.n.value || 1))), ms = n * (+f.elements.u.value || 3600000);
@@ -1069,13 +1016,12 @@ window.addEventListener("online", load);
 const stateSig = () => { reclassify(); return dayKey(new Date().toISOString()) + "|" + S.fixtures.map(f => f.id + f.status + f.home_goals + f.away_goals + (isLive(f.status) ? liveMinute(f) : "")).join(",") + "|" + S.history.length; };
 const AUTO_VIEWS = ["home", "comp", "live", "cal", "fav", "hist", "vip"];
 let lastSig = "";
-setInterval(() => { if (!cur()) return; const g = stateSig(); const first = lastSig === ""; if (g !== lastSig){ lastSig = g; if (!first && AUTO_VIEWS.includes(S.view)) render(); } }, 15000);
-// durante um jogo (ou perto do apito) vai buscar o placar ao servidor todos os minutos
-setInterval(async () => {
-  if (document.visibilityState !== "visible" || !cur()) return;
-  const now = Date.now();
-  if (S.raw.some(f => !isDone(f.status) && Math.abs(Date.parse(f.kickoff_utc) - now) < 3 * 3600e3)) await fetchData();
-}, 60000);
+const checkState = () => { if (!cur()) return; const g = stateSig(); const first = lastSig === ""; if (g !== lastSig){ lastSig = g; if (!first && AUTO_VIEWS.includes(S.view)) render(); } };
+setInterval(checkState, 15000);
+const hotNow = () => { const now = Date.now(); return S.raw.some(f => !isDone(f.status) && Math.abs(Date.parse(f.kickoff_utc) - now) < 3 * 3600e3); };
+// durante um jogo (ou perto do apito): placar e minuto reais de 20 em 20 s (fonte em tempo real) e o fixtures.json de minuto a minuto
+setInterval(async () => { if (document.visibilityState !== "visible" || !cur() || !hotNow()) return; if (await fetchLive()) checkState(); }, 20000);
+setInterval(async () => { if (document.visibilityState !== "visible" || !cur() || !hotNow()) return; await fetchData(); checkState(); }, 60000);
 try { history.replaceState({ v: "home", c: null, i: 0 }, ""); } catch {}
 applyTheme();
 load();
