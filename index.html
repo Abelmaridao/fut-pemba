@@ -181,9 +181,9 @@ let S = { view: "home", compId: null, raw: [], rawHist: [], fixtures: [], histor
 const MODEL = (() => {
 // Modelo estatístico "poisson-v2": puro, sem dependências, testável.
 const MODEL_VERSION = "poisson-v2";
-const MIN_MATCHES = 5;      // abaixo disto a análise continua a ser feita, mas marcada como de baixa fiabilidade
+const MIN_MATCHES = 5;      // mínimo de jogos recentes de CADA equipa; abaixo disto NÃO há análise (nunca se usa média genérica nem fator casa sem dados)
 const SHRINK_K = 5;         // jogos "virtuais" da média da amostra (reduz extremos)
-const HOME_ADV = 1.1;       // fator casa: λ_casa × 1.1, λ_fora ÷ 1.1
+const HOME_ADV = 1.1;       // fator casa: λ_casa × 1.1, λ_fora ÷ 1.1 (só aplicado quando há dados suficientes)
 const HT_SHARE = 0.45;      // fração aproximada dos golos na 1.ª parte
 const MIN10_SHARE = 0.10;   // fração aproximada dos golos nos primeiros 10 minutos
 const MAXG = 10;
@@ -206,8 +206,11 @@ function analyze(inp){
   const dt = (m) => Date.parse(m.date ?? m.utcDate ?? m.kickoff_utc ?? "") || 0;
   const last5 = (ms) => (ms || []).filter(valid).map((m, i) => [m, i]).sort((x, y) => (dt(y[0]) - dt(x[0])) || (x[1] - y[1])).slice(0, 5).map(x => x[0]); // as 5 mais recentes
   const H = last5(inp.home), A = last5(inp.away), X = last5(inp.h2h); // X = confrontos diretos (gf = golos da equipa da casa de agora)
+  // dados insuficientes: não inventa estimativa (sem média genérica, sem fator casa)
+  if (H.length < MIN_MATCHES || A.length < MIN_MATCHES)
+    return { ok: false, reason: "insufficient", quality: { homeMatches: H.length, awayMatches: A.length, h2h: X.length } };
   const all = [...H, ...A];
-  const mu = all.length ? Math.max(0.3, all.reduce((s, m) => s + m.gf, 0) / all.length) : 1.35; // média de golos por equipa/jogo na amostra
+  const mu = Math.max(0.3, all.reduce((s, m) => s + m.gf, 0) / all.length); // média de golos por equipa/jogo na amostra
   const str = (ms) => {
     const n = ms.length, gf = ms.reduce((s, m) => s + m.gf, 0), ga = ms.reduce((s, m) => s + m.ga, 0);
     return { att: (gf + SHRINK_K * mu) / (n + SHRINK_K) / mu, def: (ga + SHRINK_K * mu) / (n + SHRINK_K) / mu };
@@ -265,6 +268,11 @@ return { analyze, MODEL_VERSION };
    Contrato: find({home, away, league, from, to}) -> { event:{id, home, away, league, kickoff_utc, time_confirmed}, homeHistory:[{gf,ga}], awayHistory:[{gf,ga}] }
    Em caso de erro lança Error com .code = "notfound" | "league" | "offline". */
 const EXTRA_SOURCE = null;
+
+/* Fonte de histórico para jogos SEM dados suficientes (API/internet via Worker).
+   GET HIST_URL?home=..&away=..&league=..&date=.. -> { homeHistory:[{gf,ga,date}], awayHistory:[{gf,ga,date}], h2h:[{gf,ga,date}] }
+   gf/ga = golos marcados/sofridos pela equipa em causa; no h2h, gf = golos da equipa da casa de agora. */
+const HIST_URL = null; // ex.: "https://historico.teu-nome.workers.dev"
 
 /* ---------- Tema ---------- */
 function applyTheme(){ const r = document.documentElement; if (S.theme === "auto") r.removeAttribute("data-theme"); else r.setAttribute("data-theme", S.theme); }
@@ -580,7 +588,8 @@ const loose = (a, b) => { a = norm(a).trim(); b = norm(b).trim(); return !!a && 
 function errText(e){
   return ({ nosource: "Essa liga não está nas 10 do app e a fonte de dados para outras ligas ainda não está ligada, por isso não é possível procurar o jogo.",
     offline: "Sem ligação à internet. Esta análise precisa de estar online.",
-    notfound: "Jogo não encontrado. Só aparecem jogos já publicados e dentro dos próximos 30 dias." })[e.code] || e.message || "Não foi possível fazer a análise.";
+    notfound: "Jogo não encontrado. Só aparecem jogos já publicados e dentro dos próximos 30 dias.",
+    insufficient: "Não há dados suficientes (menos de 5 jogos recentes de uma das equipas) para analisar este jogo." })[e.code] || e.message || "Não foi possível fazer a análise.";
 }
 const nameOk = (typed, name) => { const t = norm(typed).split(/\s+/).filter(w => w.length >= 2), n = norm(name); return t.length > 0 && t.every(w => n.includes(w)); };
 const aliasesOf = f => [f.competitions?.name, f.competitions?.country, ...(LABEL[f.competition_id] ?? [])].filter(Boolean);
@@ -599,7 +608,8 @@ async function lookupInternal(q, now, to){
     if (other) throw coded("league", `Encontrei esse jogo noutra competição (${other.competitions?.name}). Escreve essa liga para analisar.`);
     return null;
   }
-  if (!hit.analysis) hit.analysis = genericAn(hit);
+  if (!hit.analysis) hit.analysis = await buildAn(hit);
+  if (!hit.analysis) throw coded("insufficient", "Não há dados suficientes para analisar este jogo.");
   const qa = hit.analysis.result.quality ?? {};
   return { f: { id: "fx:" + hit.id, home_team: hit.home_team, away_team: hit.away_team, competitions: hit.competitions, kickoff_utc: hit.kickoff_utc, time_confirmed: hit.time_confirmed, status: "NS" },
     an: hit.analysis, q,
@@ -620,7 +630,7 @@ async function lookup(q){
   if (!(t >= now && t <= to)) throw coded("notfound"); // regra do app: só jogos publicados dos próximos 30 dias
   if (ev.league && !loose(ev.league, q.league)) throw coded("league", `Encontrei esse jogo noutra competição (${ev.league}). Escreve essa liga para analisar.`);
   const out = MODEL.analyze({ home: res.homeHistory ?? [], away: res.awayHistory ?? [], h2h: res.h2h ?? res.headToHead ?? [] });
-  if (!out.ok) throw coded("insufficient", out.reason);
+  if (!out.ok) throw coded("insufficient");
   const f = { id: "ext:" + ev.id, home_team: ev.home, away_team: ev.away, competitions: { name: ev.league || q.league, country: "" },
     kickoff_utc: ev.kickoff_utc, time_confirmed: ev.time_confirmed !== false, status: "NS" };
   const an = { model_version: MODEL.MODEL_VERSION, created_at: new Date().toISOString(), result: out };
@@ -664,8 +674,27 @@ function lr(ps){
   return f;
 }
 // Cada linha: l = texto, p = probabilidade, fn = "isto aconteceu?" (true/false/null se não há dados), v = Sim/Não/Vence, pick = escolha do modelo
-// jogo sem análise guardada ou com poucos dados: calcula na mesma (estimativa genérica, baixa fiabilidade)
-const genericAn = f => ({ model_version: MODEL.MODEL_VERSION, created_at: new Date().toISOString(), result: MODEL.analyze({ home: [], away: [] }), generic: true, retro: isDone(f.status) });
+// Jogo sem análise guardada: vai buscar os dados reais (EXTRA_SOURCE, depois HIST_URL via API/internet).
+// Se continuar sem dados suficientes, NÃO se inventa estimativa (nem média genérica, nem fator casa): devolve null.
+async function fetchHist(f){
+  const q = { home: f.home_team, away: f.away_team, league: f.competitions?.name || "", date: f.kickoff_utc };
+  if (EXTRA_SOURCE){ // 1.ª fonte já prevista no app
+    try { const r = await EXTRA_SOURCE.find(q); if (r) return r; } catch {}
+  }
+  if (HIST_URL){ // 2.ª fonte: API/internet via Worker
+    try {
+      const r = await fetch(HIST_URL + "?" + new URLSearchParams(q), { cache: "no-store" });
+      if (r.ok) return await r.json(); // { homeHistory:[{gf,ga,date}], awayHistory:[...], h2h:[...] }
+    } catch {}
+  }
+  return null;
+}
+async function buildAn(f){
+  const d = await fetchHist(f);
+  const out = MODEL.analyze({ home: d?.homeHistory ?? [], away: d?.awayHistory ?? [], h2h: d?.h2h ?? d?.headToHead ?? [] });
+  if (!out.ok) return null;
+  return { model_version: MODEL.MODEL_VERSION, created_at: new Date().toISOString(), result: out, retro: isDone(f.status) };
+}
 const poi = (k, l) => { let f = 1; for (let i = 2; i <= k; i++) f *= i; return Math.exp(-l) * Math.pow(l, k) / f; };
 function sections(r, nm){
   const H = nm?.h || "Casa", A = nm?.a || "Fora", out = [];
@@ -781,7 +810,8 @@ async function openAnalysis(id){
   if (!ok){ dlg.innerHTML = `<div class="msg">Sem ligação à internet. O app precisa de estar online para mostrar as análises.</div>${close}`; return; }
   const f = [...S.fixtures, ...S.history].find(x => x.id === id);
   if (!f){ dlg.innerHTML = `<div class="msg">Este jogo já não está na lista atual.</div>${close}`; return; }
-  dlg.innerHTML = analysisHtml(f.analysis || genericAn(f), f);
+  const an = f.analysis || await buildAn(f); // sem análise guardada: vai buscar dados à API/internet; sem dados suficientes, não há análise
+  dlg.innerHTML = an ? analysisHtml(an, f) : `<div class="msg">Sem dados suficientes para analisar este jogo.</div>${close}`;
 }
 
 /* =====================================================================
