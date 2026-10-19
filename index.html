@@ -203,7 +203,9 @@ function result1x2(g) {
 }
 function analyze(inp){
   const valid = (m) => Number.isFinite(m.gf) && Number.isFinite(m.ga) && m.gf >= 0 && m.ga >= 0;
-  const H = inp.home.filter(valid), A = inp.away.filter(valid);
+  const dt = (m) => Date.parse(m.date ?? m.utcDate ?? m.kickoff_utc ?? "") || 0;
+  const last5 = (ms) => (ms || []).filter(valid).map((m, i) => [m, i]).sort((x, y) => (dt(y[0]) - dt(x[0])) || (x[1] - y[1])).slice(0, 5).map(x => x[0]); // as 5 mais recentes
+  const H = last5(inp.home), A = last5(inp.away), X = last5(inp.h2h); // X = confrontos diretos (gf = golos da equipa da casa de agora)
   const all = [...H, ...A];
   const mu = all.length ? Math.max(0.3, all.reduce((s, m) => s + m.gf, 0) / all.length) : 1.35; // média de golos por equipa/jogo na amostra
   const str = (ms) => {
@@ -211,8 +213,13 @@ function analyze(inp){
     return { att: (gf + SHRINK_K * mu) / (n + SHRINK_K) / mu, def: (ga + SHRINK_K * mu) / (n + SHRINK_K) / mu };
   };
   const h = str(H), a = str(A);
-  const lh = clamp(mu * h.att * a.def * HOME_ADV, 0.2, 4.5);
-  const la = clamp(mu * a.att * h.def / HOME_ADV, 0.2, 4.5);
+  let lh0 = mu * h.att * a.def * HOME_ADV, la0 = mu * a.att * h.def / HOME_ADV;
+  if (X.length){ // confrontos diretos: peso até 30% (cresce com o número de jogos, máx. 5)
+    const w = 0.3 * X.length / 5, xh = X.reduce((s, m) => s + m.gf, 0) / X.length, xa = X.reduce((s, m) => s + m.ga, 0) / X.length;
+    lh0 = (1 - w) * lh0 + w * xh; la0 = (1 - w) * la0 + w * xa;
+  }
+  const lh = clamp(lh0, 0.2, 4.5);
+  const la = clamp(la0, 0.2, 4.5);
   const g = grid(lh, la);
   const total = (k, over) => { let p = 0; g.forEach((r, i) => r.forEach((q, j) => { if ((i + j > k) === over) p += q; })); return p; };
   const totals= {};
@@ -247,7 +254,7 @@ function analyze(inp){
     reach: { ge3: ge(3), ge4: ge(4), ge5: ge(5), ge6: ge(6) },
     min10: result1x2(grid(lh * MIN10_SHARE, la * MIN10_SHARE)),
     firstToScore: { home: (1 - none) * lh / (lh + la), away: (1 - none) * la / (lh + la), none },
-    quality: { homeMatches: H.length, awayMatches: A.length, level: nm >= 10 ? "boa" : nm >= 7 ? "razoavel" : "baixa" },
+    quality: { homeMatches: H.length, awayMatches: A.length, h2h: X.length, level: nm >= 10 ? "boa" : nm >= 7 ? "razoavel" : "baixa" },
   };
 }
 return { analyze, MODEL_VERSION };
@@ -596,7 +603,7 @@ async function lookupInternal(q, now, to){
   const qa = hit.analysis.result.quality ?? {};
   return { f: { id: "fx:" + hit.id, home_team: hit.home_team, away_team: hit.away_team, competitions: hit.competitions, kickoff_utc: hit.kickoff_utc, time_confirmed: hit.time_confirmed, status: "NS" },
     an: hit.analysis, q,
-    note: `Base: últimos ${qa.homeMatches ?? "?"} jogos da casa e ${qa.awayMatches ?? "?"} do visitante. Qualidade dos dados: ${qa.level ?? "?"}. Fonte: football-data.org (competições do app).` };
+    note: `Base: últimos ${qa.homeMatches ?? 5} jogos de cada equipa e confrontos diretos. Fonte: football-data.org (competições do app).` };
 }
 async function lookup(q){
   const now0 = Date.now(), to0 = now0 + 30 * DAY;
@@ -612,12 +619,12 @@ async function lookup(q){
   const t = Date.parse(ev.kickoff_utc);
   if (!(t >= now && t <= to)) throw coded("notfound"); // regra do app: só jogos publicados dos próximos 30 dias
   if (ev.league && !loose(ev.league, q.league)) throw coded("league", `Encontrei esse jogo noutra competição (${ev.league}). Escreve essa liga para analisar.`);
-  const out = MODEL.analyze({ home: res.homeHistory ?? [], away: res.awayHistory ?? [] });
+  const out = MODEL.analyze({ home: res.homeHistory ?? [], away: res.awayHistory ?? [], h2h: res.h2h ?? res.headToHead ?? [] });
   if (!out.ok) throw coded("insufficient", out.reason);
   const f = { id: "ext:" + ev.id, home_team: ev.home, away_team: ev.away, competitions: { name: ev.league || q.league, country: "" },
     kickoff_utc: ev.kickoff_utc, time_confirmed: ev.time_confirmed !== false, status: "NS" };
   const an = { model_version: MODEL.MODEL_VERSION, created_at: new Date().toISOString(), result: out };
-  const note = `Base: últimos ${out.quality.homeMatches} jogos da casa e ${out.quality.awayMatches} do visitante. Qualidade dos dados: ${out.quality.level}. Fonte: ${EXTRA_SOURCE.name ?? "externa"}.`;
+  const note = `Base: últimos ${out.quality.homeMatches} jogos da casa, ${out.quality.awayMatches} do visitante e ${out.quality.h2h} confrontos diretos. Fonte: ${EXTRA_SOURCE.name ?? "externa"}.`;
   return { f, an, note, q };
 }
 const favButton = f => `<button type="button" class="btn alt" style="width:100%;margin:10px 0" data-favtoggle="${esc(f.id)}">${S.favs.some(x => x.id === f.id) ? "★ Remover dos favoritos" : "☆ Adicionar aos favoritos"}</button>`;
@@ -756,11 +763,9 @@ function analysisHtml(an, f, extra = ""){
   for (const sec of secs){ let best = null; for (const g of sec.groups){ const n = ints(sec, g); g.forEach((x, i) => { if (x.pick && (!best || x.p > best.x.p)) best = { x, n: n[i], sec }; }); } if (best) cand.push(best); }
   cand.sort((a, b) => b.x.p - a.x.p);
   const topHtml = cand.slice(0, 5).map(c => row(c.x, c.n, c.sec, true)).join("");
-  const q = r.quality, low = an.generic || (q && Math.min(q.homeMatches, q.awayMatches) < 5);
-  const lowNote = low ? `<div class="msg" role="note">Dados insuficientes${an.generic ? " para este jogo" : ""}: ${an.generic ? "esta é uma estimativa genérica (só considera a vantagem de jogar em casa)" : `a análise usa só ${q.homeMatches} jogo(s) da casa e ${q.awayMatches} do visitante`}. Fiabilidade baixa.</div>` : "";
   const legend = fin ? `<p class="note"><span class="dot g"></span> certo · <span class="dot r"></span> errado · <span class="dot n"></span> sem dados para avaliar (por exemplo, quem marca primeiro quando as duas equipas marcam). Resultado final: ${fin.h} - ${fin.a}.</p>` : "";
   return `<h3 style="font-size:22px;margin:0">${esc(f.home_team)} vs ${esc(f.away_team)}</h3>
-    <p class="note">${esc(f.competitions?.name ?? "")} · ${esc(fmtDay(f.kickoff_utc))}, ${esc(fmtHour(f.kickoff_utc))}</p>${lowNote}${legend}
+    <p class="note">${esc(f.competitions?.name ?? "")} · ${esc(fmtDay(f.kickoff_utc))}, ${esc(fmtHour(f.kickoff_utc))}</p>${legend}
     ${body}
     <div class="sec">As 5 análises mais prováveis deste jogo</div>${topHtml}
     <p class="note">Previsão calculada em ${esc(fmtFull(an.created_at))}${fin ? (an.retro ? " (análise reconstruída depois do jogo, só com resultados anteriores a ele; não foi uma previsão feita antes)" : " (antes do jogo; nunca é alterada)") : ""}. São estimativas estatísticas, não garantias.</p>
