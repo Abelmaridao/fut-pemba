@@ -181,7 +181,7 @@ let S = { view: "home", compId: null, raw: [], rawHist: [], fixtures: [], histor
 const MODEL = (() => {
 // Modelo estatístico "poisson-v2": puro, sem dependências, testável.
 const MODEL_VERSION = "poisson-v2";
-const MIN_MATCHES = 5;      // sem isto não se apresenta previsão quantitativa
+const MIN_MATCHES = 5;      // abaixo disto a análise continua a ser feita, mas marcada como de baixa fiabilidade
 const SHRINK_K = 5;         // jogos "virtuais" da média da amostra (reduz extremos)
 const HOME_ADV = 1.1;       // fator casa: λ_casa × 1.1, λ_fora ÷ 1.1
 const HT_SHARE = 0.45;      // fração aproximada dos golos na 1.ª parte
@@ -204,10 +204,8 @@ function result1x2(g) {
 function analyze(inp){
   const valid = (m) => Number.isFinite(m.gf) && Number.isFinite(m.ga) && m.gf >= 0 && m.ga >= 0;
   const H = inp.home.filter(valid), A = inp.away.filter(valid);
-  if (H.length < MIN_MATCHES || A.length < MIN_MATCHES)
-    return { ok: false, reason: `Dados insuficientes: são precisos pelo menos ${MIN_MATCHES} jogos recentes de cada equipa (tem ${H.length} e ${A.length}).` };
   const all = [...H, ...A];
-  const mu = Math.max(0.3, all.reduce((s, m) => s + m.gf, 0) / all.length); // média de golos por equipa/jogo na amostra
+  const mu = all.length ? Math.max(0.3, all.reduce((s, m) => s + m.gf, 0) / all.length) : 1.35; // média de golos por equipa/jogo na amostra
   const str = (ms) => {
     const n = ms.length, gf = ms.reduce((s, m) => s + m.gf, 0), ga = ms.reduce((s, m) => s + m.ga, 0);
     return { att: (gf + SHRINK_K * mu) / (n + SHRINK_K) / mu, def: (ga + SHRINK_K * mu) / (n + SHRINK_K) / mu };
@@ -594,7 +592,7 @@ async function lookupInternal(q, now, to){
     if (other) throw coded("league", `Encontrei esse jogo noutra competição (${other.competitions?.name}). Escreve essa liga para analisar.`);
     return null;
   }
-  if (!hit.analysis) throw coded("insufficient", hit.analysis_note || "Ainda não há análise para este jogo.");
+  if (!hit.analysis) hit.analysis = genericAn(hit);
   const qa = hit.analysis.result.quality ?? {};
   return { f: { id: "fx:" + hit.id, home_team: hit.home_team, away_team: hit.away_team, competitions: hit.competitions, kickoff_utc: hit.kickoff_utc, time_confirmed: hit.time_confirmed, status: "NS" },
     an: hit.analysis, q,
@@ -659,6 +657,8 @@ function lr(ps){
   return f;
 }
 // Cada linha: l = texto, p = probabilidade, fn = "isto aconteceu?" (true/false/null se não há dados), v = Sim/Não/Vence, pick = escolha do modelo
+// jogo sem análise guardada ou com poucos dados: calcula na mesma (estimativa genérica, baixa fiabilidade)
+const genericAn = f => ({ model_version: MODEL.MODEL_VERSION, created_at: new Date().toISOString(), result: MODEL.analyze({ home: [], away: [] }), generic: true, retro: isDone(f.status) });
 const poi = (k, l) => { let f = 1; for (let i = 2; i <= k; i++) f *= i; return Math.exp(-l) * Math.pow(l, k) / f; };
 function sections(r, nm){
   const H = nm?.h || "Casa", A = nm?.a || "Fora", out = [];
@@ -717,8 +717,6 @@ function sections(r, nm){
       [one(`${H}: Sim`, ph, bh("h"), ph >= 0.5), one(`${H}: Não`, 1 - ph, no("h"), ph < 0.5)],
       [one(`${A}: Sim`, pa, bh("a"), pa >= 0.5), one(`${A}: Não`, 1 - pa, no("a"), pa < 0.5)]] });
   }
-  const z10 = f => f.h + f.a === 0; // só se sabe o 1X2 aos 10 min quando o jogo acabou 0-0
-  if (r.min10) out.push({ title: "1X2 aos 10 minutos", pct: true, groups: [excl([[H, r.min10.home, f => z10(f) ? false : null], ["Empate", r.min10.draw, f => z10(f) ? true : null], [A, r.min10.away, f => z10(f) ? false : null]], win)] });
   const bucket = (obj, side) => { const items = Object.entries(obj).map(([k, p]) => [`${k} golo${k === "1" ? "" : "s"}`, p, f => (k === "3+" ? f[side] >= 3 : f[side] === +k)]); const tp = topI(items); return items.map(([l, p, fn], i) => one(l, p, fn, i === tp)); };
   out.push({ title: "Golos da equipa da casa", pct: true, groups: [bucket(r.teamGoals.home, "h")] });
   out.push({ title: "Golos da equipa visitante", pct: true, groups: [bucket(r.teamGoals.away, "a")] });
@@ -758,9 +756,11 @@ function analysisHtml(an, f, extra = ""){
   for (const sec of secs){ let best = null; for (const g of sec.groups){ const n = ints(sec, g); g.forEach((x, i) => { if (x.pick && (!best || x.p > best.x.p)) best = { x, n: n[i], sec }; }); } if (best) cand.push(best); }
   cand.sort((a, b) => b.x.p - a.x.p);
   const topHtml = cand.slice(0, 5).map(c => row(c.x, c.n, c.sec, true)).join("");
-  const legend = fin ? `<p class="note"><span class="dot g"></span> certo · <span class="dot r"></span> errado · <span class="dot n"></span> sem dados para avaliar (por exemplo, o 1X2 aos 10 minutos, ou quem marca primeiro quando as duas equipas marcam). Resultado final: ${fin.h} - ${fin.a}.</p>` : "";
+  const q = r.quality, low = an.generic || (q && Math.min(q.homeMatches, q.awayMatches) < 5);
+  const lowNote = low ? `<div class="msg" role="note">Dados insuficientes${an.generic ? " para este jogo" : ""}: ${an.generic ? "esta é uma estimativa genérica (só considera a vantagem de jogar em casa)" : `a análise usa só ${q.homeMatches} jogo(s) da casa e ${q.awayMatches} do visitante`}. Fiabilidade baixa.</div>` : "";
+  const legend = fin ? `<p class="note"><span class="dot g"></span> certo · <span class="dot r"></span> errado · <span class="dot n"></span> sem dados para avaliar (por exemplo, quem marca primeiro quando as duas equipas marcam). Resultado final: ${fin.h} - ${fin.a}.</p>` : "";
   return `<h3 style="font-size:22px;margin:0">${esc(f.home_team)} vs ${esc(f.away_team)}</h3>
-    <p class="note">${esc(f.competitions?.name ?? "")} · ${esc(fmtDay(f.kickoff_utc))}, ${esc(fmtHour(f.kickoff_utc))}</p>${legend}
+    <p class="note">${esc(f.competitions?.name ?? "")} · ${esc(fmtDay(f.kickoff_utc))}, ${esc(fmtHour(f.kickoff_utc))}</p>${lowNote}${legend}
     ${body}
     <div class="sec">As 5 análises mais prováveis deste jogo</div>${topHtml}
     <p class="note">Previsão calculada em ${esc(fmtFull(an.created_at))}${fin ? (an.retro ? " (análise reconstruída depois do jogo, só com resultados anteriores a ele; não foi uma previsão feita antes)" : " (antes do jogo; nunca é alterada)") : ""}. São estimativas estatísticas, não garantias.</p>
@@ -776,8 +776,7 @@ async function openAnalysis(id){
   if (!ok){ dlg.innerHTML = `<div class="msg">Sem ligação à internet. O app precisa de estar online para mostrar as análises.</div>${close}`; return; }
   const f = [...S.fixtures, ...S.history].find(x => x.id === id);
   if (!f){ dlg.innerHTML = `<div class="msg">Este jogo já não está na lista atual.</div>${close}`; return; }
-  dlg.innerHTML = f.analysis ? analysisHtml(f.analysis, f)
-    : `<h3 style="margin:0">${esc(f.home_team)} vs ${esc(f.away_team)}</h3><div class="msg">${esc(f.analysis_note || (isDone(f.status) ? "Não há análise guardada para este jogo." : "Ainda não há análise para esta partida."))}</div>${close}`;
+  dlg.innerHTML = analysisHtml(f.analysis || genericAn(f), f);
 }
 
 /* =====================================================================
