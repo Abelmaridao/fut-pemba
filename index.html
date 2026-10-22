@@ -72,6 +72,20 @@ nav.bot svg{width:26px;height:26px}
 .sp{background:var(--bg);width:100%;padding:calc(12px + env(safe-area-inset-top,0px)) 12px 12px;overflow:auto}
 dialog{border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);max-width:460px;width:calc(100% - 24px);max-height:90vh;overflow:auto;padding:16px}
 dialog::backdrop{background:#0009}
+.kh{background:#1c1c1e;color:#fff;border-radius:12px;padding:16px 10px 14px;margin-bottom:10px;text-align:center}
+.kh .kl{color:#bbb;font-size:14px;letter-spacing:.3px;text-transform:uppercase}
+.kh .kt{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;margin-top:12px}
+.kh .tm{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:14px;font-weight:600;word-break:break-word}
+.kh .tm img,.kh .tm i{width:54px;height:54px;border-radius:50%;background:#fff;border:3px solid #3a3a3c;object-fit:contain;padding:5px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-style:normal;color:#1c1c1e;font-weight:800;font-size:20px}
+.kh .kc b{display:block;font-size:34px;line-height:1.05;font-weight:700}
+.kh .kc span{display:block;color:#ccc;font-size:13px;margin-top:4px;text-transform:uppercase}
+.kh .kc .cd{font-size:20px;color:#fff;font-weight:600;font-variant-numeric:tabular-nums;margin-top:8px;letter-spacing:.5px}
+.chat{display:flex;flex-direction:column;gap:8px;margin:10px 0;max-height:360px;overflow:auto}
+.bub{padding:9px 12px;border-radius:14px;font-size:15px;max-width:88%;line-height:1.4;background:var(--bg2,#8881);border:1px solid var(--line);align-self:flex-start}
+.bub.me{align-self:flex-end;background:var(--brand,#1976d2);color:#fff;border-color:transparent}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chips button{background:none;border:1px solid var(--line);color:var(--ink);border-radius:16px;padding:6px 10px;font-size:13px;cursor:pointer}
+.tipcard h3{margin:0 0 6px}.tipcard ul,.tipcard ol{margin:6px 0;padding-left:20px}.tipcard li{margin:4px 0;font-size:15px}
 .sec{font-weight:800;font-size:17px;margin:16px 0 4px}
 .rp{display:grid;grid-template-columns:1fr 64px 42px 14px;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font-size:15px}
 .trk{height:8px;border-radius:4px;background:var(--tint);overflow:hidden;display:block}
@@ -363,6 +377,7 @@ const ICON = {
   live: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="2.6" fill="currentColor"/><path d="M7.5 7.5a6.4 6.4 0 0 0 0 9M16.5 7.5a6.4 6.4 0 0 1 0 9M4.5 4.5a10.6 10.6 0 0 0 0 15M19.5 4.5a10.6 10.6 0 0 1 0 15"/></svg>',
   cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="8" cy="14" r=".8" fill="currentColor"/><circle cx="12" cy="14" r=".8" fill="currentColor"/><circle cx="16" cy="14" r=".8" fill="currentColor"/></svg>',
   star: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 17.5 6.1 20.7l1.2-6.6L2.5 9.5l6.6-.9z"/></svg>',
+  tips: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.7.6 1 1.3 1 2.1h5c0-.8.3-1.5 1-2.1A6 6 0 0 0 12 3z"/></svg>',
   hist: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5M3.5 4v4.5H8"/><path d="M12 7.5V12l3 2"/></svg>'
 };
 function header(){
@@ -371,14 +386,88 @@ function header(){
     <button class="ib" data-act="search" aria-label="Pesquisar equipas">${ICON.search}</button></header>`;
 }
 function nav(){
-  const it = [["home","Home",ICON.home],["live","AO VIVO",ICON.live],["cal","Calendário",ICON.cal],["fav","Favoritos",ICON.star],["hist","Histórico",ICON.hist]];
+  const it = [["home","Home",ICON.home],["tips","Dicas",ICON.tips],["cal","Calendário",ICON.cal],["fav","Favoritos",ICON.star],["hist","Histórico",ICON.hist]];
   return `<nav class="bot">${it.map(([k,l,i]) => `<button data-nav="${k}" ${S.view === k || (k === "home" && S.view === "comp") ? 'aria-current="page"' : ""}>${i}<span>${l}</span></button>`).join("")}</nav>`;
 }
-function liveView(){
-  const list = S.fixtures.filter(f => isLive(f.status));
-  return `<h1 class="ttl">Ao Vivo</h1>${updLine()}${msgHtml()}` + (list.length ? grouped(list)
-    : `<div class="empty">Sem jogos ao vivo neste momento. Os jogos aparecem aqui quando começam e passam para o Histórico assim que terminam.</div>`);
+/* ---------- Dicas e assistente ---------- */
+const ASSISTANT_URL = null; // endereço do assistant-worker.js (assistente com IA real). null = assistente integrado (responde com as regras e análises do app)
+S.tips = { msgs: [{ r: "bot", t: "Olá! Sou o assistente do Elephalpit Bet. Pergunta-me como ler as análises, o que significam as palavras (Vence/Empata, Talvez Sim…) ou pede a análise de um jogo, por exemplo: “Juventus”." }], busy: false };
+const upcoming = () => S.fixtures.filter(f => f.analysis && ["NS", "TBD"].includes(f.status));
+function topPick(f){
+  const secs = sections(f.analysis.result, { h: f.home_team, a: f.away_team }); let best = null;
+  for (const sec of secs) for (const g of sec.groups){ const n = ints(sec, g); g.forEach((x, i) => { if (x.pick && x.v !== "Não" && (!best || x.p > best.x.p)) best = { x, n: n[i], sec }; }); }
+  return best;
 }
+function gameSummary(f){
+  const secs = sections(f.analysis.result, { h: f.home_team, a: f.away_team }), line = t => { const sec = secs.find(x => x.title === t); if (!sec) return ""; const g = sec.groups[0], n = ints(sec, g); return g.map((x, i) => `${x.l}${x.v ? " " + x.v : ""} ${n[i]}%`).join("; "); };
+  return `${f.home_team} vs ${f.away_team} (${fmtDay(f.kickoff_utc)}, ${fmtHour(f.kickoff_utc)})\n• 1X2: ${line("Resultado final")}\n• Ambas marcam: ${line("Ambas as equipas marcam")}\n• Golos: ${line("Total de golos").split("; ").slice(0, 6).join("; ")}`;
+}
+const GEN = new Set(["united", "city", "real", "club", "football", "futbol", "town", "sporting", "athletic", "atletico", "sport"]);
+function assistLocal(q){
+  const n = norm(q), words = n.split(/[^a-z0-9]+/).filter(Boolean);
+  const hit = f => [f.home_team, f.away_team].some(t => norm(t).split(/[^a-z0-9]+/).some(w => w.length >= 4 && !GEN.has(w) && words.includes(w)));
+  const games = [...S.fixtures, ...S.history].filter(f => f.analysis && hit(f)).slice(0, 3);
+  if (games.length) return games.map(gameSummary).join("\n\n") + "\n\nSão estimativas estatísticas, não garantias.";
+  const has = (...k) => k.some(x => n.includes(x));
+  if (has("melhor", "segura", "mais provavel", "hoje", "top", "dica") && has("jogo", "aposta", "previs", "dica", "hoje", "top")){
+    const l = upcoming().map(f => ({ f, b: topPick(f) })).filter(x => x.b).sort((a, b) => b.b.x.p - a.b.x.p).slice(0, 5);
+    if (l.length) return "As previsões mais prováveis dos próximos jogos:\n" + l.map(({ f, b }) => `• ${f.home_team} vs ${f.away_team}: ${b.x.l}${b.x.v ? " " + b.x.v : ""} ${b.n}%`).join("\n") + "\n\nNenhuma previsão é garantida. Aposta só o que podes perder.";
+  }
+  if (has("empata/vence", "vence/empata", "empate/vence", "talvez", "qualquer vence")) return "• “Qualquer vence” (diferença menor que 5% entre as equipas): a percentagem é a chance de não haver empate.\n• “Vence/Empata” (equipa da casa) e “Empate/Vence” (equipa de fora): aparecem em jogos equilibrados (diferença de 5% a 10%) e significam que a favorita ganha ou empata.\n• “Talvez Sim” é só a linha do Empate, quando é mais provável que a vitória da equipa em desvantagem.\n• “Não vence” é a equipa em desvantagem.";
+  if (has("circulo", "verde", "vermelho", "bolinha", "ponto")) return "Depois do jogo acabar, cada linha mostra um círculo: verde = a previsão estava certa, vermelho = errada, cinzento = sem dados para avaliar (por exemplo, quem marca primeiro quando as duas equipas marcam).";
+  if (has("sim", "nao") && has("percent", "%", "barra")) return "Cada linha tem Sim/Não (ou Vence/Empata…) e uma percentagem. A percentagem é a chance estimada daquilo acontecer. “Não 25%” quer dizer que há 25% de chance de acontecer e, por isso, o modelo não o escolhe. Nos mercados que não podem acontecer ao mesmo tempo (1X2, intervalo) as percentagens somam 100%.";
+  if (has("modelo", "poisson", "como funciona", "como calcula", "calculo", "como sao feitas", "fiab", "confi", "precis")) return "As análises usam um modelo estatístico (Poisson): olha para os golos marcados e sofridos nos últimos 5 jogos de cada equipa e nos confrontos diretos, estima quantos golos cada uma deve marcar e daí tira as probabilidades de resultado, golos, ambas marcam, etc. É uma estimativa, não uma garantia: o futebol tem muita surpresa.";
+  if (has("vip")) return "O VIP mostra os jogos em que uma das equipas tem 50% ou mais de probabilidade de vitória. Os jogos do dia ficam lá até ao dia seguinte.";
+  if (has("calendario", "liga", "selecionar")) return "No Calendário vês os próximos 30 dias. Em “Selecionar ligas” escolhes até 3 das 10 ligas. O dia que passa sai e entra um novo automaticamente.";
+  if (has("historico")) return "O Histórico guarda os jogos terminados, com o resultado e os círculos verde/vermelho a mostrar se a previsão acertou. Os jogos passam para lá assim que terminam.";
+  if (has("conta", "senha", "palavra-passe", "palavra passe", "recuper", "login", "entrar", "ban")) return "Para entrar usas e-mail (ou nome) e palavra-passe. Se te esqueceste, “Esqueci a palavra-passe” envia um código de 6 dígitos ao e-mail. Se a tua conta foi banida, só podes voltar a entrar quando o tempo do ban acabar.";
+  if (has("banca", "quanto apostar", "gestao", "stake")) return "Gestão de banca: define um valor total só para apostar (que possas perder), e aposta uma parte pequena em cada jogo, por exemplo 1% a 2%. Não aumentes o valor para recuperar perdas.";
+  if (has("garant", "certeza", "ganhar sempre", "vou ganhar")) return "Não existe garantia. Mesmo uma previsão de 80% falha 1 vez em cada 5. Usa as análises como ajuda, nunca como certeza, e aposta só o que podes perder.";
+  if (has("ola", "bom dia", "boa tarde", "boa noite", "oi")) return "Olá! Em que posso ajudar? Podes pedir a análise de um jogo (escreve o nome de uma equipa) ou perguntar o que significa algo no app.";
+  return "Não tenho a certeza de ter percebido. Podes perguntar, por exemplo: “melhores previsões de hoje”, “o que é Talvez Sim?”, “como é calculada a análise?”, “como recupero a conta?” ou escrever o nome de uma equipa para ver a análise.";
+}
+const assistCtx = () => upcoming().slice(0, 12).map(gameSummary).join("\n\n");
+async function askAssistant(text){
+  const q = String(text || "").trim(); if (!q || S.tips.busy) return;
+  S.tips.msgs.push({ r: "me", t: q.slice(0, 500) }); S.tips.busy = true; render(); tipsScroll();
+  let reply = "";
+  if (ASSISTANT_URL){
+    try {
+      const r = await fetch(ASSISTANT_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: S.tips.msgs.slice(-10).map(m => ({ role: m.r === "me" ? "user" : "assistant", content: m.t })), context: assistCtx() }) });
+      if (r.ok){ const d = await r.json(); reply = String(d.reply || ""); }
+    } catch {}
+  } else await new Promise(r => setTimeout(r, 700));
+  if (!reply) reply = assistLocal(q);
+  S.tips.msgs.push({ r: "bot", t: reply }); S.tips.busy = false; render(); tipsScroll();
+}
+function tipsScroll(){ const c = $("chat"); if (c) c.scrollTop = c.scrollHeight; const i = $("tq"); if (i && !S.busy) i.focus && i.focus(); }
+function tipsView(){
+  const chips = ["Melhores previsões de hoje", "O que é Talvez Sim?", "Como é calculada a análise?", "Como gerir a banca?"];
+  const msgs = S.tips.msgs.map(m => `<div class="bub ${m.r === "me" ? "me" : ""}">${esc(m.t).replace(/\n/g, "<br>")}</div>`).join("") + (S.tips.busy ? `<div class="bub">…</div>` : "");
+  return `<h1 class="ttl">Dicas</h1>
+  <section class="card tipcard"><h3>Como ler as análises</h3><ul>
+    <li><b>Percentagem</b>: a chance estimada de aquilo acontecer.</li>
+    <li><b>Sim / Não</b>: o que o modelo escolhe. “Não 25%” = só 25% de chance, por isso o modelo não escolhe.</li>
+    <li><b>Qualquer vence</b>: as equipas estão muito parecidas (menos de 5% de diferença). A percentagem é a chance de não haver empate.</li>
+    <li><b>Vence/Empata</b> (casa) e <b>Empate/Vence</b> (fora): jogo equilibrado; a favorita ganha ou empata. <b>Talvez Sim</b> aparece no Empate.</li>
+    <li><b>Círculos</b> depois do jogo: verde certo, vermelho errado, cinzento sem dados.</li></ul></section>
+  <section class="card tipcard"><h3>Guia para seguir as previsões</h3><ol>
+    <li>Abre o jogo e carrega em <b>Analisar com IA</b>. Vê a hora do apito e o tempo que falta.</li>
+    <li>Procura previsões com <b>percentagem alta</b> (a partir de 65%). Desconfia dos jogos equilibrados.</li>
+    <li>Vê o <b>Histórico</b> para perceber em que mercados o modelo acerta mais.</li>
+    <li>Escolhe poucos jogos. Mais jogos misturados = mais risco.</li>
+    <li>Confirma as equipas e os desfalques perto do jogo: a análise não sabe de lesões.</li></ol></section>
+  <section class="card tipcard"><h3>Jogo responsável</h3><ul>
+    <li>Nenhuma previsão é garantida. Aposta só o que podes perder.</li>
+    <li>Define um limite e uma parte pequena da banca por jogo (1% a 2%).</li>
+    <li>Não tentes recuperar perdas com apostas maiores.</li>
+    <li>Só para maiores de 18 anos. Se o jogo deixou de ser diversão, faz uma pausa e procura ajuda.</li></ul></section>
+  <section class="card tipcard"><h3>Assistente</h3><p class="note">Responde a perguntas sobre o app e as análises.</p>
+    <div class="chat" id="chat" aria-live="polite">${msgs}</div>
+    <div class="chips">${chips.map(c => `<button type="button" data-s="tipq" data-q="${esc(c)}">${esc(c)}</button>`).join("")}</div>
+    <form novalidate data-sf="ask" class="row" style="gap:8px"><input id="tq" name="tq" type="text" maxlength="300" placeholder="Escreve a tua pergunta…" autocomplete="off" aria-label="Pergunta ao assistente" style="flex:1"><button class="btn">Enviar</button></form></section>`;
+}
+
 function matchCard(f, mode){
   const logo = u => u ? `<img src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : "";
   const done = isDone(f.status);
@@ -535,11 +624,23 @@ function goBack(){
   S.view = "home"; S.compId = null; try { history.replaceState({ v: "home", c: null, i: 0 }, ""); } catch {}
   startBusy(); render(); window.scrollTo && window.scrollTo(0, 0);
 }
-function view(){ return ({ vip: vipView, home: homeView, comp: compView, live: liveView, cal: calView, fav: favView, hist: histView,
+function view(){ return ({ vip: vipView, home: homeView, comp: compView, tips: tipsView, cal: calView, fav: favView, hist: histView,
   admin: adminView })[S.view](); }
 function pruneFavs(){
   const keep = S.favs.filter(f => Date.parse(f.kickoff_utc) >= Date.now() - 86400e3);
   if (keep.length !== S.favs.length){ S.favs = keep; store.set("favSearch", S.favs); }
+}
+// o histórico fica guardado neste aparelho: os jogos terminados não desaparecem quando o servidor deixa de os enviar
+let keepMap = null;
+function keepHistory(m){
+  if (!keepMap){ keepMap = new Map(); const v = store.get("histKeep", []); if (Array.isArray(v)) for (const f of v) if (f && f.id) keepMap.set(f.id, f); }
+  let changed = false;
+  for (const [id, f] of m){ const o = keepMap.get(id); if (!o || (!o.analysis && f.analysis) || o.home_goals !== f.home_goals || o.away_goals !== f.away_goals){ keepMap.set(id, f); changed = true; } }
+  for (const [id, f] of keepMap) if (!m.has(id)) m.set(id, f);
+  if (changed){
+    const lim = Date.now() - 90 * 864e5, list = [...keepMap.values()].filter(f => Date.parse(f.kickoff_utc) >= lim).sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc)).slice(0, 300);
+    keepMap = new Map(list.map(f => [f.id, f])); store.set("histKeep", list);
+  }
 }
 function reclassify(){
   pruneFavs();
@@ -549,6 +650,7 @@ function reclassify(){
   const m = new Map();
   for (const f of all) if (isDone(f.status)) m.set(f.id, f);   // ...e entra logo no histórico
   for (const f0 of S.rawHist){ const f = withEff(f0); if (isDone(f.status) || dayKey(f.kickoff_utc) < today) m.set(f.id, f.analysis || !m.has(f.id) ? f : m.get(f.id)); }
+  keepHistory(m);
   S.history = [...m.values()].filter(f => !S.hidden.has(f.id)).sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc));
 }
 function render(){
@@ -752,6 +854,23 @@ function groupHit(g, fin){
   const os = g.map(x => occ(x, fin));
   return os.some(o => o === null) ? null : os.every(o => !o);
 }
+const kLogo = (u, n) => u ? `<img src="${esc(u)}" alt="" referrerpolicy="no-referrer">` : `<i aria-hidden="true">${esc((n || "?").trim().charAt(0).toUpperCase())}</i>`;
+function cdText(iso){
+  const ms = Date.parse(iso) - Date.now(); if (!(ms > 0)) return "";
+  const t = Math.floor(ms / 1000), d = Math.floor(t / 86400), h = Math.floor(t % 86400 / 3600), m = Math.floor(t % 3600 / 60), sec = t % 60, p = x => String(x).padStart(2, "0");
+  return (d ? d + "d " : "") + `${p(h)}:${p(m)}:${p(sec)}`;
+}
+function kickHeader(f, fin){
+  const day = new Intl.DateTimeFormat("pt", { timeZone: S.tz, weekday: "long", day: "numeric", month: "short" }).format(new Date(f.kickoff_utc));
+  const left = cdText(f.kickoff_utc);
+  const state = fin ? `Terminado · ${fin.h} - ${fin.a}` : left ? "Faltam" : "Jogo a decorrer";
+  return `<div class="kh"><div class="kl">${esc(f.competitions?.name ?? "")}</div><div class="kt">
+    <div class="tm">${kLogo(f.home_logo, f.home_team)}<span>${esc(f.home_team)}</span></div>
+    <div class="kc"><b>${esc(fmtHour(f.kickoff_utc))}</b><span>${esc(day)}</span><span>${esc(state)}</span>${!fin && left ? `<div class="cd" id="cd" data-t="${esc(f.kickoff_utc)}">${esc(left)}</div>` : ""}</div>
+    <div class="tm">${kLogo(f.away_logo, f.away_team)}<span>${esc(f.away_team)}</span></div></div></div>`;
+}
+// contagem decrescente em direto (segundos)
+setInterval(() => { const el = document.getElementById("cd"); if (!el) return; const t = cdText(el.dataset.t); if (t) el.textContent = t; else { el.remove(); } }, 1000);
 function analysisHtml(an, f, extra = ""){
   const r = an.result, fin = isDone(f.status) ? finalOf(f) : null;
   const secs = sections(r, { h: f.home_team, a: f.away_team });
@@ -770,8 +889,7 @@ function analysisHtml(an, f, extra = ""){
   cand.sort((a, b) => b.x.p - a.x.p);
   const topHtml = cand.slice(0, 5).map(c => row(c.x, c.n, c.sec, true)).join("");
   const legend = fin ? `<p class="note"><span class="dot g"></span> certo · <span class="dot r"></span> errado · <span class="dot n"></span> sem dados para avaliar (por exemplo, quem marca primeiro quando as duas equipas marcam). Resultado final: ${fin.h} - ${fin.a}.</p>` : "";
-  return `<h3 style="font-size:22px;margin:0">${esc(f.home_team)} vs ${esc(f.away_team)}</h3>
-    <p class="note">${esc(f.competitions?.name ?? "")} · ${esc(fmtDay(f.kickoff_utc))}, ${esc(fmtHour(f.kickoff_utc))}</p>${legend}
+  return `${kickHeader(f, fin)}${legend}
     ${body}
     <div class="sec">As 5 análises mais prováveis deste jogo</div>${topHtml}
     <p class="note">Previsão calculada em ${esc(fmtFull(an.created_at))}${fin ? (an.retro ? " (análise reconstruída depois do jogo, só com resultados anteriores a ele; não foi uma previsão feita antes)" : " (antes do jogo; nunca é alterada)") : ""}. São estimativas estatísticas, não garantias.</p>
@@ -997,6 +1115,7 @@ const ACT = {
   logout: () => { if (API_URL){ api("logout"); dropSession(""); return render(); } S.pwPlain = ""; store.set(SESK, null); S.soc.mode = "login"; S.soc.err = ""; S.soc.info = ""; S.soc.f.pw = ""; S.view = "home"; S.drawer = false; render(); },
   eye: (d, el) => { const i = el.parentNode.querySelector("input"); if (!i) return; const show = i.type === "password"; i.type = show ? "text" : "password"; el.innerHTML = show ? EYE_OFF : EYE; el.setAttribute("aria-label", show ? "Esconder palavra-passe" : "Mostrar palavra-passe"); },
   admin: () => { go("admin"); refreshAdmin(); },
+  tipq: d => askAssistant(d.q),
   vip: () => { reloadDB(); const u = cur(); if (u && u.admin) go("vip"); },
   banopen: d => { S.soc.banFor = d.id; render(); },
   banx: () => { S.soc.banFor = null; render(); },
@@ -1012,6 +1131,7 @@ const ACT = {
   }
 };
 const FORM = {
+  ask: f => { const v = f.elements.tq.value; f.elements.tq.value = ""; askAssistant(v); },
   login: () => doLogin(), register: () => doRegister(), forgot1: () => doForgot1(), forgot2: () => doForgot2(),
   ban: f => {
     if (!adminOnly()) return;
@@ -1113,7 +1233,7 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 window.addEventListener("online", load);
 // transições automáticas: começa -> Ao vivo, termina -> Histórico (sem precisar de atualizar a página)
 const stateSig = () => { reclassify(); return dayKey(new Date().toISOString()) + "|" + S.fixtures.map(f => f.id + f.status + f.home_goals + f.away_goals + (isLive(f.status) ? liveMinute(f) : "")).join(",") + "|" + S.history.length; };
-const AUTO_VIEWS = ["home", "comp", "live", "cal", "fav", "hist", "vip"];
+const AUTO_VIEWS = ["home", "comp", "cal", "fav", "hist", "vip"];
 let lastSig = "";
 const checkState = () => { if (!cur()) return; const g = stateSig(); const first = lastSig === ""; if (g !== lastSig){ lastSig = g; if (!first && AUTO_VIEWS.includes(S.view)) render(); } };
 setInterval(checkState, 15000);
