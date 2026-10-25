@@ -198,7 +198,7 @@ dialog:has(.dtop) > *:not(.dtop){max-width:560px;margin-left:auto;margin-right:a
 .kh .hh i,.kh .hh img{width:22px;height:22px;border-radius:50%;background:#fff;object-fit:contain;padding:2px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-style:normal;color:#1c1c1e;font-size:11px;font-weight:800}
 .kh .hh div{background:#2a2a2c;border:1px solid #3a3a3c;border-radius:8px;padding:5px 10px;display:flex;align-items:center;gap:4px;font-weight:700;font-size:14px}
 /* Ajuda */
-.help{position:fixed;inset:0;background:#000;color:#fff;display:flex;flex-direction:column;z-index:20}
+.help{position:fixed;top:0;left:0;right:0;bottom:0;background:#000;color:#fff;display:flex;flex-direction:column;z-index:20}
 .help .hb{position:absolute;top:8px;left:8px;background:none;border:0;color:#fff;font-size:30px;padding:6px 14px;cursor:pointer}
 .help .hm{flex:1;overflow:auto;padding:56px 16px 10px;display:flex;flex-direction:column;gap:10px}
 .help .hq{margin:auto;font-size:26px;font-weight:600;text-align:center}
@@ -221,6 +221,21 @@ dialog:has(.dtop) > *:not(.dtop){max-width:560px;margin-left:auto;margin-right:a
 <div id="app"><p style="text-align:center;padding:40px 12px;font:16px system-ui;color:#5b6b85">A carregar Elephalpit Bet…</p></div>
 <div id="ov"></div>
 <dialog id="dlg"></dialog>
+<script>
+/* proteção de arranque: se o app não abrir, mostra o motivo e um botão para limpar os dados */
+(function(){
+  var errs = [];
+  window.addEventListener("error", function(e){ errs.push((e.message || "erro") + " (" + (e.lineno || "?") + ":" + (e.colno || "?") + ")"); });
+  window.addEventListener("unhandledrejection", function(e){ errs.push(String(e.reason && e.reason.message || e.reason)); });
+  setTimeout(function(){
+    var a = document.getElementById("app");
+    if (a && /A carregar Elephalpit Bet/.test(a.textContent) && !a.querySelector("header,.auth")){
+      var msg = (errs.join(" | ") || "sem detalhe").replace(/[<>&]/g, " ");
+      a.innerHTML = '<div style="padding:30px 16px;text-align:center;font:15px system-ui;color:#5b6b85"><p>Não foi possível abrir o app.</p><p style="font-size:12px;word-break:break-word">' + msg + '</p><p><button onclick="location.reload()" style="padding:10px 14px;margin:4px">Tentar outra vez</button><button onclick="try{localStorage.clear()}catch(e){};location.reload()" style="padding:10px 14px;margin:4px">Limpar dados e tentar</button></p></div>';
+    }
+  }, 6000);
+})();
+</script>
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -1213,4 +1228,135 @@ const ACT = {
 };
 const FORM = {
   ask: f => { const v = f.elements.tq.value; f.elements.tq.value = ""; askAssistant(v); },
-  login: () => doLogin(), register: () => doRegister(), forgot1: ()
+  login: () => doLogin(), register: () => doRegister(), forgot1: () => doForgot1(), forgot2: () => doForgot2(),
+  ban: f => {
+    if (!adminOnly()) return;
+    const n = Math.min(3650, Math.max(1, Math.floor(+f.elements.n.value || 1))), ms = n * (+f.elements.u.value || 3600000);
+    const t = userById(S.soc.banFor); if (!t || t.id === cur().id) return;
+    if (API_URL){ api("admin/ban", { id: t.id, until: Date.now() + ms }).then(() => { S.soc.banFor = null; render(); refreshAdmin(); }); return; }
+    t.banUntil = Date.now() + ms; saveDB(); S.soc.banFor = null; render();
+  }
+};
+document.addEventListener("click", e => { const el = e.target.closest("[data-s]"); if (el && ACT[el.dataset.s]){ e.preventDefault(); ACT[el.dataset.s](el.dataset, el, e); } });
+document.addEventListener("submit", e => { const f = e.target.closest("[data-sf]"); if (f && FORM[f.dataset.sf]){ e.preventDefault(); FORM[f.dataset.sf](f); } });
+document.addEventListener("input", e => {
+  const t = e.target;
+  if (t.dataset && t.dataset.f) S.soc.f[t.dataset.f] = t.value;
+  if (t.id === "adq"){ S.soc.aq = t.value; reloadDB(); const me = cur(), el = $("adlist"); if (el && me && me.admin) el.innerHTML = adminRows(me); }
+});
+// lista de utilizadores (servidor): atualiza o número e a lista em tempo real
+async function refreshAdmin(){
+  if (!API_URL) return; const me = cur(); if (!me || !me.admin) return;
+  const r = await api("admin/list"); if (!r.ok) return;
+  DBc.users = r.users; if (S.view !== "admin") return;
+  const now = Date.now(), el = $("adstat"), ls = $("adlist");
+  if (el) el.innerHTML = `<div><b>${DBc.users.length}</b>utilizadores</div><div><b>${DBc.users.filter(x => x.banUntil > now).length}</b>banidos agora</div>`;
+  if (ls && !S.soc.banFor) ls.innerHTML = adminRows(me);
+}
+// sessão no servidor: conta apagada ou banida perde o acesso em poucos segundos
+async function checkSession(){
+  if (!API_URL || !store.get(SESK, null)) return;
+  const r = await api("me"); if (r.status === 0) return;
+  if (r.ok){ S.soc.me = r.user; store.set(MEK, r.user); return; }
+  if (r.status === 403 && r.error === "banned") dropSession(banMsg(r.banUntil, "A tua conta"));
+  else if (r.status === 401) dropSession("A tua sessão terminou ou a conta foi removida.");
+  else return;
+  render();
+}
+if (API_URL){ setInterval(checkSession, 4000); setInterval(() => { if (cur() && cur().admin && S.view === "admin" && document.visibilityState === "visible") refreshAdmin(); }, 4000); checkSession(); }
+// atualização periódica: banimentos aplicam-se em tempo real
+setInterval(() => { reloadDB(); if (!cur() && S.soc.was) render(); }, 3000);
+window.addEventListener("storage", e => { if (e.key === DBK || e.key === SESK){ reloadDB(); if (!cur()){ if (S.soc.was) render(); } else if (!S.soc.was) render(); } });
+
+/* ---------- Navegação e eventos ---------- */
+const TRANSITION_MS = 500; // duração da transição entre ecrãs (0,5 segundos)
+let busyTimer = null;
+function startBusy(){
+  S.busy = true; S.fade = false; clearTimeout(busyTimer);
+  busyTimer = setTimeout(() => { S.busy = false; S.fade = true; render(); window.scrollTo && window.scrollTo(0, 0); }, TRANSITION_MS);
+}
+const loaderHtml = () => `<div class="ldr" role="status" aria-live="polite"></div>`;
+function go(view, compId){
+  if (view === S.view && (compId ?? null) === S.compId){ S.drawer = false; S.search = false; S.lg = false; $("ov").innerHTML = ""; return; }
+  S.view = view; S.compId = compId ?? null; S.drawer = false; S.search = false; drawerHtml();
+  try { history.pushState({ v: view, c: compId ?? null, i: ((history.state && history.state.i) || 0) + 1 }, ""); } catch {}
+  startBusy(); render(); window.scrollTo && window.scrollTo(0, 0);
+}
+window.addEventListener("popstate", e => { const s = e.state || { v: "home", c: null }; S.view = s.v; S.compId = s.c; S.drawer = false; S.search = false; S.lg = false; $("ov").innerHTML = ""; startBusy(); render(); window.scrollTo && window.scrollTo(0, 0); });
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-nav],[data-comp],[data-tab],[data-day],[data-vday],[data-an],[data-del],[data-favtoggle],[data-favgame],[data-favdel],[data-favopen],[data-act]"); if (!el) return;
+  const d = el.dataset;
+  if (d.act === "close"){ if (e.target !== el && el.classList.contains("ov") && e.target.closest(".drawer")) return; S.drawer = false; S.search = false; S.lg = false; $("ov").innerHTML = ""; return; }
+  if (d.act === "leagues"){ S.lg = true; S.drawer = false; S.search = false; leaguesHtml(); return; }
+  if (d.act === "lgtoggle"){
+    if (S.sel.includes(d.id)) S.sel = S.sel.filter(x => x !== d.id); else if (S.sel.length < 3) S.sel = [...S.sel, d.id];
+    store.set("calLeagues", S.sel); leaguesHtml(); render(); return;
+  }
+  if (d.act === "lgclear"){ S.sel = []; store.set("calLeagues", S.sel); leaguesHtml(); render(); return; }
+  if (d.act === "back") return goBack();
+  if (d.act === "clearhist"){
+    if (window.confirm && !window.confirm("Limpar todo o histórico? Não dá para desfazer.")) return;
+    S.history.forEach(f => S.hidden.add(f.id)); store.set("hiddenHist", [...S.hidden]); keepMap = new Map(); store.set("histKeep", []); return render();
+  }
+  if (d.act === "drawer"){ S.drawer = true; S.search = false; drawerHtml(); return; }
+  if (d.act === "search"){ S.search = true; S.drawer = false; searchHtml(); return; }
+  if (d.act === "next"){ const st = $("strip"); if (st && st.scrollBy) st.scrollBy({ left: 240, behavior: "smooth" }); return; }
+  if (d.act === "analyze") return runNewAnalysis();
+  if (d.favgame){
+    const f = [...S.fixtures, ...S.history].find(x => x.id === d.favgame); if (!f || isDone(f.status)) return;
+    if (favG(f.id)) S.favs = S.favs.filter(x => x.id !== "g:" + f.id);
+    else S.favs = [...S.favs, { id: "g:" + f.id, gid: f.id, home_team: f.home_team, away_team: f.away_team, league: f.competitions?.name ?? "", kickoff_utc: f.kickoff_utc }];
+    saveFavs(); const dl = $("dlg"); if (dl.open){ const b = dl.querySelector("[data-favgame]"); if (b){ b.textContent = favG(f.id) ? "★ Remover dos favoritos" : "☆ Adicionar aos favoritos"; } }
+    return render();
+  }
+  if (d.favopen) return openFav(d.favopen);
+  if (d.favtoggle){
+    const r = S.ext; if (!r || r.f.id !== d.favtoggle) return;
+    if (S.favs.some(x => x.id === r.f.id)) S.favs = S.favs.filter(x => x.id !== r.f.id);
+    else S.favs = [...S.favs, { id: r.f.id, home_team: r.f.home_team, away_team: r.f.away_team, league: r.f.competitions.name, kickoff_utc: r.f.kickoff_utc, q: r.q }];
+    saveFavs(); showExternal(r); render(); return;
+  }
+  if (d.favdel){
+    if (window.confirm && !window.confirm("Remover este jogo dos favoritos?")) return;
+    S.favs = S.favs.filter(x => x.id !== d.favdel); saveFavs();
+    const dlg = $("dlg"); if (dlg.open && dlg.close) dlg.close();
+    return render();
+  }
+  if (d.del){ if (window.confirm && !window.confirm("Remover este jogo do histórico para sempre? Não dá para desfazer.")) return; S.hidden.add(d.del); store.set("hiddenHist", [...S.hidden]); return render(); }
+  if (d.act === "toggle"){ setTheme(isDark() ? "light" : "dark"); return; }
+  if (d.vday){ const st = $("vstrip"), sc = st ? st.scrollLeft : 0; S.vday = d.vday; render(); const n = $("vstrip"); if (n) n.scrollLeft = sc; return; }
+  if (d.day){ const st = $("strip"), sc = st ? st.scrollLeft : 0; S.day = d.day; render(); const n = $("strip"); if (n) n.scrollLeft = sc; return; }
+  if (d.nav) return go(d.nav);
+  if (d.comp) return go("comp", d.comp);
+  if (d.tab){ S.tab = d.tab; return render(); }
+  if (d.an) return openAnalysis(d.an);
+});
+document.addEventListener("input", e => { const k = ({ "na-home": "home", "na-away": "away", "na-league": "league" })[e.target.id]; if (k) S.na[k] = e.target.value; });
+document.addEventListener("change", e => {
+  if (e.target.id === "fcomp"){ S.comp = e.target.value; render(); }
+});
+
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") load(); });
+window.addEventListener("online", load);
+// transições automáticas: começa -> Ao vivo, termina -> Histórico (sem precisar de atualizar a página)
+const stateSig = () => { reclassify(); return dayKey(new Date().toISOString()) + "|" + S.fixtures.map(f => f.id + f.status + f.home_goals + f.away_goals + (isLive(f.status) ? liveMinute(f) : "")).join(",") + "|" + S.history.length; };
+const AUTO_VIEWS = ["home", "comp", "cal", "fav", "hist", "vip"];
+let lastSig = "";
+const checkState = () => { if (!cur()) return; const g = stateSig(); const first = lastSig === ""; if (g !== lastSig){ lastSig = g; if (!first && AUTO_VIEWS.includes(S.view)) render(); } };
+setInterval(checkState, 15000);
+const hotNow = () => { const now = Date.now(); return S.raw.some(f => !isDone(f.status) && Math.abs(Date.parse(f.kickoff_utc) - now) < 3 * 3600e3); };
+// durante um jogo (ou perto do apito): placar e minuto reais de 20 em 20 s (fonte em tempo real) e o fixtures.json de minuto a minuto
+setInterval(async () => { if (document.visibilityState !== "visible" || !cur() || !hotNow()) return; if (await fetchLive()) checkState(); }, 20000);
+setInterval(async () => { if (document.visibilityState !== "visible" || !cur() || !hotNow()) return; await fetchData(); checkState(); }, 60000);
+// calendário automático: volta a ler o fixtures.json de 1 em 1 minuto (e ao voltar ao separador), sem recarregar a página
+let lastPull = Date.now();
+const pullCal = async () => { lastPull = Date.now(); await fetchData(); checkState(); };
+setInterval(() => { if (document.visibilityState === "visible" && cur() && Date.now() - lastPull > 55000) pullCal(); }, 60000);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && cur() && Date.now() - lastPull > 30000) pullCal(); });
+try { history.replaceState({ v: "home", c: null, i: 0 }, ""); } catch {}
+applyTheme();
+load();
+setInterval(load, 30 * 60 * 1000);
+</script>
+</body>
+</html>
