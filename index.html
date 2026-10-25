@@ -59,7 +59,7 @@ select,input[type=search],input[type=text],input[type=email],input[type=password
 .btn[disabled]{opacity:.5}
 .fav{background:none;border:0;font-size:22px;color:var(--amber);line-height:1}
 .empty{text-align:center;color:var(--mute);padding:36px 12px}
-nav.bot{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--hdr);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 2px calc(6px + env(safe-area-inset-bottom,0px))}
+nav.bot{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--hdr);display:grid;grid-template-columns:repeat(4,1fr);padding:6px 2px calc(6px + env(safe-area-inset-bottom,0px))}
 nav.bot button{position:relative;background:none;border:0;color:#cfe1fb;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;padding:4px 1px}
 nav.bot button[aria-current=page]{color:#fff;font-weight:800}
 nav.bot svg{width:26px;height:26px}
@@ -183,7 +183,7 @@ main.fi{animation:fi .5s ease}
 /* análise em ecrã inteiro */
 dialog:has(.dtop){width:100%;max-width:none;height:100%;max-height:none;margin:0;border:0;border-radius:0;padding:0 14px 20px}
 dialog:has(.dtop) > *:not(.dtop){max-width:560px;margin-left:auto;margin-right:auto}
-.dtop{position:sticky;top:0;z-index:2;background:var(--card);padding:10px 0;margin:0 -14px 6px;padding-left:10px}
+.dtop{position:sticky;top:0;z-index:2;background:var(--card);padding:10px 0;margin:0 -14px 6px;padding-right:10px;display:flex;justify-content:flex-end}
 .dtop form{margin:0}
 .dbk{background:none;border:0;color:var(--ink);font-size:28px;line-height:1;padding:4px 12px;cursor:pointer;border-radius:8px}
 .kh .frm{margin-top:12px;border-top:1px solid #333;padding-top:10px;text-align:left}
@@ -359,7 +359,7 @@ async function fetchData(){
 async function load(){ S.loading = true; render(); await fetchData(); await fetchLive(); S.loading = false; render(); }
 
 /* ---------- Formatação ---------- */
-const STATUS = { NS:"Agendada", TBD:"Hora por confirmar", "1H":"Ao vivo", HT:"Intervalo", "2H":"Ao vivo", ET:"Ao vivo", P:"Ao vivo", LIVE:"Ao vivo",
+const STATUS = { NS:"Agendada", TBD:"Hora por confirmar", "1H":"Ao vivo", HT:"Ao vivo", "2H":"Ao vivo", ET:"Ao vivo", P:"Ao vivo", LIVE:"Ao vivo",
   FT:"Terminada", AWD:"Resultado atribuído", PST:"Adiada", CANC:"Cancelada", SUSP:"Suspensa" };
 const isLive = s => ["1H","HT","2H","ET","P","LIVE"].includes(s);
 const isDone = s => ["FT","AWD"].includes(s);
@@ -440,10 +440,10 @@ const ICON = {
 function header(){
   return `<header class="top"><button class="ib" data-act="drawer" aria-label="Definições">${ICON.menu}</button>
     <div class="brand"><span class="mark" aria-hidden="true">🦁</span><span>Elephalpit <em>Bet</em></span></div>
-    <button class="ib" data-act="search" aria-label="Pesquisar equipas">${ICON.search}</button></header>`;
+    <div style="width:40px" aria-hidden="true"></div></header>`;
 }
 function nav(){
-  const it = [["home","Home",ICON.home],["tips","Ajuda",ICON.tips],["cal","Calendário",ICON.cal],["fav","Favoritos",ICON.star],["hist","Histórico",ICON.hist]];
+  const it = [["home","Home",ICON.home],["cal","Calendário",ICON.cal],["fav","Favoritos",ICON.star],["hist","Histórico",ICON.hist]];
   return `<nav class="bot">${it.map(([k,l,i]) => `<button data-nav="${k}" ${S.view === k || (k === "home" && S.view === "comp") ? 'aria-current="page"' : ""}>${i}<span>${l}</span></button>`).join("")}</nav>`;
 }
 /* ---------- Ajuda e assistente ---------- */
@@ -526,15 +526,15 @@ const tipsView = helpView;
 function matchCard(f, mode){
   const logo = u => u ? `<img src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : "";
   const done = isDone(f.status);
-  const has = f.home_goals != null && f.away_goals != null && f.status !== "NS" && f.status !== "TBD";
-  const score = has ? `${f.home_goals} - ${f.away_goals}` : (isLive(f.status) || done ? "– –" : "vs");
+  const has = f.home_goals != null && f.away_goals != null && isDone(f.status);
+  const score = has ? `${f.home_goals} - ${f.away_goals}` : (done ? "– –" : "vs");
   const top = f.time_confirmed ? `${dayKey(f.kickoff_utc)} ${fmtHour(f.kickoff_utc)}` : `${dayKey(f.kickoff_utc)} · hora por confirmar`;
   let action;
   if (done) action = `<button class="btn" data-an="${esc(f.id)}">Ver estatísticas</button>`;
   else action = `<button class="btn amber" data-an="${esc(f.id)}" ${["NS","TBD"].includes(f.status) || isLive(f.status) ? "" : "disabled"}>Analisar com IA</button>`;
   const del = mode === "hist" ? `<button class="x" data-del="${esc(f.id)}" aria-label="Remover este jogo do histórico">✕</button>` : "";
   return `<article class="match">${del}<div class="dt">${esc(top)}</div><div class="teams">
-    <div class="t">${logo(f.home_logo)}<span>${esc(f.home_team)}</span></div><div class="vsw"><div class="vs${isLive(f.status) ? " lv" : ""}">${esc(score)}</div>${isLive(f.status) && liveMinute(f) ? `<div class="mn">${esc(liveMinute(f))}</div>` : ""}</div>
+    <div class="t">${logo(f.home_logo)}<span>${esc(f.home_team)}</span></div><div class="vsw"><div class="vs">${esc(score)}</div></div>
     <div class="t r"><span>${esc(f.away_team)}</span>${logo(f.away_logo)}</div></div>
     <div class="meta"><span><span class="st ${isLive(f.status) ? "live" : ""}">${esc(STATUS[f.status] ?? f.status)}</span></span>
     <span class="row">${favStar(f)}${action}</span></div></article>`;
@@ -673,7 +673,7 @@ function vipGrouped(list){
   }
   return h;
 }
-const backBar = () => `<div class="row" style="margin-bottom:8px"><button class="btn alt" data-act="back">← Voltar</button></div>`;
+const backBar = () => `<div class="row" style="margin-bottom:4px;justify-content:flex-end"><button class="dbk" data-act="back" aria-label="Fechar">✕</button></div>`;
 function goBack(){
   S.drawer = false; S.search = false; S.lg = false; $("ov").innerHTML = "";
   const i = history.state && history.state.i;
@@ -984,7 +984,7 @@ function analysisHtml(an, f, extra = "", opts = {}){
   cand.sort((a, b) => b.x.p - a.x.p);
   const topHtml = cand.slice(0, 5).map(c => row(c.x, c.n, c.sec, true)).join("");
   const legend = fin ? `<p class="note"><span class="dot g"></span> certo · <span class="dot r"></span> errado · <span class="dot n"></span> sem dados para avaliar (por exemplo, quem marca primeiro quando as duas equipas marcam). Resultado final: ${fin.h} - ${fin.a}.</p>` : "";
-  return `<div class="dtop"><form method="dialog"><button class="dbk" aria-label="Voltar">←</button></form></div>${kickHeader(f, fin)}${legend}
+  return `<div class="dtop"><form method="dialog"><button class="dbk" aria-label="Fechar">✕</button></form></div>${kickHeader(f, fin)}${legend}
     ${body}
     ${opts.min50 ? `<p class="note">VIP: só aparecem as análises com 50% ou mais.</p>` : ""}${topHtml ? `<div class="sec">As 5 análises mais prováveis deste jogo</div>${topHtml}` : ""}
     <p class="note">Previsão calculada em ${esc(fmtFull(an.created_at))}${fin ? (an.retro ? " (análise reconstruída depois do jogo, só com resultados anteriores a ele; não foi uma previsão feita antes)" : " (antes do jogo; nunca é alterada)") : ""}. São estimativas estatísticas, não garantias.</p>
@@ -1339,7 +1339,7 @@ document.addEventListener("change", e => {
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") load(); });
 window.addEventListener("online", load);
 // transições automáticas: começa -> Ao vivo, termina -> Histórico (sem precisar de atualizar a página)
-const stateSig = () => { reclassify(); return dayKey(new Date().toISOString()) + "|" + S.fixtures.map(f => f.id + f.status + f.home_goals + f.away_goals + (isLive(f.status) ? liveMinute(f) : "")).join(",") + "|" + S.history.length; };
+const stateSig = () => { reclassify(); return dayKey(new Date().toISOString()) + "|" + S.fixtures.map(f => f.id + f.status + f.home_goals + f.away_goals + "").join(",") + "|" + S.history.length; };
 const AUTO_VIEWS = ["home", "comp", "cal", "fav", "hist", "vip"];
 let lastSig = "";
 const checkState = () => { if (!cur()) return; const g = stateSig(); const first = lastSig === ""; if (g !== lastSig){ lastSig = g; if (!first && AUTO_VIEWS.includes(S.view)) render(); } };
