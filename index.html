@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Elephalpit Bet</title>
 <style>
-:root{--bg:#f1f6fc;--card:#fff;--ink:#0f1f3a;--mute:#5b6b85;--line:#cfe3f7;--blue:#0b5ec5;--blue2:#1478e0;--amber:#f2b705;--ok:#1fa463;--bad:#d93025;--grey:#9aa7ba;--hdr:#0b5ec5;--tint:#eaf3fd}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1220;--card:#131d31;--ink:#e8eefb;--mute:#93a3bf;--line:#243452;--blue:#2f86ea;--blue2:#5aa2f5;--hdr:#0a3f86;--tint:#18253d}}
-:root[data-theme="dark"]{--bg:#0b1220;--card:#131d31;--ink:#e8eefb;--mute:#93a3bf;--line:#243452;--blue:#2f86ea;--blue2:#5aa2f5;--hdr:#0a3f86;--tint:#18253d}
+:root{--kbg:#fff;--kfg:#0f1f3a;--kmute:#5b6b85;--kchip:#eef3fa;--kline:#d6dfec;--kbd:#cfd8e6;--bg:#f1f6fc;--card:#fff;--ink:#0f1f3a;--mute:#5b6b85;--line:#cfe3f7;--blue:#0b5ec5;--blue2:#1478e0;--amber:#f2b705;--ok:#1fa463;--bad:#d93025;--grey:#9aa7ba;--hdr:#0b5ec5;--tint:#eaf3fd}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--kbg:#000;--kfg:#fff;--kmute:#aaa;--kchip:#1c1c1e;--kline:#333;--kbd:#3a3a3c;--bg:#0b1220;--card:#131d31;--ink:#e8eefb;--mute:#93a3bf;--line:#243452;--blue:#2f86ea;--blue2:#5aa2f5;--hdr:#0a3f86;--tint:#18253d}}
+:root[data-theme="dark"]{--kbg:#000;--kfg:#fff;--kmute:#aaa;--kchip:#1c1c1e;--kline:#333;--kbd:#3a3a3c;--bg:#0b1220;--card:#131d31;--ink:#e8eefb;--mute:#93a3bf;--line:#243452;--blue:#2f86ea;--blue2:#5aa2f5;--hdr:#0a3f86;--tint:#18253d}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 button,input,select{font:inherit;color:inherit}
@@ -72,14 +72,14 @@ nav.bot svg{width:26px;height:26px}
 .sp{background:var(--bg);width:100%;padding:calc(12px + env(safe-area-inset-top,0px)) 12px 12px;overflow:auto}
 dialog{border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);max-width:460px;width:calc(100% - 24px);max-height:90vh;overflow:auto;padding:16px}
 dialog::backdrop{background:#0009}
-.kh{background:#1c1c1e;color:#fff;border-radius:12px;padding:16px 10px 14px;margin-bottom:10px;text-align:center}
-.kh .kl{color:#bbb;font-size:14px;letter-spacing:.3px;text-transform:uppercase}
+.kh{background:var(--kbg);color:var(--kfg);border-radius:12px;padding:16px 10px 14px;margin-bottom:10px;text-align:center}
+.kh .kl{color:var(--kmute);font-size:14px;letter-spacing:.3px;text-transform:uppercase}
 .kh .kt{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;margin-top:12px}
 .kh .tm{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:14px;font-weight:600;word-break:break-word}
-.kh .tm img,.kh .tm i{width:54px;height:54px;border-radius:50%;background:#fff;border:3px solid #3a3a3c;object-fit:contain;padding:5px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-style:normal;color:#1c1c1e;font-weight:800;font-size:20px}
+.kh .tm img,.kh .tm i{width:54px;height:54px;border-radius:50%;background:#fff;border:3px solid var(--kbd);object-fit:contain;padding:5px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-style:normal;color:#1c1c1e;font-weight:800;font-size:20px}
 .kh .kc b{display:block;font-size:34px;line-height:1.05;font-weight:700}
-.kh .kc span{display:block;color:#ccc;font-size:13px;margin-top:4px;text-transform:uppercase}
-.kh .kc .cd{font-size:20px;color:#fff;font-weight:600;font-variant-numeric:tabular-nums;margin-top:8px;letter-spacing:.5px}
+.kh .kc span{display:block;color:var(--kmute);font-size:13px;margin-top:4px;text-transform:uppercase}
+.kh .kc .cd{font-size:20px;color:var(--kfg);font-weight:600;font-variant-numeric:tabular-nums;margin-top:8px;letter-spacing:.5px}
 .chat{display:flex;flex-direction:column;gap:8px;margin:10px 0;max-height:360px;overflow:auto}
 .bub{padding:9px 12px;border-radius:14px;font-size:15px;max-width:88%;line-height:1.4;background:var(--bg2,#8881);border:1px solid var(--line);align-self:flex-start}
 .bub.me{align-self:flex-end;background:var(--brand,#1976d2);color:#fff;border-color:transparent}
@@ -94,17 +94,17 @@ dialog::backdrop{background:#0009}
 .dot{width:12px;height:12px;border-radius:50%;display:inline-block}
 .dot.g{background:var(--ok)}.dot.r{background:var(--bad)}.dot.n{border:2px solid var(--grey)}
 .note{color:var(--mute);font-size:13px;margin:6px 0}
-.stripw{display:flex;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 4px 8px 8px;margin-bottom:10px}
+.stripw{display:flex;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:2px 2px 2px 4px;margin:0 0 8px}
 .strip{display:flex;gap:4px;overflow-x:auto;flex:1;scrollbar-width:none}
 .strip::-webkit-scrollbar{display:none}
-.dy{background:none;border:0;border-radius:10px;min-width:54px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;color:var(--mute);font-size:15px;font-weight:600}
-.dy b{font-size:24px;color:var(--ink);line-height:1.1}
-.dy i{width:5px;height:5px;border-radius:50%;margin-top:3px}
+.dy{background:none;border:0;border-radius:8px;min-width:44px;padding:2px 3px;display:flex;flex-direction:column;align-items:center;color:var(--mute);font-size:11px;font-weight:600}
+.dy b{font-size:16px;color:var(--ink);line-height:1.1}
+.dy i{width:4px;height:4px;border-radius:50%;margin-top:1px}
 .dy i.has{background:var(--blue2)}
 .dy[aria-pressed=true]{background:linear-gradient(135deg,#f0148c,#b800b8);color:#fff}
 .dy[aria-pressed=true] b{color:#fff}
 .dy[aria-pressed=true] i.has{background:#fff}
-.nx{background:none;border:0;font-size:26px;color:var(--mute);padding:0 10px}
+.nx{background:none;border:0;font-size:20px;color:var(--mute);padding:0 8px}
 .sum{background:var(--tint);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:0 0 8px;font-size:14px}
 
 /* ---- contas, perfil, chat, painel ---- */
@@ -144,7 +144,7 @@ dialog::backdrop{background:#0009}
 .mrow{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .rp.nv{grid-template-columns:1fr auto 14px}
 .rp .v{font-weight:800;text-align:right}
-.mo{font-style:normal;font-size:10px;color:var(--amber);min-height:12px;line-height:12px}
+.mo{font-style:normal;font-size:9px;color:var(--amber);min-height:10px;line-height:10px}
 .lgb{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:6px}
 .lgb[aria-pressed=true]{border-color:var(--blue);background:var(--tint)}
 .lgb .ck{width:24px;height:24px;border:2px solid var(--grey);border-radius:6px;display:grid;place-items:center;font-weight:800;color:#fff;flex:none}
@@ -181,22 +181,22 @@ main.fi{animation:fi .5s ease}
 .meta{margin-top:6px;font-size:13px}
 .match .btn{padding:6px 12px;font-size:14px}
 /* análise em ecrã inteiro */
-dialog:has(.dtop){width:100%;max-width:none;height:100%;max-height:none;margin:0;border:0;border-radius:0;padding:0 14px 20px}
+dialog:has(.dtop){background:var(--kbg);width:100%;max-width:none;height:100%;max-height:none;margin:0;border:0;border-radius:0;padding:0 14px 20px}
 dialog:has(.dtop) > *:not(.dtop){max-width:560px;margin-left:auto;margin-right:auto}
-.dtop{position:sticky;top:0;z-index:2;background:var(--card);padding:10px 0;margin:0 -14px 6px;padding-right:10px;display:flex;justify-content:flex-end}
+.dtop{position:sticky;top:0;z-index:2;background:var(--kbg);padding:10px 0;margin:0 -14px 6px;padding-right:10px;display:flex;justify-content:flex-end}
 .dtop form{margin:0}
 .dbk{background:none;border:0;color:var(--ink);font-size:28px;line-height:1;padding:4px 12px;cursor:pointer;border-radius:8px}
-.kh .frm{margin-top:12px;border-top:1px solid #333;padding-top:10px;text-align:left}
-.kh .frm h4{margin:0 0 8px;text-align:center;font-size:12px;color:#aaa;font-weight:600;letter-spacing:.4px;text-transform:uppercase}
+.kh .frm{margin-top:12px;border-top:1px solid var(--kline);padding-top:10px;text-align:left}
+.kh .frm h4{margin:0 0 8px;text-align:center;font-size:12px;color:var(--kmute);font-weight:600;letter-spacing:.4px;text-transform:uppercase}
 .kh .fc{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .kh .fr{display:flex;align-items:center;gap:6px;margin-bottom:5px}.kh .fr.r{flex-direction:row-reverse}
-.kh .fb{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;background:#2a2a2c;border:1px solid #3a3a3c;border-radius:8px;padding:3px 4px;font-size:13px;font-weight:700}
+.kh .fb{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;background:var(--kchip);border:1px solid var(--kbd);border-radius:8px;padding:3px 4px;font-size:13px;font-weight:700}
 .kh .fb img,.kh .fb i{width:22px;height:22px;border-radius:50%;background:#fff;object-fit:contain;padding:2px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-style:normal;color:#1c1c1e;font-size:11px;font-weight:800}
 .kh .fl{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex:none}
 .kh .fl.V{background:#1fb15f}.kh .fl.E{background:#e0a800}.kh .fl.D{background:#d9534f}
 .kh .hh{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
 .kh .hh i,.kh .hh img{width:22px;height:22px;border-radius:50%;background:#fff;object-fit:contain;padding:2px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-style:normal;color:#1c1c1e;font-size:11px;font-weight:800}
-.kh .hh div{background:#2a2a2c;border:1px solid #3a3a3c;border-radius:8px;padding:5px 10px;display:flex;align-items:center;gap:4px;font-weight:700;font-size:14px}
+.kh .hh div{background:var(--kchip);border:1px solid var(--kbd);border-radius:8px;padding:5px 10px;display:flex;align-items:center;gap:4px;font-weight:700;font-size:14px}
 /* Ajuda */
 .help{position:fixed;top:0;left:0;right:0;bottom:0;background:#000;color:#fff;display:flex;flex-direction:column;z-index:20}
 .help .hb{position:absolute;top:8px;left:8px;background:none;border:0;color:#fff;font-size:30px;padding:6px 14px;cursor:pointer}
@@ -363,12 +363,12 @@ const STATUS = { NS:"Agendada", TBD:"Hora por confirmar", "1H":"Ao vivo", HT:"Ao
   FT:"Terminada", AWD:"Resultado atribuído", PST:"Adiada", CANC:"Cancelada", SUSP:"Suspensa" };
 const isLive = s => ["1H","HT","2H","ET","P","LIVE"].includes(s);
 const isDone = s => ["FT","AWD"].includes(s);
-const LIVE_MAX = 150 * 60000; // sem resultado final 2h30 depois do início, o jogo passa ao histórico
+const LIVE_MAX = 110 * 60000; // 45+3 + intervalo 15 + 45+2 = 110 min: depois disto o jogo termina e passa ao histórico
 // estado real do jogo: começa sozinho à hora marcada e termina sozinho, mesmo antes do servidor atualizar
 function effStatus(f){
   const st = f.status, t = Date.parse(f.kickoff_utc), now = Date.now();
   if (!Number.isFinite(t)) return st;
-  if (isLive(st)) return now - t > 4 * 3600e3 ? "FT" : st;
+  if (isLive(st)) return now - t > LIVE_MAX ? "FT" : st;
   if (st === "NS" && f.time_confirmed !== false && now >= t) return now - t < LIVE_MAX ? "LIVE" : "FT";
   return st;
 }
@@ -472,8 +472,6 @@ function assistLocal(q){
     return "Ainda não há análises dos próximos jogos. Volta daqui a pouco.";
   }
   if (has("empata/vence", "vence/empata", "empate/vence", "talvez", "qualquer vence", "nao vence")) return "• “Qualquer vence”: as equipas estão muito parecidas (menos de 5% de diferença). A percentagem é a chance de não haver empate.\n• “Vence/Empata” (equipa da casa) e “Empate/Vence” (equipa de fora): jogo equilibrado (5% a 10% de diferença). A favorita ganha ou empata.\n• “Talvez Sim” aparece só no Empate, quando é mais provável do que a vitória da equipa em desvantagem.\n• “Não vence” é a equipa em desvantagem.";
-  if (has("alcance")) return "“Alcance de golos” de uma equipa mostra os 7 placares mais prováveis se ela ganhar, por exemplo 2:1 ou 3:1. As percentagens somam 100% entre esses placares. Já o “Alcance de golos” 4+, 5+, 6+ é a chance de o jogo ter pelo menos esse número de golos.";
-  if (has("margem")) return "“Margem vencedora” mostra, se a equipa favorita ganhar, por quantos golos: 1, 2 ou 3 ou mais. As três percentagens somam 100%.";
   if (has("circulo", "verde", "vermelho", "bolinha", "cinzento")) return "Depois do jogo acabar, cada linha mostra um círculo: verde = a previsão estava certa, vermelho = errada, cinzento = sem dados para avaliar (por exemplo, um mercado que só vale se a equipa ganhar e ela não ganhou).";
   if (has("percent", "%", "barra") || (has("sim") && has("nao"))) return "Cada linha tem Sim/Não (ou Vence/Empata…) e uma percentagem. A percentagem é a chance estimada de aquilo acontecer. “Não 25%” quer dizer que há 25% de chance de acontecer e, por isso, o modelo não o escolhe. Nos mercados que não podem acontecer ao mesmo tempo (1X2, intervalo) somam 100%.";
   if (has("analisar", "como uso", "como usar", "como vejo", "passo", "como funciona o app", "como faco")) return "Para ver uma análise: 1) abre Home ou Calendário e escolhe o jogo; 2) carrega em “Analisar com IA”; 3) no topo vês a hora do apito, quanto falta e os últimos jogos das equipas; 4) mais abaixo estão as probabilidades de resultado, golos, ambas marcam, intervalo e outras. Também podes pesquisar um jogo na lupa.";
@@ -575,7 +573,9 @@ S.sel = (store.get("calLeagues", []) || []).filter(id => ORDER.includes(id)).sli
 const leagueSel = f => !S.sel.length || S.sel.includes(f.competition_id);
 function dayList(){
   const out = [];
-  for (let i = 0; i < 30; i++){ // hoje + 29 dias; o dia que passa sai e entra um novo
+  const ax = access(cur()); let N = 30;
+  if (ax.exp) N = Math.max(1, Math.min(30, Math.ceil((ax.exp - Date.now()) / DAYMS))); // só mostra os dias até à data de expiração
+  for (let i = 0; i < N; i++){ // hoje + 29 dias; o dia que passa sai e entra um novo
     const d = new Date(Date.now() + i * 86400e3), iso = d.toISOString();
     const wd = new Intl.DateTimeFormat("pt", { timeZone: S.tz, weekday: "short" }).format(d).replace(".", "");
     const dn = new Intl.DateTimeFormat("pt", { timeZone: S.tz, day: "numeric" }).format(d);
@@ -602,7 +602,7 @@ function calView(){
   list.sort((a, b) => (a.competitions?.name ?? "").localeCompare(b.competitions?.name ?? "") || a.kickoff_utc.localeCompare(b.kickoff_utc));
   const names = S.sel.map(id => labelById(id, S.leagues.find(l => l.id === id)?.name, "")[1]).join(" · ");
   const pick = `<div class="row" style="margin:0 0 10px;flex-wrap:wrap"><button class="btn alt" data-act="leagues">Selecionar ligas${S.sel.length ? ` (${S.sel.length}/3)` : ""}</button>${names ? `<span class="note" style="margin:0">${esc(names)}</span>` : ""}</div>`;
-  return `<div class="stripw"><div class="strip" id="strip">${strip}</div><button class="nx" data-act="next" aria-label="Mais dias">→</button></div>
+  return `<div class="stripw"><div class="strip" id="strip">${strip}</div>${days.length > 6 ? `<button class="nx" data-act="next" aria-label="Mais dias">→</button>` : ""}</div>
     ${pick}${msgHtml()}` +
     (S.loading ? `<div class="empty">A carregar…</div>` : list.length ? byComp(list) : `<div class="empty">${S.sel.length ? "Sem jogos das ligas selecionadas neste dia." : "Sem jogos neste dia nas competições importadas."}</div>`);
 }
@@ -626,10 +626,11 @@ function finalOf(f){
 }
 function histList(){ return S.history; }
 function histView(){
-  const list = histList();
-  const upd = updLine();
-  return `<h1 class="ttl">Histórico</h1>${upd}${msgHtml()}` + (list.length ? `<div class="row" style="justify-content:center;margin:0 0 8px"><button class="btn alt" data-act="clearhist">Limpar histórico</button></div>` + grouped(list, "hist")
-    : `<div class="empty">Ainda não há jogos terminados. Os jogos passam para aqui assim que terminam.</div>`);
+  const list = histList().filter(leagueSel);
+  const names = S.sel.map(id => labelById(id, S.leagues.find(l => l.id === id)?.name, "")[1]).join(" · ");
+  const top = `<div class="row" style="justify-content:space-between;margin:0 0 10px"><button class="btn alt" data-act="leagues">Selecionar ligas${S.sel.length ? ` (${S.sel.length}/3)` : ""}</button>${histList().length ? `<button class="btn alt" data-act="clearhist">Limpar histórico</button>` : ""}</div>${names ? `<p class="note" style="margin:0 0 8px">${esc(names)}</p>` : ""}`;
+  return `${top}${updLine()}${msgHtml()}` + (list.length ? grouped(list, "hist")
+    : `<div class="empty">${histList().length ? "Sem jogos das ligas selecionadas." : "Ainda não há jogos terminados. Os jogos passam para aqui assim que terminam."}</div>`);
 }
 const favG = id => S.favs.some(x => x.id === "g:" + id);
 const favStar = f => isDone(f.status) ? "" : `<button type="button" class="fv" data-favgame="${esc(f.id)}" aria-label="${favG(f.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}" aria-pressed="${favG(f.id)}">${favG(f.id) ? "★" : "☆"}</button>`;
@@ -652,7 +653,7 @@ function vipPick(f){
   return { team: r.home >= r.away ? f.home_team : f.away_team, pct: r.home >= r.away ? n[0] : n[2] };
 }
 function vipView(){
-  const u = cur(); if (!u || !u.admin) return `<div class="empty">Sem permissão.</div>`;
+  const u = cur(); if (!u || !canVip(u)) return `<div class="empty">Sem permissão.</div>`;
   const days = dayList().slice(0, 7);
   if (!days.some(d => d.key === S.vday)) S.vday = days[0].key;
   const today = dayKey(new Date().toISOString()); // jogo que começa ou termina continua no VIP até ao dia seguinte
@@ -660,7 +661,7 @@ function vipView(){
   const count = new Map(); all.forEach(f => { const k = dayKey(f.kickoff_utc); count.set(k, (count.get(k) || 0) + 1); });
   const strip = days.map(d => `<button class="dy" data-vday="${esc(d.key)}" aria-pressed="${S.vday === d.key}"><span>${esc(d.wd)}</span><b>${esc(d.dn)}</b><em class="mo">${esc(d.mo)}</em><i class="${count.get(d.key) ? "has" : ""}"></i></button>`).join("");
   const list = all.filter(f => dayKey(f.kickoff_utc) === S.vday).sort((a, b) => a.kickoff_utc.localeCompare(b.kickoff_utc));
-  return `${backBar()}<h1 class="ttl">VIP</h1><div class="stripw"><div class="strip" id="vstrip">${strip}</div></div>${msgHtml()}` +
+  return `<div class="stripw"><div class="strip" id="vstrip">${strip}</div></div>${backBar()}${msgHtml()}` +
     (list.length ? vipGrouped(list) : `<div class="empty">Sem jogos com 50% ou mais de probabilidade de vitória neste dia.</div>`);
 }
 function vipGrouped(list){
@@ -725,7 +726,7 @@ function drawerHtml(){
   if (!S.drawer){ if (!S.search && !S.lg) $("ov").innerHTML = ""; return; }
   const dark = isDark(), u = cur(), B = "width:100%;font-size:18px;padding:14px;margin-bottom:8px";
   const top = u ? `<div class="mrow">${avatar(u, 44)}<b>${esc(u.name)}</b></div>
-    ${u.admin ? `<button class="btn" style="${B};background:#b8860b" data-s="vip">VIP</button>` : ""}` : "";
+    ${u.admin ? `<button class="btn" style="${B};background:#1f7a4d" data-s="admin">Painel</button>` : ""}${canVip(u) ? `<button class="btn" style="${B};background:#b8860b" data-s="vip">VIP</button>` : ""}` : "";
   $("ov").innerHTML = `<div class="ov" data-act="close"><div class="drawer" role="dialog" aria-label="Menu">${top}
     <button class="btn" style="${B}" data-act="toggle" aria-pressed="${dark}">${dark ? "☀️ Modo claro" : "🌙 Modo escuro"}</button>
     <button class="btn" style="${B}">Adicionar tempo</button>
@@ -895,21 +896,6 @@ function sections(r, nm){
   const bucket = (obj, side) => { const items = Object.entries(obj).map(([k, p]) => [`${k} golo${k === "1" ? "" : "s"}`, p, f => (k === "3+" ? f[side] >= 3 : f[side] === +k)]); const tp = topI(items); return items.map(([l, p, fn], i) => one(l, p, fn, i === tp)); };
   out.push({ title: "Golos da equipa da casa", pct: true, groups: [bucket(r.teamGoals.home, "h")] });
   out.push({ title: "Golos da equipa visitante", pct: true, groups: [bucket(r.teamGoals.away, "a")] });
-  // Alcance de golos de cada equipa (placares mais prováveis se ela ganhar) e margem da vitória da favorita
-  if (r.lambda){
-    const L = { h: r.lambda.home, a: r.lambda.away }, cell = (i, j) => poi(i, L.h) * poi(j, L.a);
-    const wins = side => { const l = []; for (let i = 0; i <= 8; i++) for (let j = 0; j <= 8; j++) if (side === "h" ? i > j : j > i) l.push({ i, j, p: cell(i, j) }); return l; };
-    const reach = (side, title) => {
-      const top = wins(side).sort((a, b) => b.p - a.p).slice(0, 7).sort((a, b) => (a.i + a.j) - (b.i + b.j) || (side === "h" ? a.i - b.i : a.j - b.j));
-      const tot = top.reduce((x, y) => x + y.p, 0), mx = Math.max(...top.map(x => x.p)), won = f => side === "h" ? f.h > f.a : f.a > f.h;
-      out.push({ title, pct: true, noTop: true, groups: [top.map(x => one(`${x.i}:${x.j}`, x.p / tot, f => won(f) ? (f.h === x.i && f.a === x.j) : null, x.p === mx))] });
-    };
-    reach("h", `Alcance de golos ${H}`); reach("a", `Alcance de golos ${A}`);
-    const fav = r.result.home >= r.result.away ? "h" : "a", w = wins(fav), m = { 1: 0, 2: 0, 3: 0 };
-    w.forEach(x => { m[Math.min(3, Math.abs(x.i - x.j))] += x.p; });
-    const mt = m[1] + m[2] + m[3], mm = Math.max(m[1], m[2], m[3]), fw = f => fav === "h" ? f.h - f.a : f.a - f.h;
-    out.push({ title: `Margem vencedora ${fav === "h" ? H : A}`, pct: true, noTop: true, groups: [[1, 2, 3].map(k => one(k === 3 ? "3+ golos" : k === 1 ? "1 golo" : "2 golos", m[k] / mt, f => fw(f) > 0 ? (k === 3 ? fw(f) >= 3 : fw(f) === k) : null, m[k] === mm))] });
-  }
   const ex = r.exactScores[0];
   out.push({ title: "Resultado exato mais provável", pct: true, groups: [[one(ex.score, ex.p, f => `${f.h}-${f.a}` === ex.score, true)]] });
   // quem marcou primeiro só é certo se uma das equipas não marcou
@@ -992,16 +978,22 @@ function analysisHtml(an, f, extra = "", opts = {}){
     <form method="dialog"><button class="btn">Fechar</button></form>`;
 }
 async function openAnalysis(id){
-  const dlg = $("dlg");
-  dlg.innerHTML = `<p class="note">A obter a análise mais recente…</p>`;
+  const dlg = $("dlg"), close = `<form method="dialog"><button class="btn">Fechar</button></form>`;
+  const find = () => [...S.fixtures, ...S.history].find(x => x.id === id);
+  const paint = f => {
+    const fb = isDone(f.status) ? "" : `<button type="button" class="btn alt" style="width:100%;margin:10px 0" data-favgame="${esc(f.id)}">${favG(f.id) ? "★ Remover dos favoritos" : "☆ Adicionar aos favoritos"}</button>`;
+    const sc = dlg.scrollTop;
+    dlg.innerHTML = analysisHtml(f.analysis || genericAn(f), f, fb, { min50: S.view === "vip" }); dlg.dataset.gid = id; dlg.dataset.sig = JSON.stringify(f.analysis || 0).length + ":" + f.status; showRecent(f);
+    if (sc) dlg.scrollTop = sc;
+  };
+  const f0 = find();
+  if (f0) paint(f0); else { dlg.dataset.gid = id; dlg.innerHTML = `<p class="note">A obter a análise mais recente…</p>`; }
   if (!dlg.open) dlg.showModal();
-  const ok = await fetchData(); render(); // vai sempre ao servidor: as análises podem ter sido acrescentadas ou atualizadas
-  const close = `<form method="dialog"><button class="btn">Fechar</button></form>`;
-  if (!ok){ dlg.innerHTML = `<div class="msg">Sem ligação à internet. O app precisa de estar online para mostrar as análises.</div>${close}`; return; }
-  const f = [...S.fixtures, ...S.history].find(x => x.id === id);
-  if (!f){ dlg.innerHTML = `<div class="msg">Este jogo já não está na lista atual.</div>${close}`; return; }
-  const fb = isDone(f.status) ? "" : `<button type="button" class="btn alt" style="width:100%;margin:10px 0" data-favgame="${esc(f.id)}">${favG(f.id) ? "★ Remover dos favoritos" : "☆ Adicionar aos favoritos"}</button>`;
-  dlg.innerHTML = analysisHtml(f.analysis || genericAn(f), f, fb, { min50: S.view === "vip" }); showRecent(f);
+  const ok = await fetchData(); render(); // atualiza em segundo plano: as análises podem ter sido acrescentadas ou atualizadas
+  if (!dlg.open || dlg.dataset.gid !== id) return;
+  const f = find();
+  if (!f){ if (!f0) dlg.innerHTML = `<div class="msg">${ok ? "Este jogo já não está na lista atual." : "Sem ligação à internet. O app precisa de estar online para mostrar as análises."}</div>${close}`; return; }
+  if (!f0 || dlg.dataset.sig !== JSON.stringify(f.analysis || 0).length + ":" + f.status) paint(f);
 }
 
 /* =====================================================================
@@ -1016,8 +1008,8 @@ const ADMIN_EMAIL = "abelmaridao@gmail.com";
 const MAIL_ENDPOINT = null; // URL do teu serviço de envio de e-mail; null = modo demonstração (código mostrado no ecrã)
 const API_URL = null; // endereço do accounts-worker.js (ex.: "https://contas.teu-nome.workers.dev"). null = modo local (só neste aparelho)
 const DBK = "eb_db_v1", SESK = "eb_session", MEK = "eb_me";
-const emptyDB = () => ({ users: [], resets: {} });
-const rawDB = () => { const d = store.get(DBK, null); return d && d.users ? d : emptyDB(); };
+const emptyDB = () => ({ users: [], resets: {}, allow: [] });
+const rawDB = () => { const d = store.get(DBK, null); if (!(d && d.users)) return emptyDB(); if (!Array.isArray(d.allow)) d.allow = []; return d; };
 let DBc = rawDB();
 const saveDB = () => { if (!API_URL) store.set(DBK, DBc); };
 const reloadDB = () => { if (!API_URL) DBc = rawDB(); };
@@ -1037,6 +1029,17 @@ const validEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
 const validName = n => n.length >= 3 && n.length <= 20 && /^[\p{L}\p{N}_. -]+$/u.test(n);
 const tm = t => { const iso = new Date(t).toISOString(); return dayKey(iso) === dayKey(new Date().toISOString()) ? fmtHour(iso) : fmtFull(iso); };
 const userById = id => DBc.users.find(x => x.id === id);
+const DAYMS = 86400e3;
+const allowOf = e => (DBc.allow || []).find(a => a.email === e);
+// acesso do utilizador: validade (0 = sem fim) e permissão de ver o VIP; o administrador tem sempre tudo
+function access(u){
+  if (!u) return { exp: 0, vip: false };
+  if (u.admin) return { exp: 0, vip: true };
+  if (API_URL) return { exp: u.exp || 0, vip: !!u.vip };
+  const a = allowOf(u.email); return a ? { exp: a.exp || 0, vip: !!a.vip } : { exp: 0, vip: false };
+}
+const canVip = u => !!u && access(u).vip;
+const expMsg = t => `O teu acesso terminou em ${fmtFull(new Date(t).toISOString())}. Fala com o administrador.`;
 
 S.soc = { mode: "login", err: "", info: "", mail: null, was: false, showSearch: false, q: "", pwForm: false, pmsg: null, banFor: null,
   f: { id: "", email: "", name: "", pw: "", code: "", pw2: "" } };
@@ -1058,12 +1061,14 @@ function cur(){
   if (API_URL){
     const m = S.soc.me; if (!m) return null;
     if (m.banUntil > Date.now()){ dropSession(banMsg(m.banUntil, "A tua conta")); return null; }
+    const ax = access(m); if (ax.exp && ax.exp < Date.now()){ dropSession(expMsg(ax.exp)); return null; }
     return m;
   }
   const id = store.get(SESK, null); if (!id) return null;
   const u = userById(id);
   if (!u){ store.set(SESK, null); return null; }
   if (u.banUntil > Date.now()){ store.set(SESK, null); S.soc.mode = "login"; S.soc.err = `A tua conta está banida até ${tm(u.banUntil)}.`; return null; }
+  const ax = access(u); if (ax.exp && ax.exp < Date.now()){ store.set(SESK, null); S.soc.mode = "login"; S.soc.err = expMsg(ax.exp); return null; }
   return u;
 }
 function dropSession(msg){ store.set(SESK, null); store.set(MEK, null); S.soc.me = null; S.pwPlain = ""; S.soc.mode = "login"; S.soc.err = msg || ""; S.soc.info = ""; S.soc.f.pw = ""; S.view = "home"; S.drawer = false; }
@@ -1077,62 +1082,65 @@ function authView(){
   const fld = (k, label, type = "text", ac = "off") => { const i = `<input id="a-${k}" data-f="${k}" type="${type}" autocomplete="${ac}" value="${esc(f[k])}">`; return `<label class="fl" for="a-${k}">${label}</label>${type === "password" ? eyeWrap(i) : i}`; };
   const lnk = (v, t) => `<button type="button" class="link" data-s="mode" data-v="${v}">${t}</button>`;
   let title, body;
-  if (m === "register"){
-    title = "Criar conta";
-    body = `<form novalidate data-sf="register">${fld("email", "E-mail (tem de ser válido)", "email", "email")}${fld("name", "Nome de utilizador", "text", "username")}${fld("pw", "Palavra-passe (mínimo 6 caracteres)", "password", "new-password")}
-      <button class="btn" style="width:100%;margin-top:14px;padding:13px">Criar conta</button></form>${lnk("login", "Já tenho conta. Entrar")}`;
-  } else if (m === "forgot1"){
-    title = "Recuperar conta";
-    body = `<p class="note">Escreve o e-mail da tua conta. Vamos enviar um código de 6 dígitos.</p><form novalidate data-sf="forgot1">${fld("email", "E-mail", "email", "email")}
-      <button class="btn" style="width:100%;margin-top:14px;padding:13px">Enviar código</button></form>${lnk("login", "Voltar a entrar")}`;
-  } else if (m === "forgot2"){
-    const mail = s.mail ? `<div class="mail">📧 <b>Caixa de e-mail simulada (demonstração)</b><br>Para: ${esc(s.mail.to)}<br>O teu código de recuperação é <strong>${esc(s.mail.code)}</strong><br><small>Num app ligado a um servidor de e-mail, este código chega à caixa de entrada e não aparece aqui.</small></div>` : "";
-    title = "Novo código";
-    body = `${mail}<form novalidate data-sf="forgot2">${fld("code", "Código de 6 dígitos", "text", "one-time-code")}${fld("pw2", "Nova palavra-passe", "password", "new-password")}
-      <button class="btn" style="width:100%;margin-top:14px;padding:13px">Alterar palavra-passe</button></form>${lnk("forgot1", "Pedir outro código")}`;
+  if (m === "create"){
+    title = "Criar palavra-passe";
+    body = `<form novalidate data-sf="register">${fld("email", "E-mail", "email", "email")}${fld("pw", "Palavra-passe (mínimo 6 caracteres)", "password", "new-password")}${fld("pw2", "Repete a palavra-passe", "password", "new-password")}
+      <button class="btn" style="width:100%;margin-top:14px;padding:13px">Guardar e entrar</button></form>${lnk("login", "Voltar")}`;
   } else {
     title = "Entrar";
-    body = `<form novalidate data-sf="login">${fld("id", "E-mail ou nome de utilizador", "text", "username")}${fld("pw", "Palavra-passe", "password", "current-password")}
-      <button class="btn" style="width:100%;margin-top:14px;padding:13px">Entrar</button></form>
-      ${lnk("forgot1", "Esqueci a palavra-passe")}<br>${lnk("register", "Não tenho conta. Criar conta")}`;
+    body = `<form novalidate data-sf="login">${fld("id", "E-mail", "email", "username")}${fld("pw", "Palavra-passe", "password", "current-password")}
+      <button class="btn" style="width:100%;margin-top:14px;padding:13px">Entrar</button></form>`;
   }
   return `<header class="top"><div style="width:40px"></div><div class="brand"><span class="mark" aria-hidden="true">🦁</span><span>Elephalpit <em>Bet</em></span></div><div style="width:40px"></div></header>
-    <div class="auth"><h1 class="ttl">${title}</h1><p class="sub">O registo é obrigatório para usar o app.</p>
+    <div class="auth"><h1 class="ttl">${title}</h1>
     ${s.err ? `<div class="msg" role="alert">${esc(s.err)}</div>` : ""}${s.info ? `<div class="msg ok">${esc(s.info)}</div>` : ""}
     <div class="card">${body}</div></div>`;
 }
 const err = t => { S.soc.err = t; S.soc.info = ""; render(); return false; };
+const goCreate = e => { const f = S.soc.f; S.soc.mode = "create"; f.email = e; f.pw = ""; f.pw2 = ""; S.soc.err = ""; S.soc.info = ""; render(); };
+const NOAUTH = "Este e-mail não está autorizado. Pede ao administrador para o registar.";
 async function doRegister(){
-  const f = S.soc.f, e = f.email.trim().toLowerCase(), n = f.name.trim();
+  const f = S.soc.f, e = f.email.trim().toLowerCase();
   if (!validEmail(e)) return err("Escreve um e-mail válido.");
-  if (!validName(n)) return err("O nome de utilizador deve ter 3 a 20 caracteres (letras, números, espaço, _ . -).");
   if (f.pw.length < 6) return err("A palavra-passe deve ter pelo menos 6 caracteres.");
+  if (f.pw !== f.pw2) return err("As duas palavras-passe não são iguais.");
+  let base = e.split("@")[0].replace(/[^\p{L}\p{N}_.-]/gu, "").slice(0, 16); if (base.length < 3) base = (base + "user").slice(0, 16);
   const salt = uid(), hash = await hashPw(f.pw, salt);
   if (API_URL){
-    const r = await api("register", { email: e, name: n, salt, hash });
-    return r.ok ? startSession(r) : err(r.error || "Não foi possível criar a conta.");
+    const r = await api("register", { email: e, name: base, salt, hash });
+    if (r.ok){ f.pw2 = ""; return startSession(r); }
+    return err(r.error || "Não foi possível criar a palavra-passe.");
   }
   reloadDB();
-  if (DBc.users.some(u => u.email === e)) return err("Este e-mail já está registado.");
-  if (DBc.users.some(u => norm(u.name) === norm(n))) return err("Este nome de utilizador já existe.");
-  const u = { id: uid(), email: e, name: n, salt, hash, photo: "", friends: [], admin: e === ADMIN_EMAIL, banUntil: 0, created: Date.now() };
+  const adm = e === ADMIN_EMAIL.toLowerCase(), a = allowOf(e);
+  if (!adm && !a) return err(NOAUTH);
+  if (a && a.exp && a.exp < Date.now()) return err(expMsg(a.exp));
+  if (DBc.users.some(u => u.email === e)) return err("Este e-mail já tem palavra-passe. Volta atrás e entra.");
+  let name = base, k = 2; while (DBc.users.some(u => norm(u.name) === norm(name))) name = base.slice(0, 14) + k++;
+  const u = { id: uid(), email: e, name, salt, hash, photo: "", friends: [], admin: adm, banUntil: 0, created: Date.now() };
   DBc.users.push(u); saveDB(); store.set(SESK, u.id);
-  S.pwPlain = S.soc.f.pw; S.soc.f.pw = ""; S.soc.err = ""; S.soc.info = ""; S.view = "home"; startBusy(); render();
+  S.pwPlain = S.soc.f.pw; S.soc.f.pw = ""; S.soc.f.pw2 = ""; S.soc.err = ""; S.soc.info = ""; S.view = "home"; startBusy(); render();
 }
 async function doLogin(){
-  const { id, pw } = S.soc.f, key = id.trim();
-  if (!key || !pw) return err("Escreve o e-mail (ou nome) e a palavra-passe.");
+  const { id, pw } = S.soc.f, key = id.trim().toLowerCase();
+  if (!validEmail(key)) return err("Escreve o teu e-mail.");
   if (API_URL){
-    const s1 = await api("salt", { id: key }); if (!s1.salt) return err(s1.error || "Sem ligação ao servidor. Tenta outra vez.");
+    const s1 = await api("salt", { id: key });
+    if (s1.pending) return goCreate(key);
+    if (!s1.salt) return err(s1.error || "Sem ligação ao servidor. Tenta outra vez.");
+    if (!pw) return err("Escreve a palavra-passe.");
     const r = await api("login", { id: key, hash: await hashPw(pw, s1.salt) });
     if (r.ok) return startSession(r);
-    return err(r.error === "banned" ? banMsg(r.banUntil, "Esta conta") : (r.error || "E-mail/nome ou palavra-passe incorretos."));
+    return err(r.error === "banned" ? banMsg(r.banUntil, "Esta conta") : r.error === "expired" ? expMsg(r.exp) : (r.error || "E-mail ou palavra-passe incorretos."));
   }
   reloadDB();
-  const u = DBc.users.find(x => x.email === key.toLowerCase() || norm(x.name) === norm(key));
-  const ok = u && u.hash === await hashPw(pw, u.salt);
-  if (!ok) return err("E-mail/nome ou palavra-passe incorretos.");
+  const u = DBc.users.find(x => x.email === key);
+  if (!u){ if (key === ADMIN_EMAIL.toLowerCase() || allowOf(key)) return goCreate(key); return err(NOAUTH); }
+  if (!pw) return err("Escreve a palavra-passe.");
+  const ok = u.hash === await hashPw(pw, u.salt);
+  if (!ok) return err("E-mail ou palavra-passe incorretos.");
   if (u.banUntil > Date.now()) return err(`Esta conta está banida até ${tm(u.banUntil)}.`);
+  const ax = access(u); if (ax.exp && ax.exp < Date.now()) return err(expMsg(ax.exp));
   store.set(SESK, u.id); S.pwPlain = S.soc.f.pw; S.soc.f.pw = ""; S.soc.err = ""; S.soc.info = ""; S.view = "home"; startBusy(); render();
 }
 async function sendMail(to, code){
@@ -1184,23 +1192,36 @@ async function doForgot2(){
 function adminView(){
   const me = cur(), s = S.soc;
   if (!me.admin) return `<div class="empty">Sem permissão.</div>`;
-  const now = Date.now(), us = DBc.users, banned = us.filter(x => x.banUntil > now).length;
+  const now = Date.now(), us = DBc.users, al = DBc.allow || [], banned = us.filter(x => x.banUntil > now).length;
   const target = s.banFor && userById(s.banFor);
   const banForm = target ? `<form class="card" data-sf="ban"><b>Banir ${esc(target.name)}</b><div class="row" style="margin-top:8px"><input name="n" type="number" min="1" max="3650" value="1" aria-label="Duração"><select name="u" aria-label="Unidade"><option value="60000">minutos</option><option value="3600000" selected>horas</option><option value="86400000">dias</option></select></div>
     <div class="row" style="margin-top:10px"><button class="btn">Confirmar ban</button><button type="button" class="btn alt" data-s="banx">Cancelar</button></div></form>` : "";
-  return `${backBar()}<h1 class="ttl">Painel do administrador</h1><div class="stat" id="adstat"><div><b>${us.length}</b>utilizadores</div><div><b>${banned}</b>banidos agora</div></div>
-    ${banForm}<section class="card"><h3 style="margin-top:0">Todos os utilizadores</h3>
-    <div class="sbar"><input id="adq" type="search" placeholder="Pesquisar utilizador…" autocomplete="off" value="${esc(s.aq || "")}" aria-label="Pesquisar utilizador"><span class="lupa">${ICON.search}</span></div>
+  const addForm = `<form class="card" data-sf="allow" novalidate><b>Registar e-mail</b>
+    <label class="fl" for="al-e">E-mail do utilizador</label><input id="al-e" name="e" type="email" autocomplete="off">
+    <label class="fl" for="al-d">Validade do acesso</label><select id="al-d" name="d"><option value="7">7 dias</option><option value="15">15 dias</option><option value="31" selected>31 dias</option></select>
+    <label class="row" style="margin-top:12px;gap:8px;cursor:pointer"><input name="v" type="checkbox" style="width:auto;margin:0"> Pode ver o VIP</label>
+    <button class="btn" style="width:100%;margin-top:12px;padding:12px">Registar e-mail</button></form>`;
+  return `${backBar()}<h1 class="ttl">Painel</h1><div class="stat" id="adstat"><div><b>${al.length}</b>e-mails registados</div><div><b>${banned}</b>banidos agora</div></div>
+    ${s.amsg ? `<div class="msg ${s.amsg[0] === "!" ? "" : "ok"}" role="status">${esc(s.amsg.replace(/^!/, ""))}</div>` : ""}${addForm}${banForm}<section class="card"><h3 style="margin-top:0">Utilizadores</h3>
+    <div class="sbar"><input id="adq" type="search" placeholder="Pesquisar e-mail…" autocomplete="off" value="${esc(s.aq || "")}" aria-label="Pesquisar utilizador"><span class="lupa">${ICON.search}</span></div>
     <div id="adlist">${adminRows(me)}</div></section>`;
 }
 function adminRows(me){
-  const now = Date.now(), q = norm(S.soc.aq || "").trim();
-  const list = DBc.users.filter(u => !q || norm(u.name).includes(q) || norm(u.email).includes(q));
-  if (!list.length) return `<p class="note">Nenhum utilizador encontrado.</p>`;
-  return list.map(u => {
-    const b = u.banUntil > now, self = u.id === me.id;
-    return `<div class="urow"><b>${esc(u.name)}</b>${u.admin ? `<span class="tag">ADMIN</span>` : ""}<br><small style="color:var(--mute)">${esc(u.email)} · ${b ? "Banido até " + esc(tm(u.banUntil)) : "Ativo"}</small>
-      ${self ? "" : `<div class="row">${b ? `<button class="mbtn" data-s="unban" data-id="${u.id}">Remover ban</button>` : `<button class="mbtn" data-s="banopen" data-id="${u.id}">Banir</button>`}<button class="mbtn" style="background:var(--bad)" data-s="deluser" data-id="${u.id}">Excluir conta</button></div>`}</div>`;
+  const now = Date.now(), q = norm(S.soc.aq || "").trim(), al = DBc.allow || [];
+  const rows = al.map(a => ({ a, u: DBc.users.find(x => x.email === a.email) }));
+  DBc.users.forEach(u => { if (!al.some(a => a.email === u.email) && u.id !== me.id) rows.push({ a: null, u }); });
+  const list = rows.filter(r => { const e = r.a ? r.a.email : r.u.email; return !q || norm(e).includes(q) || norm(r.u ? r.u.name : "").includes(q); });
+  if (!list.length) return `<p class="note">Ainda não há e-mails registados.</p>`;
+  const dt = t => fmtFull(new Date(t).toISOString());
+  return list.map(({ a, u }) => {
+    const email = a ? a.email : u.email, b = u && u.banUntil > now, exp = a ? a.exp : 0, gone = exp && exp < now;
+    const st = b ? "Banido até " + tm(u.banUntil) : !u ? "Ainda sem palavra-passe" : gone ? "Expirado" : "Ativo";
+    const info = `${esc(email)} · ${st}${a ? ` · ${exp ? (gone ? "terminou " : "expira ") + esc(dt(exp)) : "sem fim"} · VIP: ${a.vip ? "sim" : "não"}` : ""}`;
+    const E = esc(email);
+    return `<div class="urow"><b>${esc(u ? u.name : email.split("@")[0])}</b>${u && u.admin ? `<span class="tag">ADMIN</span>` : ""}<br><small style="color:var(--mute)">${info}</small>
+      ${u && u.id === me.id ? "" : `<div class="row">${a ? `<button class="mbtn" data-s="vipflag" data-e="${E}">VIP: ${a.vip ? "tirar" : "dar"}</button><button class="mbtn" data-s="renew" data-e="${E}" data-d="7">+7 dias</button><button class="mbtn" data-s="renew" data-e="${E}" data-d="15">+15 dias</button><button class="mbtn" data-s="renew" data-e="${E}" data-d="31">+31 dias</button>` : ""}
+      ${u ? (b ? `<button class="mbtn" data-s="unban" data-id="${u.id}">Remover ban</button>` : `<button class="mbtn" data-s="banopen" data-id="${u.id}">Banir</button>`) + `<button class="mbtn" data-s="resetpw" data-id="${u.id}">Repor palavra-passe</button>` : ""}
+      <button class="mbtn" style="background:var(--bad)" data-s="${a ? "rmallow" : "deluser"}" ${a ? `data-e="${E}"` : `data-id="${u.id}"`}>${a ? "Remover acesso" : "Excluir conta"}</button></div>`}</div>`;
   }).join("");
 }
 function adminOnly(){ reloadDB(); const u = cur(); return u && u.admin ? u : null; }
@@ -1212,7 +1233,23 @@ const ACT = {
   eye: (d, el) => { const i = el.parentNode.querySelector("input"); if (!i) return; const show = i.type === "password"; i.type = show ? "text" : "password"; el.innerHTML = show ? EYE_OFF : EYE; el.setAttribute("aria-label", show ? "Esconder palavra-passe" : "Mostrar palavra-passe"); },
   admin: () => { go("admin"); refreshAdmin(); },
   tipq: d => askAssistant(d.q),
-  vip: () => { reloadDB(); const u = cur(); if (u && u.admin) go("vip"); },
+  vip: () => { reloadDB(); const u = cur(); if (canVip(u)) go("vip"); },
+  vipflag: d => { const a = allowOf(d.e); if (!adminOnly() || !a) return; allowSave(d.e, { vip: !a.vip }); },
+  renew: d => { if (!adminOnly()) return; allowSave(d.e, { days: +d.d }); },
+  rmallow: d => {
+    if (!adminOnly()) return;
+    if (window.confirm && !window.confirm(`Remover o acesso de ${d.e}? A conta (se existir) é apagada.`)) return;
+    if (API_URL){ api("admin/unallow", { email: d.e }).then(r => { S.soc.amsg = r.ok ? "Acesso removido." : "!" + (r.error || "Erro."); refreshAdmin(); render(); }); return; }
+    DBc.allow = (DBc.allow || []).filter(x => x.email !== d.e); const t = DBc.users.find(x => x.email === d.e);
+    if (t) DBc.users = DBc.users.filter(x => x.id !== t.id);
+    S.soc.amsg = "Acesso removido."; saveDB(); render();
+  },
+  resetpw: d => {
+    if (!adminOnly() || d.id === cur().id) return; const t = userById(d.id); if (!t) return;
+    if (window.confirm && !window.confirm(`Repor a palavra-passe de ${t.email}? Ele terá de criar uma nova ao entrar.`)) return;
+    if (API_URL){ api("admin/reset", { id: d.id }).then(r => { S.soc.amsg = r.ok ? "Palavra-passe reposta. O utilizador cria uma nova ao entrar." : "!" + (r.error || "Erro."); refreshAdmin(); render(); }); return; }
+    DBc.users = DBc.users.filter(x => x.id !== d.id); S.soc.amsg = "Palavra-passe reposta. O utilizador cria uma nova ao entrar."; saveDB(); render();
+  },
   banopen: d => { S.soc.banFor = d.id; render(); },
   banx: () => { S.soc.banFor = null; render(); },
   unban: d => { if (API_URL){ api("admin/unban", { id: d.id }).then(refreshAdmin); return; } if (!adminOnly()) return; const t = userById(d.id); if (t){ t.banUntil = 0; saveDB(); } render(); },
@@ -1226,7 +1263,24 @@ const ACT = {
     delete DBc.resets[t.email]; saveDB(); render();
   }
 };
+// regista ou atualiza um e-mail autorizado (dias = validade a contar de agora; vip = pode ver o VIP)
+function allowSave(email, o, okMsg){
+  const msg = t => { S.soc.amsg = t; render(); };
+  if (API_URL){ api("admin/allow", { email, ...o }).then(r => { if (r.ok){ S.soc.amsg = okMsg || "Guardado."; refreshAdmin(); render(); } else msg("!" + (r.error || "Erro.")); }); return; }
+  reloadDB(); let a = allowOf(email);
+  if (!a){ a = { email, exp: 0, vip: false, created: Date.now() }; DBc.allow.push(a); }
+  if (o.days) a.exp = Date.now() + o.days * DAYMS;
+  if (o.vip !== undefined) a.vip = !!o.vip;
+  saveDB(); msg(okMsg || "Guardado.");
+}
 const FORM = {
+  allow: f => {
+    if (!adminOnly()) return;
+    const e = f.elements.e.value.trim().toLowerCase(), d = +f.elements.d.value;
+    if (!validEmail(e)){ S.soc.amsg = "!Escreve um e-mail válido."; return render(); }
+    if (![7, 15, 31].includes(d)) return;
+    allowSave(e, { days: d, vip: f.elements.v.checked }, `E-mail registado por ${d} dias. O utilizador já pode entrar e criar a palavra-passe.`);
+  },
   ask: f => { const v = f.elements.tq.value; f.elements.tq.value = ""; askAssistant(v); },
   login: () => doLogin(), register: () => doRegister(), forgot1: () => doForgot1(), forgot2: () => doForgot2(),
   ban: f => {
@@ -1248,9 +1302,9 @@ document.addEventListener("input", e => {
 async function refreshAdmin(){
   if (!API_URL) return; const me = cur(); if (!me || !me.admin) return;
   const r = await api("admin/list"); if (!r.ok) return;
-  DBc.users = r.users; if (S.view !== "admin") return;
+  DBc.users = r.users; DBc.allow = r.allow || []; if (S.view !== "admin") return;
   const now = Date.now(), el = $("adstat"), ls = $("adlist");
-  if (el) el.innerHTML = `<div><b>${DBc.users.length}</b>utilizadores</div><div><b>${DBc.users.filter(x => x.banUntil > now).length}</b>banidos agora</div>`;
+  if (el) el.innerHTML = `<div><b>${DBc.allow.length}</b>e-mails registados</div><div><b>${DBc.users.filter(x => x.banUntil > now).length}</b>banidos agora</div>`;
   if (ls && !S.soc.banFor) ls.innerHTML = adminRows(me);
 }
 // sessão no servidor: conta apagada ou banida perde o acesso em poucos segundos
@@ -1259,6 +1313,7 @@ async function checkSession(){
   const r = await api("me"); if (r.status === 0) return;
   if (r.ok){ S.soc.me = r.user; store.set(MEK, r.user); return; }
   if (r.status === 403 && r.error === "banned") dropSession(banMsg(r.banUntil, "A tua conta"));
+  else if (r.status === 403 && r.error === "expired") dropSession(expMsg(r.exp));
   else if (r.status === 401) dropSession("A tua sessão terminou ou a conta foi removida.");
   else return;
   render();
@@ -1269,7 +1324,7 @@ setInterval(() => { reloadDB(); if (!cur() && S.soc.was) render(); }, 3000);
 window.addEventListener("storage", e => { if (e.key === DBK || e.key === SESK){ reloadDB(); if (!cur()){ if (S.soc.was) render(); } else if (!S.soc.was) render(); } });
 
 /* ---------- Navegação e eventos ---------- */
-const TRANSITION_MS = 500; // duração da transição entre ecrãs (0,5 segundos)
+const TRANSITION_MS = 120; // transição rápida entre ecrãs
 let busyTimer = null;
 function startBusy(){
   S.busy = true; S.fade = false; clearTimeout(busyTimer);
