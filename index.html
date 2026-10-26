@@ -664,8 +664,8 @@ function vipTabs(){
 function vipView(){
   const u = cur(); if (!u || !canVip(u)) return `<div class="empty" style="font-weight:800;color:var(--ink);font-size:18px">NÃO TENS ACESSO AO VIP</div>`;
   if (S.vtab === "hist"){
-    const list = S.history.filter(f => vipPick(f)).sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc));
-    return vipTabs() + msgHtml() + (list.length ? vipGrouped(list, true) : `<div class="empty">Ainda não há jogos VIP terminados.</div>`);
+    const all0 = S.history.filter(f => vipPick(f) && !vHid.has(f.id)), list = all0.slice().sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc));
+    return vipTabs() + (list.length ? `<div class="row" style="justify-content:flex-end;margin:0 0 10px"><button class="btn alt" data-s="vclear">Limpar histórico</button></div>` : "") + msgHtml() + (list.length ? vipGrouped(list, true) : `<div class="empty">Ainda não há jogos VIP terminados.</div>`);
   }
   const days = dayList().slice(0, vipDays(u));
   if (!days.some(d => d.key === S.vday)) S.vday = days[0].key;
@@ -685,7 +685,7 @@ function vipGrouped(list, hist){
     if (c !== lc){ h += `<div class="cn">${esc(c)}${f.competitions?.country ? " · " + esc(f.competitions.country) : ""}</div>`; lc = c; }
     const p = vipPick(f), fin = hist ? finalOf(f) : null;
     const mark = fin ? ((p.side === "h" ? fin.h > fin.a : fin.a > fin.h) ? ` <span style="color:var(--ok)">✓</span>` : ` <span style="color:var(--bad)">✗</span>`) : "";
-    h += matchCard(f).replace(/<div class="meta"><span>(<span class="st[^>]*>[^<]*<\/span>)<\/span>/, `<div class="meta"><span style="font-weight:700;color:var(--ink)">${esc(p.team)} vitória: ${p.pct}%${mark}</span>`);
+    h += matchCard(f, hist ? "hist" : undefined).replace("data-del=", 'data-s="vdel" data-id=').replace(/<div class="meta"><span>(<span class="st[^>]*>[^<]*<\/span>)<\/span>/, `<div class="meta"><span style="font-weight:700;color:var(--ink)">${esc(p.team)} vitória: ${p.pct}%${mark}</span>`);
   }
   return h;
 }
@@ -1045,6 +1045,8 @@ const validName = n => n.length >= 3 && n.length <= 20 && /^[\p{L}\p{N}_. -]+$/u
 const tm = t => { const iso = new Date(t).toISOString(); return dayKey(iso) === dayKey(new Date().toISOString()) ? fmtHour(iso) : fmtFull(iso); };
 const userById = id => DBc.users.find(x => x.id === id);
 const DAYMS = 86400e3;
+const vHid = new Set((store.get("hiddenVip", []) || []));
+const saveVHid = () => store.set("hiddenVip", [...vHid].slice(-600));
 const VDAYS = [1, 2, 3, 7, 10, 15, 30];
 const vdayOpts = sel => VDAYS.map(n => `<option value="${n}"${n === sel ? " selected" : ""}>${n} ${n === 1 ? "dia" : "dias"}</option>`).join("");
 const allowOf = e => (DBc.allow || []).find(a => a.email === e);
@@ -1231,6 +1233,8 @@ const ACT = {
   tipq: d => askAssistant(d.q),
   vip: () => { reloadDB(); if (cur()){ S.vtab = "vip"; go("vip"); } },
   vtab: d => { S.vtab = d.v; render(); },
+  vdel: d => { if (window.confirm && !window.confirm("Remover este jogo do histórico VIP para sempre?")) return; vHid.add(d.id); saveVHid(); render(); },
+  vclear: () => { if (window.confirm && !window.confirm("Limpar todo o histórico VIP? Não dá para desfazer.")) return; S.history.forEach(f => { if (vipPick(f)) vHid.add(f.id); }); saveVHid(); render(); },
   renew: (d, el) => { if (!adminOnly()) return; const sel = el.parentNode.querySelector("select"), n = +(sel && sel.value); if (!VDAYS.includes(n)) return; allowSave(d.e, { days: n }, `VIP de ${d.e} definido para ${n} ${n === 1 ? "dia" : "dias"}.`); },
   rmallow: d => {
     if (!adminOnly()) return;
