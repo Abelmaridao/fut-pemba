@@ -1,0 +1,29 @@
+name: Criar aplicativo Android
+on:
+  workflow_dispatch:
+  push:
+    paths: ["index.html", "package.json", "capacitor.config.json", ".github/workflows/android.yml"]
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "17" }
+      - name: Preparar o site
+        run: |
+          mkdir -p www
+          cp index.html www/index.html
+          [ -f fixtures.json ] && cp fixtures.json www/fixtures.json || true
+      - run: npm install
+      - run: npx cap add android
+      - run: npx cap sync android
+      - name: Construir o APK
+        run: cd android && chmod +x gradlew && ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Elephalpit-Bet-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
