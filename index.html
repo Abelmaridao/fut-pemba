@@ -87,8 +87,9 @@ dialog::backdrop{background:#0009}
 .chips button{background:none;border:1px solid var(--line);color:var(--ink);border-radius:16px;padding:6px 10px;font-size:13px;cursor:pointer}
 .tipcard h3{margin:0 0 6px}.tipcard ul,.tipcard ol{margin:6px 0;padding-left:20px}.tipcard li{margin:4px 0;font-size:15px}
 .sec{font-weight:800;font-size:17px;margin:16px 0 4px}
-.vtabs{display:flex;justify-content:center;gap:22px;margin:2px 0 8px}
-.vtb{background:none;border:0;border-bottom:3px solid transparent;color:var(--mute);font-size:22px;font-weight:800;padding:2px 4px;cursor:pointer}
+.warn{font-weight:800;font-size:13px;text-align:center;margin:10px 0 0;letter-spacing:.2px}
+.vtabs{display:flex;justify-content:center;gap:16px;margin:2px 0 8px}
+.vtb{background:none;border:0;border-bottom:3px solid transparent;color:var(--mute);font-size:19px;font-weight:800;padding:2px 4px;cursor:pointer}
 .vtb[aria-pressed=true]{color:var(--ink);border-bottom-color:var(--amber)}
 .rp{display:grid;grid-template-columns:1fr 64px 42px 14px;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font-size:15px}
 .trk{height:8px;border-radius:4px;background:var(--tint);overflow:hidden;display:block}
@@ -114,7 +115,7 @@ dialog::backdrop{background:#0009}
 .bdg{position:absolute;top:0;left:calc(50% + 4px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#e11d2e;color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;line-height:1}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
 .card h3{margin:16px 0 4px}
-.auth{max-width:420px;margin:0 auto;padding:18px 14px}
+.auth{max-width:420px;margin:0 auto;padding:18px 14px;min-height:calc(100vh - 80px);min-height:calc(100dvh - 80px);display:flex;flex-direction:column;justify-content:center}
 .av{width:var(--s,40px);height:var(--s,40px);border-radius:50%;object-fit:cover;background:var(--blue);color:#fff;display:inline-grid;place-items:center;font-weight:800;font-size:calc(var(--s,40px)*.45);flex:none}
 .phead{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .val{padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--tint);overflow-wrap:anywhere}
@@ -166,7 +167,9 @@ dialog::backdrop{background:#0009}
 .bar span{display:block;height:100%;width:0;background:var(--blue2);animation:bar linear forwards}
 @keyframes bar{to{width:100%}}
 @keyframes fi{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-main.fi{animation:fi .5s ease}
+main.fi{animation:fi .1s ease}
+#off{position:fixed;inset:0;z-index:1000;background:#000;color:#fff;display:none;align-items:center;justify-content:center;text-align:center;font-size:24px;font-weight:700;padding:24px}
+#off.on{display:flex}
 /* Sim/Não com percentagem */
 .rp.wd{grid-template-columns:minmax(0,1fr) auto 40px 40px 14px}
 .rp.wd .v{text-align:right;font-weight:800;white-space:nowrap}
@@ -348,17 +351,30 @@ const isDark = () => S.theme === "dark" || (S.theme === "auto" && !!(window.matc
 function setTheme(t){ S.theme = t; store.set("theme", t); applyTheme(); drawerHtml(); }
 
 /* ---------- Dados ---------- */
+/* ---------- Sem internet: ecrã escuro ---------- */
+const offEl = document.createElement("div"); offEl.id = "off"; offEl.setAttribute("role", "alert"); offEl.textContent = "Conecte-se à internet.";
+document.body.appendChild(offEl);
+let offTimer = null;
+function setOnline(ok){
+  offEl.classList.toggle("on", !ok); clearInterval(offTimer);
+  if (!ok) offTimer = setInterval(async () => { if (await fetchData()) render(); }, 3000);
+}
+window.addEventListener("offline", () => setOnline(false));
+window.addEventListener("online", async () => { if (await fetchData()) render(); });
+if (navigator.onLine === false) setOnline(false);
 async function fetchData(){
   try {
-    const r = await fetch("fixtures.json?t=" + Date.now(), { cache: "no-store" });
+    const native = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) || location.protocol === "file:"; // no aplicativo Android os dados vêm do GitHub
+    const r = await fetch((native ? "https://raw.githubusercontent.com/Abelmaridao/fut-pemba/main/" : "") + "fixtures.json?t=" + Date.now(), { cache: "no-store" });
     if (!r.ok) throw new Error("HTTP " + r.status);
     const d = await r.json();
     S.fetchedAt = Date.now(); S.raw = d.matches ?? []; S.rawHist = d.history ?? []; S.leagues = d.leagues ?? [];
     S.lastSync = d.lastSuccessAt ?? null; S.lastFinal = d.lastFinalAt ?? null;
     const bad = S.leagues.filter(l => !l.ok);
     S.msg = bad.length ? `Sem atualização recente em: ${bad.map(l => l.name).join(", ")}. Os jogos já guardados foram mantidos.` : null;
+    if (offEl.classList.contains("on")) setOnline(true);
     return true;
-  } catch { S.msg = "Sem ligação ao servidor. O app precisa de internet para mostrar os jogos e as análises."; return false; }
+  } catch (e) { if (!navigator.onLine || e instanceof TypeError) setOnline(false); S.msg = "Sem ligação ao servidor. O app precisa de internet para mostrar os jogos e as análises."; return false; }
 }
 async function load(){ S.loading = true; render(); await fetchData(); await fetchLive(); S.loading = false; render(); }
 
@@ -573,7 +589,7 @@ function compView(){
   return `${backBar()}<h1 class="ttl">${esc(name)}</h1>
     ${list.length ? grouped(list) : `<div class="empty">Sem jogos desta competição nos próximos dias.</div>`}`;
 }
-S.sel = (store.get("calLeagues", []) || []).filter(id => ORDER.includes(id)).slice(0, 3); S.lg = false;
+S.sel = []; S.lg = false; // as ligas escolhidas só duram enquanto o app está aberto
 const leagueSel = f => !S.sel.length || S.sel.includes(f.competition_id);
 function dayList(){
   const out = [];
@@ -596,7 +612,7 @@ function byComp(list){
   return h;
 }
 function calView(){
-  const days = dayList();
+  const days = dayList().slice(0, 7); // 7 dias; a cada dia sai um e entra outro
   if (!days.some(d => d.key === S.day)) S.day = days[0].key;
   const count = new Map(); S.fixtures.filter(leagueSel).forEach(f => { const k = dayKey(f.kickoff_utc); count.set(k, (count.get(k) || 0) + 1); });
   const strip = days.map(d => `<button class="dy" data-day="${esc(d.key)}" aria-pressed="${S.day === d.key}"><span>${esc(d.wd)}</span><b>${esc(d.dn)}</b><em class="mo">${esc(d.mo)}</em><i class="${count.get(d.key) ? "has" : ""}"></i></button>`).join("");
@@ -627,8 +643,9 @@ function finalOf(f){
   return { h: f.home_goals, a: f.away_goals, hh: f.home_ht ?? (zero ? 0 : null), ah: f.away_ht ?? (zero ? 0 : null) };
 }
 function histList(){ return S.history; }
+const createdKey = u => dayKey(new Date((u && u.created) || 0).toISOString());
 function histView(){
-  const list = histList();
+  const ck = createdKey(cur()), list = histList().filter(f => dayKey(f.kickoff_utc) >= ck); // só jogos a partir do dia em que a conta foi criada
   const top = list.length ? `<div class="row" style="justify-content:flex-end;margin:0 0 10px"><button class="btn alt" data-act="clearhist">Limpar histórico</button></div>` : "";
   return `${top}${updLine()}${msgHtml()}` + (list.length ? grouped(list, "hist")
     : `<div class="empty">Ainda não há jogos terminados. Os jogos passam para aqui assim que terminam.</div>`);
@@ -655,17 +672,21 @@ function vipPick(f){
 }
 function vipDays(u){
   const ax = access(u); if (u.admin || !ax.exp) return 7;
-  return Math.max(1, Math.min(30, Math.ceil((ax.exp - Date.now()) / DAYMS))); // só os dias definidos pelo administrador
+  return Math.max(1, Math.min(7, Math.ceil((ax.exp - Date.now()) / DAYMS))); // até 7 dias; vai diminuindo com os dias que restam
 }
 function vipTabs(){
-  const t = S.vtab === "hist" ? "hist" : "vip", b = (v, l) => `<button type="button" class="vtb" data-s="vtab" data-v="${v}" aria-pressed="${t === v}">${l}</button>`;
-  return `<div class="vtabs">${b("vip", "VIP")}${b("hist", "Histórico")}</div>`;
+  const t = S.vtab === "win" || S.vtab === "loss" ? S.vtab : "vip", b = (v, l) => `<button type="button" class="vtb" data-s="vtab" data-v="${v}" aria-pressed="${t === v}">${l}</button>`;
+  return `<div class="vtabs">${b("vip", "VIP")}${b("win", "Ganhos")}${b("loss", "Perdas")}</div>`;
 }
 function vipView(){
   const u = cur(); if (!u || !canVip(u)) return `<div class="empty" style="font-weight:800;color:var(--ink);font-size:18px">NÃO TENS ACESSO AO VIP</div>`;
-  if (S.vtab === "hist"){
-    const all0 = S.history.filter(f => vipPick(f) && !vHid.has(f.id)), list = all0.slice().sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc));
-    return vipTabs() + (list.length ? `<div class="row" style="justify-content:flex-end;margin:0 0 10px"><button class="btn alt" data-s="vclear">Limpar histórico</button></div>` : "") + msgHtml() + (list.length ? vipGrouped(list, true) : `<div class="empty">Ainda não há jogos VIP terminados.</div>`);
+  if (S.vtab === "win" || S.vtab === "loss"){
+    const ck = createdKey(u), won = f => { const fin = finalOf(f), p = vipPick(f); return fin ? (p.side === "h" ? fin.h > fin.a : fin.a > fin.h) : null; };
+    const fin = S.history.filter(f => vipPick(f) && dayKey(f.kickoff_utc) >= ck && won(f) !== null); // todas as análises VIP já terminadas
+    const w = fin.filter(f => won(f)).length, l = fin.length - w, pc = n => fin.length ? Math.round(n * 100 / fin.length) : 0;
+    const stat = `<div class="stat" style="grid-template-columns:repeat(2,1fr)"><div><b style="color:var(--ok)">${pc(w)}%</b>Ganhos (${w})</div><div><b style="color:var(--bad)">${pc(l)}%</b>Perdas (${l})</div></div>`;
+    const list = fin.filter(f => !vHid.has(f.id) && (S.vtab === "win") === won(f)).sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc));
+    return vipTabs() + stat + (list.length ? `<div class="row" style="justify-content:flex-end;margin:0 0 10px"><button class="btn alt" data-s="vclear">Limpar</button></div>` : "") + msgHtml() + (list.length ? vipGrouped(list, true) : `<div class="empty">${S.vtab === "win" ? "Ainda não há ganhos." : "Ainda não há perdas."}</div>`);
   }
   const days = dayList().slice(0, vipDays(u));
   if (!days.some(d => d.key === S.vday)) S.vday = days[0].key;
@@ -741,10 +762,10 @@ function drawerHtml(){
   if (!S.drawer){ if (!S.search && !S.lg) $("ov").innerHTML = ""; return; }
   const dark = isDark(), u = cur(), B = "width:100%;font-size:18px;padding:14px;margin-bottom:8px";
   const top = u ? `<div class="mrow">${avatar(u, 44)}<b>${esc(u.name)}</b></div>
-    ${u.admin ? `<button class="btn" style="${B};background:#1f7a4d" data-s="admin">Painel</button>` : ""}<button class="btn" style="${B};background:#b8860b" data-s="vip">VIP</button>` : "";
+    ${isAdm(u) ? `<button class="btn" style="${B};background:#1f7a4d" data-s="admin">Painel</button>` : ""}<button class="btn" style="${B};background:#b8860b" data-s="vip">VIP</button>` : "";
   $("ov").innerHTML = `<div class="ov" data-act="close"><div class="drawer" role="dialog" aria-label="Menu">${top}
     <button class="btn" style="${B}" data-act="toggle" aria-pressed="${dark}">${dark ? "☀️ Modo claro" : "🌙 Modo escuro"}</button>
-    <button class="btn" style="${B}">Adicionar tempo</button>
+    <button class="btn" style="${B};background:#1fa463" data-s="wa">WhatsApp</button>
     ${u ? `<button class="btn alt" style="width:100%;margin-top:8px" data-s="logout">Terminar sessão</button>` : ""}</div></div>`;
 }
 function searchHtml(){
@@ -986,9 +1007,8 @@ function analysisHtml(an, f, extra = "", opts = {}){
   const topHtml = cand.slice(0, 5).map(c => row(c.x, c.n, c.sec, true)).join("");
   const legend = fin ? `<p class="note"><span class="dot g"></span> certo · <span class="dot r"></span> errado · <span class="dot n"></span> sem dados para avaliar (por exemplo, quem marca primeiro quando as duas equipas marcam). Resultado final: ${fin.h} - ${fin.a}.</p>` : "";
   return `<div class="dtop"><form method="dialog"><button class="dbk" aria-label="Fechar">✕</button></form></div>${kickHeader(f, fin)}${legend}
-    ${body}
-    ${opts.min50 ? `<p class="note">VIP: só aparecem as análises com 50% ou mais.</p>` : ""}${topHtml ? `<div class="sec">As 5 análises mais prováveis deste jogo</div>${topHtml}` : ""}
-    <p class="note">Previsão calculada em ${esc(fmtFull(an.created_at))}${fin ? (an.retro ? " (análise reconstruída depois do jogo, só com resultados anteriores a ele; não foi uma previsão feita antes)" : " (antes do jogo; nunca é alterada)") : ""}. São estimativas estatísticas, não garantias.</p>
+    <p class="warn">ESSAS ANÁLISES SÃO APENAS ESTIMATIVAS NÃO GARANTIAS, CADA JOGO É UM JOGO.</p>${body}
+    ${topHtml ? `<div class="sec">As 5 análises mais prováveis deste jogo</div>${topHtml}` : ""}
     ${extra}
     <form method="dialog"><button class="btn">Fechar</button></form>`;
 }
@@ -1023,8 +1043,8 @@ const ADMIN_EMAIL = "abelmaridao@gmail.com";
 const MAIL_ENDPOINT = null; // URL do teu serviço de envio de e-mail; null = modo demonstração (código mostrado no ecrã)
 const API_URL = null; // endereço do accounts-worker.js (ex.: "https://contas.teu-nome.workers.dev"). null = modo local (só neste aparelho)
 const DBK = "eb_db_v1", SESK = "eb_session", MEK = "eb_me";
-const emptyDB = () => ({ users: [], resets: {}, allow: [] });
-const rawDB = () => { const d = store.get(DBK, null); if (!(d && d.users)) return emptyDB(); if (!Array.isArray(d.allow)) d.allow = []; return d; };
+const emptyDB = () => ({ users: [], resets: {}, allow: [], tadmins: [], deleted: [] });
+const rawDB = () => { const d = store.get(DBK, null); if (!(d && d.users)) return emptyDB(); if (!Array.isArray(d.allow)) d.allow = []; if (!Array.isArray(d.tadmins)) d.tadmins = []; if (!Array.isArray(d.deleted)) d.deleted = []; return d; };
 let DBc = rawDB();
 const saveDB = () => { if (!API_URL) store.set(DBK, DBc); };
 const reloadDB = () => { if (!API_URL) DBc = rawDB(); };
@@ -1044,11 +1064,12 @@ const validEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
 const validName = n => n.length >= 3 && n.length <= 20 && /^[\p{L}\p{N}_. -]+$/u.test(n);
 const tm = t => { const iso = new Date(t).toISOString(); return dayKey(iso) === dayKey(new Date().toISOString()) ? fmtHour(iso) : fmtFull(iso); };
 const userById = id => DBc.users.find(x => x.id === id);
+const WHATSAPP_URL = "https://chat.whatsapp.com/C8DfJGozZr90IlVDU8H1Kt?s=cl&p=a&mlu=4&ilr=4"; // link do grupo de WhatsApp (ex.: "https://chat.whatsapp.com/xxxxxxxx")
 const DAYMS = 86400e3;
 const vHid = new Set((store.get("hiddenVip", []) || []));
 const saveVHid = () => store.set("hiddenVip", [...vHid].slice(-600));
-const VDAYS = [1, 2, 3, 7, 10, 15, 30];
-const vdayOpts = sel => VDAYS.map(n => `<option value="${n}"${n === sel ? " selected" : ""}>${n} ${n === 1 ? "dia" : "dias"}</option>`).join("");
+const VDAYS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30];
+const vdayOpts = (sel, max = 99) => VDAYS.filter(n => n <= max).map(n => `<option value="${n}"${n === sel ? " selected" : ""}>${n} ${n === 1 ? "dia" : "dias"}</option>`).join("");
 const allowOf = e => (DBc.allow || []).find(a => a.email === e);
 // acesso do utilizador: validade (0 = sem fim) e permissão de ver o VIP; o administrador tem sempre tudo
 function access(u){
@@ -1060,6 +1081,7 @@ function access(u){
 const canVip = u => !!u && access(u).vip;
 const expMsg = t => `O teu acesso terminou em ${fmtFull(new Date(t).toISOString())}. Fala com o administrador.`;
 
+function clearF(){ S.soc.f = { id: "", email: "", name: "", pw: "", code: "", pw2: "" }; }
 S.soc = { mode: "login", err: "", info: "", mail: null, was: false, showSearch: false, q: "", pwForm: false, pmsg: null, banFor: null,
   f: { id: "", email: "", name: "", pw: "", code: "", pw2: "" } };
 
@@ -1088,15 +1110,15 @@ function cur(){
   if (u.banUntil > Date.now()){ store.set(SESK, null); S.soc.mode = "login"; S.soc.err = `A tua conta está banida até ${tm(u.banUntil)}.`; return null; }
   return u;
 }
-function dropSession(msg){ store.set(SESK, null); store.set(MEK, null); S.soc.me = null; S.pwPlain = ""; S.soc.mode = "login"; S.soc.err = msg || ""; S.soc.info = ""; S.soc.f.pw = ""; S.view = "home"; S.drawer = false; }
-const startSession = r => { store.set(SESK, r.token); store.set(MEK, r.user); S.soc.me = r.user; S.pwPlain = S.soc.f.pw; S.soc.f.pw = ""; S.soc.err = ""; S.soc.info = ""; S.view = "home"; startBusy(); render(); };
+function dropSession(msg){ store.set(SESK, null); store.set(MEK, null); S.soc.me = null; S.pwPlain = ""; S.soc.mode = "login"; S.soc.err = msg || ""; S.soc.info = ""; clearF(); S.view = "home"; S.drawer = false; }
+const startSession = r => { store.set(SESK, r.token); store.set(MEK, r.user); S.soc.me = r.user; S.pwPlain = S.soc.f.pw; clearF(); S.soc.err = ""; S.soc.info = ""; S.view = "home"; startBusy(); render(); };
 if (API_URL) S.soc.me = store.get(SESK, null) ? store.get(MEK, null) : null;
 const avatar = (u, s = 40) => u.photo ? `<img class="av" style="--s:${s}px" src="${esc(u.photo)}" alt="">` : `<span class="av" style="--s:${s}px" aria-hidden="true">${esc((u.name || "?").trim().charAt(0).toUpperCase())}</span>`;
 
 /* ----- ecrã de entrada ----- */
 function authView(){
   const s = S.soc, f = s.f, m = s.mode;
-  const fld = (k, label, type = "text", ac = "off") => { const i = `<input id="a-${k}" data-f="${k}" type="${type}" autocomplete="${ac}" value="${esc(f[k])}">`; return `<label class="fl" for="a-${k}">${label}</label>${type === "password" ? eyeWrap(i) : i}`; };
+  const fld = (k, label, type = "text", ac = "off") => { const i = `<input id="a-${k}" data-f="${k}" name="x${k}${Math.random().toString(36).slice(2, 6)}" type="${type}" autocomplete="${type === "password" ? "new-password" : "off"}" autocapitalize="none" spellcheck="false" value="${esc(f[k])}">`; return `<label class="fl" for="a-${k}">${label}</label>${type === "password" ? eyeWrap(i) : i}`; };
   const lnk = (v, t) => `<button type="button" class="link" data-s="mode" data-v="${v}">${t}</button>`;
   let title, body;
   if (m === "register"){
@@ -1105,7 +1127,7 @@ function authView(){
       <button class="btn" style="width:100%;margin-top:14px;padding:13px">Criar conta</button></form>${lnk("login", "Já tenho conta. Entrar")}`;
   } else {
     title = "Entrar";
-    body = `<form novalidate data-sf="login">${fld("id", "E-mail ou nome de utilizador", "text", "username")}${fld("pw", "Palavra-passe", "password", "current-password")}
+    body = `<form novalidate data-sf="login">${fld("id", "E-mail", "text", "username")}${fld("pw", "Palavra-passe", "password", "current-password")}
       <button class="btn" style="width:100%;margin-top:14px;padding:13px">Entrar</button></form>${lnk("register", "Criar conta")}`;
   }
   return `<header class="top"><div style="width:40px"></div><div class="brand"><span class="mark" aria-hidden="true">🦁</span><span>Elephalpit <em>Bet</em></span></div><div style="width:40px"></div></header>
@@ -1125,27 +1147,28 @@ async function doRegister(){
     return r.ok ? startSession(r) : err(r.error || "Não foi possível criar a conta.");
   }
   reloadDB();
+  if ((DBc.deleted || []).includes(e)) return err("Este e-mail foi removido pelo administrador e não pode voltar a ser usado.");
   if (DBc.users.some(u => u.email === e)) return err("Este e-mail já está registado.");
   if (DBc.users.some(u => norm(u.name) === norm(n))) return err("Este nome de utilizador já existe.");
   const u = { id: uid(), email: e, name: n, salt, hash, photo: "", friends: [], admin: e === ADMIN_EMAIL, banUntil: 0, created: Date.now() };
   DBc.users.push(u); saveDB(); store.set(SESK, u.id);
-  S.pwPlain = S.soc.f.pw; S.soc.f.pw = ""; S.soc.err = ""; S.soc.info = ""; S.view = "home"; startBusy(); render();
+  S.pwPlain = S.soc.f.pw; clearF(); S.soc.err = ""; S.soc.info = ""; S.view = "home"; startBusy(); render();
 }
 async function doLogin(){
-  const { id, pw } = S.soc.f, key = id.trim();
-  if (!key || !pw) return err("Escreve o e-mail (ou nome) e a palavra-passe.");
+  const { id, pw } = S.soc.f, key = id.trim().toLowerCase();
+  if (!validEmail(key) || !pw) return err("Escreve o e-mail e a palavra-passe.");
   if (API_URL){
     const s1 = await api("salt", { id: key }); if (!s1.salt) return err(s1.error || "Sem ligação ao servidor. Tenta outra vez.");
     const r = await api("login", { id: key, hash: await hashPw(pw, s1.salt) });
     if (r.ok) return startSession(r);
-    return err(r.error === "banned" ? banMsg(r.banUntil, "Esta conta") : (r.error || "E-mail/nome ou palavra-passe incorretos."));
+    return err(r.error === "banned" ? banMsg(r.banUntil, "Esta conta") : (r.error || "E-mail ou palavra-passe incorretos."));
   }
   reloadDB();
-  const u = DBc.users.find(x => x.email === key.toLowerCase() || norm(x.name) === norm(key));
+  const u = DBc.users.find(x => x.email === key);
   const ok = u && u.hash === await hashPw(pw, u.salt);
-  if (!ok) return err("E-mail/nome ou palavra-passe incorretos.");
+  if (!ok) return err("E-mail ou palavra-passe incorretos.");
   if (u.banUntil > Date.now()) return err(`Esta conta está banida até ${tm(u.banUntil)}.`);
-  store.set(SESK, u.id); S.pwPlain = S.soc.f.pw; S.soc.f.pw = ""; S.soc.err = ""; S.soc.info = ""; S.view = "home"; startBusy(); render();
+  store.set(SESK, u.id); S.pwPlain = S.soc.f.pw; clearF(); S.soc.err = ""; S.soc.info = ""; S.view = "home"; startBusy(); render();
 }
 async function sendMail(to, code){
   if (MAIL_ENDPOINT){
@@ -1193,75 +1216,141 @@ async function doForgot2(){
 }
 
 /* ----- painel do administrador ----- */
+// papéis: administrador principal (u.admin) e administrador temporário (convidado, com dias)
+const tadmOf = u => { if (!u || u.admin) return { on: false, exp: 0 }; const exp = API_URL ? (u.texp || 0) : (((DBc.tadmins || []).find(t => t.email === u.email) || {}).exp || 0); return { on: exp > Date.now(), exp }; };
+const isAdm = u => !!u && (!!u.admin || tadmOf(u).on);
+const tadmLeft = u => (u && u.admin) ? 30 : Math.max(0, Math.ceil((tadmOf(u).exp - Date.now()) / DAYMS)); // dias que ainda pode convidar
+const dword = n => n === 1 ? "dia" : "dias";
+function scopeUsers(me){ // principal vê todos; temporário só os que convidou
+  if (me.admin) return DBc.users;
+  const mine = new Set((DBc.allow || []).filter(a => a.by === me.email).map(a => a.email));
+  return DBc.users.filter(u => mine.has(u.email));
+}
+function statHtml(me){
+  const now = Date.now(), us = scopeUsers(me), al = DBc.allow || [];
+  const vips = us.filter(u => { const a = al.find(x => x.email === u.email); return a && a.exp > now; }).length;
+  return `<div><b>${us.length}</b>${me.admin ? "utilizadores" : "convidados"}</div><div><b>${vips}</b>com VIP</div><div><b>${us.filter(x => x.banUntil > now).length}</b>banidos</div>`;
+}
+function tadmRows(){
+  const now = Date.now(), l = (DBc.tadmins || []).filter(t => t.exp > now);
+  if (!l.length) return `<p class="note" style="margin:6px 0 0">Nenhum administrador temporário.</p>`;
+  return l.map(t => { const d = Math.max(1, Math.ceil((t.exp - now) / DAYMS)); return `<div class="urow"><b>${esc(t.email)}</b><br><small style="color:var(--mute)">restam ${d} ${dword(d)}</small><div class="row"><button class="mbtn" style="background:var(--bad)" data-s="untadm" data-e="${esc(t.email)}">Remover</button></div></div>`; }).join("");
+}
 function adminView(){
   const me = cur(), s = S.soc;
-  if (!me.admin) return `<div class="empty">Sem permissão.</div>`;
-  const now = Date.now(), us = DBc.users, al = DBc.allow || [], banned = us.filter(x => x.banUntil > now).length, vips = al.filter(a => a.exp > now).length;
-  const target = s.banFor && userById(s.banFor);
+  if (!isAdm(me)) return `<div class="empty">Sem permissão.</div>`;
+  const left = tadmLeft(me), main = !!me.admin;
+  const target = main && s.banFor && userById(s.banFor);
   const banForm = target ? `<form class="card" data-sf="ban"><b>Banir ${esc(target.name)}</b><div class="row" style="margin-top:8px"><input name="n" type="number" min="1" max="3650" value="1" aria-label="Duração"><select name="u" aria-label="Unidade"><option value="60000">minutos</option><option value="3600000" selected>horas</option><option value="86400000">dias</option></select></div>
     <div class="row" style="margin-top:10px"><button class="btn">Confirmar ban</button><button type="button" class="btn alt" data-s="banx">Cancelar</button></div></form>` : "";
-  const addForm = `<form class="card" data-sf="allow" novalidate><b>Adicionar ao VIP</b>
+  const addForm = left > 0 ? `<form class="card" data-sf="allow" novalidate><b>Convidar para o VIP</b>
     <label class="fl" for="al-e">E-mail do utilizador</label><input id="al-e" name="e" type="email" autocomplete="off">
-    <label class="fl" for="al-d">Validade</label><select id="al-d" name="d">${vdayOpts(7)}</select>
-    <button class="btn" style="width:100%;margin-top:12px;padding:12px">Adicionar</button></form>`;
-  return `${backBar()}<h1 class="ttl">Painel</h1><div class="stat" id="adstat"><div><b>${us.length}</b>utilizadores</div><div><b>${vips}</b>com VIP</div><div><b>${banned}</b>banidos</div></div>
-    ${s.amsg ? `<div class="msg ${s.amsg[0] === "!" ? "" : "ok"}" role="status">${esc(s.amsg.replace(/^!/, ""))}</div>` : ""}${addForm}${banForm}<section class="card"><h3 style="margin-top:0">Utilizadores</h3>
+    <label class="fl" for="al-d">Dias de VIP</label><select id="al-d" name="d">${vdayOpts(7, left)}</select>
+    <button class="btn" style="width:100%;margin-top:12px;padding:12px">Convidar</button></form>` : `<div class="card"><b>Já não tens dias para convidar.</b></div>`;
+  const dias = main ? "" : `<div class="card"><b>Os teus dias para convidar: ${left}</b><p class="note" style="margin:4px 0 0">Não podes convidar mais dias do que os que te restam.</p></div>`;
+  const bulk = main ? `<form class="card" data-sf="vipall"><b>Convidar todos ao VIP</b><p class="note" style="margin:4px 0 8px">Só quem ainda não tem VIP.</p><div class="row"><select name="d" aria-label="Dias">${vdayOpts(1, 3)}</select><button class="btn">Convidar todos</button></div></form>` : "";
+  const tad = main ? `<form class="card" data-sf="tadm" novalidate><b>Administrador temporário</b>
+    <label class="fl" for="ta-e">E-mail do utilizador</label><input id="ta-e" name="e" type="email" autocomplete="off">
+    <label class="fl" for="ta-d">Dias como administrador</label><select id="ta-d" name="d">${vdayOpts(7)}</select>
+    <button class="btn" style="width:100%;margin-top:12px;padding:12px">Convidar administrador</button><div id="adtl" style="margin-top:8px">${tadmRows()}</div></form>` : "";
+  return `<div class="stat" id="adstat">${statHtml(me)}</div>
+    ${s.amsg ? `<div class="msg ${s.amsg[0] === "!" ? "" : "ok"}" role="status">${esc(s.amsg.replace(/^!/, ""))}</div>` : ""}${dias}${addForm}${bulk}${tad}${banForm}<section class="card"><h3 style="margin-top:0">Utilizadores</h3>
     <div class="sbar"><input id="adq" type="search" placeholder="Pesquisar utilizador…" autocomplete="off" value="${esc(s.aq || "")}" aria-label="Pesquisar utilizador"><span class="lupa">${ICON.search}</span></div>
     <div id="adlist">${adminRows(me)}</div></section>`;
 }
 function adminRows(me){
-  const now = Date.now(), q = norm(S.soc.aq || "").trim(), al = DBc.allow || [];
-  const list = DBc.users.filter(u => !q || norm(u.name).includes(q) || norm(u.email).includes(q));
+  const now = Date.now(), q = norm(S.soc.aq || "").trim(), al = DBc.allow || [], left = tadmLeft(me);
+  const list = scopeUsers(me).filter(u => !q || norm(u.name).includes(q) || norm(u.email).includes(q));
   if (!list.length) return `<p class="note">Nenhum utilizador encontrado.</p>`;
   const dt = t => fmtFull(new Date(t).toISOString());
   return list.map(u => {
     const a = al.find(x => x.email === u.email), on = !!(a && a.exp > now), b = u.banUntil > now, self = u.id === me.id, E = esc(u.email);
     const vip = u.admin ? "VIP sempre" : on ? "VIP até " + dt(a.exp) : a ? "VIP terminou" : "sem VIP";
+    const vipBtns = left > 0 ? `<select class="vsel" style="width:auto;padding:6px" aria-label="Dias de VIP">${vdayOpts(7, left)}</select><button class="mbtn" data-s="renew" data-e="${E}">Dar VIP</button>` : "";
+    const main = me.admin ? `${b ? `<button class="mbtn" data-s="unban" data-id="${u.id}">Remover ban</button>` : `<button class="mbtn" data-s="banopen" data-id="${u.id}">Banir</button>`}<button class="mbtn" style="background:var(--bad)" data-s="deluser" data-id="${u.id}">Excluir conta</button>` : "";
     return `<div class="urow"><b>${esc(u.name)}</b>${u.admin ? `<span class="tag">ADMIN</span>` : ""}<br><small style="color:var(--mute)">${E} · ${b ? "Banido até " + esc(tm(u.banUntil)) : "Ativo"} · ${esc(vip)}</small>
-      ${self ? "" : `<div class="row"><select class="vsel" style="width:auto;padding:6px" aria-label="Dias de VIP">${vdayOpts(7)}</select><button class="mbtn" data-s="renew" data-e="${E}">Dar VIP</button>${a ? `<button class="mbtn" data-s="rmallow" data-e="${E}">Remover VIP</button>` : ""}
-      ${b ? `<button class="mbtn" data-s="unban" data-id="${u.id}">Remover ban</button>` : `<button class="mbtn" data-s="banopen" data-id="${u.id}">Banir</button>`}<button class="mbtn" style="background:var(--bad)" data-s="deluser" data-id="${u.id}">Excluir conta</button></div>`}</div>`;
+      ${self ? "" : `<div class="row">${vipBtns}${a ? `<button class="mbtn" data-s="rmallow" data-e="${E}">Remover VIP</button>` : ""}${main}</div>`}</div>`;
   }).join("");
 }
-function adminOnly(){ reloadDB(); const u = cur(); return u && u.admin ? u : null; }
+const mainOnly = () => { reloadDB(); const u = cur(); return u && u.admin ? u : null; };
+function adminOnly(){ reloadDB(); const u = cur(); return isAdm(u) ? u : null; }
 
 /* ----- ações (cliques e formulários) ----- */
 const ACT = {
   mode: d => { S.soc.mode = d.v; S.soc.err = ""; S.soc.info = ""; if (d.v !== "forgot2") S.soc.mail = null; render(); },
-  logout: () => { if (API_URL){ api("logout"); dropSession(""); return render(); } S.pwPlain = ""; store.set(SESK, null); S.soc.mode = "login"; S.soc.err = ""; S.soc.info = ""; S.soc.f.pw = ""; S.view = "home"; S.drawer = false; render(); },
+  logout: () => { if (API_URL){ api("logout"); dropSession(""); return render(); } S.pwPlain = ""; store.set(SESK, null); S.soc.mode = "login"; S.soc.err = ""; S.soc.info = ""; clearF(); S.view = "home"; S.drawer = false; render(); },
   eye: (d, el) => { const i = el.parentNode.querySelector("input"); if (!i) return; const show = i.type === "password"; i.type = show ? "text" : "password"; el.innerHTML = show ? EYE_OFF : EYE; el.setAttribute("aria-label", show ? "Esconder palavra-passe" : "Mostrar palavra-passe"); },
-  admin: () => { go("admin"); refreshAdmin(); },
+  admin: () => { if (!isAdm(cur())) return; go("admin"); refreshAdmin(); },
   tipq: d => askAssistant(d.q),
   vip: () => { reloadDB(); if (cur()){ S.vtab = "vip"; go("vip"); } },
   vtab: d => { S.vtab = d.v; render(); },
+  wa: () => { if (WHATSAPP_URL) window.open(WHATSAPP_URL, "_blank", "noopener"); else if (window.alert) window.alert("O link do grupo ainda não foi configurado."); },
   vdel: d => { if (window.confirm && !window.confirm("Remover este jogo do histórico VIP para sempre?")) return; vHid.add(d.id); saveVHid(); render(); },
-  vclear: () => { if (window.confirm && !window.confirm("Limpar todo o histórico VIP? Não dá para desfazer.")) return; S.history.forEach(f => { if (vipPick(f)) vHid.add(f.id); }); saveVHid(); render(); },
-  renew: (d, el) => { if (!adminOnly()) return; const sel = el.parentNode.querySelector("select"), n = +(sel && sel.value); if (!VDAYS.includes(n)) return; allowSave(d.e, { days: n }, `VIP de ${d.e} definido para ${n} ${n === 1 ? "dia" : "dias"}.`); },
-  rmallow: d => {
-    if (!adminOnly()) return;
-    if (API_URL){ api("admin/unallow", { email: d.e }).then(r => { S.soc.amsg = r.ok ? "VIP removido." : "!" + (r.error || "Erro."); refreshAdmin(); render(); }); return; }
-    DBc.allow = (DBc.allow || []).filter(x => x.email !== d.e); S.soc.amsg = "VIP removido."; saveDB(); render();
+  vclear: () => {
+    if (window.confirm && !window.confirm("Limpar esta lista? Não dá para desfazer.")) return;
+    const win = S.vtab === "win";
+    S.history.forEach(f => { const p = vipPick(f), fin = finalOf(f); if (!p || !fin) return; const w = p.side === "h" ? fin.h > fin.a : fin.a > fin.h; if (w === win) vHid.add(f.id); }); saveVHid(); render();
   },
-  banopen: d => { S.soc.banFor = d.id; render(); },
+  renew: (d, el) => { if (!adminOnly()) return; const sel = el.parentNode.querySelector("select"), n = +(sel && sel.value); if (!VDAYS.includes(n)) return; allowSave(d.e, { days: n }, `VIP de ${d.e} definido para ${n} ${dword(n)}.`); },
+  rmallow: d => {
+    const me = adminOnly(); if (!me) return;
+    if (API_URL){ api("admin/unallow", { email: d.e }).then(r => { S.soc.amsg = r.ok ? "VIP removido." : "!" + (r.error || "Erro."); refreshAdmin(); render(); }); return; }
+    const a = allowOf(d.e); if (!a || (!me.admin && a.by !== me.email)) return;
+    DBc.allow = DBc.allow.filter(x => x.email !== d.e); S.soc.amsg = "VIP removido."; saveDB(); render();
+  },
+  untadm: d => {
+    if (!mainOnly()) return;
+    if (API_URL){ api("admin/untadmin", { email: d.e }).then(r => { S.soc.amsg = r.ok ? "Administrador temporário removido." : "!" + (r.error || "Erro."); refreshAdmin(); render(); }); return; }
+    DBc.tadmins = DBc.tadmins.filter(x => x.email !== d.e); S.soc.amsg = "Administrador temporário removido."; saveDB(); render();
+  },
+  banopen: d => { if (!mainOnly()) return; S.soc.banFor = d.id; render(); },
   banx: () => { S.soc.banFor = null; render(); },
-  unban: d => { if (API_URL){ api("admin/unban", { id: d.id }).then(refreshAdmin); return; } if (!adminOnly()) return; const t = userById(d.id); if (t){ t.banUntil = 0; saveDB(); } render(); },
+  unban: d => { if (API_URL){ api("admin/unban", { id: d.id }).then(refreshAdmin); return; } if (!mainOnly()) return; const t = userById(d.id); if (t){ t.banUntil = 0; saveDB(); } render(); },
   deluser: d => {
-    if (!adminOnly() || d.id === cur().id) return;
+    if (!mainOnly() || d.id === cur().id) return;
     const t = userById(d.id); if (!t) return;
     if (window.confirm && !window.confirm(`Excluir a conta de ${t.name} para sempre? Não dá para desfazer.`)) return;
     if (API_URL){ api("admin/delete", { id: d.id }).then(refreshAdmin); return; }
     DBc.users = DBc.users.filter(x => x.id !== d.id);
-    DBc.users.forEach(x => { x.friends = x.friends.filter(i => i !== d.id); });
+    DBc.users.forEach(x => { x.friends = (x.friends || []).filter(i => i !== d.id); });
+    DBc.allow = DBc.allow.filter(a => a.email !== t.email); DBc.tadmins = DBc.tadmins.filter(a => a.email !== t.email); // sai do VIP e do banimento
+    DBc.deleted = [...(DBc.deleted || []), t.email];
     delete DBc.resets[t.email]; saveDB(); render();
   }
 };
-// regista ou atualiza um e-mail autorizado (dias = validade a contar de agora; vip = pode ver o VIP)
+// dá VIP a um utilizador que já tem conta. O principal escolhe qualquer prazo; o temporário só até aos dias que lhe restam
 function allowSave(email, o, okMsg){
+  const me = adminOnly(); if (!me) return;
   const msg = t => { S.soc.amsg = t; render(); };
   if (API_URL){ api("admin/allow", { email, ...o }).then(r => { if (r.ok){ S.soc.amsg = okMsg || "Guardado."; refreshAdmin(); render(); } else msg("!" + (r.error || "Erro.")); }); return; }
-  reloadDB(); if (!DBc.users.some(u => u.email === email)) return msg("!Este e-mail ainda não tem conta."); let a = allowOf(email);
-  if (!a){ a = { email, exp: 0, vip: false, created: Date.now() }; DBc.allow.push(a); }
-  if (o.days) a.exp = Date.now() + o.days * DAYMS;
+  reloadDB(); const now = Date.now(), t = DBc.users.find(u => u.email === email);
+  if (!t) return msg("!Este e-mail ainda não tem conta.");
+  if (t.admin) return msg("!Esta conta é do administrador principal.");
+  if (!me.admin){
+    const left = tadmLeft(me); if (o.days > left) return msg(`!Só podes convidar até ${left} ${dword(left)}.`);
+    const a0 = allowOf(email); if (a0 && a0.exp > now && a0.by !== me.email) return msg("!Este utilizador já tem VIP.");
+  }
+  let a = allowOf(email); if (!a){ a = { email, exp: 0, by: "", created: now }; DBc.allow.push(a); }
+  a.exp = now + o.days * DAYMS; a.by = me.admin ? "" : me.email;
   saveDB(); msg(okMsg || "Guardado.");
+}
+function vipAll(days){ // só o principal; só quem ainda não tem VIP
+  if (!mainOnly() || ![1, 2, 3].includes(days)) return;
+  const done = n => { S.soc.amsg = n ? `VIP dado a ${n} utilizador${n === 1 ? "" : "es"} por ${days} ${dword(days)}.` : "Todos já têm VIP."; refreshAdmin(); render(); };
+  if (API_URL){ api("admin/vipall", { days }).then(r => r.ok ? done(r.n) : (S.soc.amsg = "!" + (r.error || "Erro."), render())); return; }
+  reloadDB(); const now = Date.now(); let n = 0;
+  DBc.users.forEach(u => { if (u.admin || u.banUntil > now) return; const a = allowOf(u.email); if (a && a.exp > now) return; if (a){ a.exp = now + days * DAYMS; a.by = ""; } else DBc.allow.push({ email: u.email, exp: now + days * DAYMS, by: "", created: now }); n++; });
+  saveDB(); done(n);
+}
+function tadmSave(email, days){
+  if (!mainOnly()) return;
+  const msg = t => { S.soc.amsg = t; render(); }, ok = `${email} é administrador temporário por ${days} ${dword(days)}.`;
+  if (API_URL){ api("admin/tadmin", { email, days }).then(r => r.ok ? (S.soc.amsg = ok, refreshAdmin(), render()) : msg("!" + (r.error || "Erro."))); return; }
+  reloadDB(); const t = DBc.users.find(u => u.email === email);
+  if (!t) return msg("!Este e-mail ainda não tem conta.");
+  if (t.admin) return msg("!Esta conta já é a do administrador principal.");
+  let a = DBc.tadmins.find(x => x.email === email); if (!a){ a = { email, exp: 0, created: Date.now() }; DBc.tadmins.push(a); }
+  a.exp = Date.now() + days * DAYMS; saveDB(); msg(ok);
 }
 const FORM = {
   allow: f => {
@@ -1269,12 +1358,18 @@ const FORM = {
     const e = f.elements.e.value.trim().toLowerCase(), d = +f.elements.d.value;
     if (!validEmail(e)){ S.soc.amsg = "!Escreve um e-mail válido."; return render(); }
     if (!VDAYS.includes(d)) return;
-    allowSave(e, { days: d }, `${e} adicionado ao VIP por ${d} ${d === 1 ? "dia" : "dias"}.`);
+    allowSave(e, { days: d }, `${e} convidado para o VIP por ${d} ${dword(d)}.`);
+  },
+  vipall: f => vipAll(+f.elements.d.value),
+  tadm: f => {
+    const e = f.elements.e.value.trim().toLowerCase(), d = +f.elements.d.value;
+    if (!validEmail(e)){ S.soc.amsg = "!Escreve um e-mail válido."; return render(); }
+    if (VDAYS.includes(d)) tadmSave(e, d);
   },
   ask: f => { const v = f.elements.tq.value; f.elements.tq.value = ""; askAssistant(v); },
   login: () => doLogin(), register: () => doRegister(), forgot1: () => doForgot1(), forgot2: () => doForgot2(),
   ban: f => {
-    if (!adminOnly()) return;
+    if (!mainOnly()) return;
     const n = Math.min(3650, Math.max(1, Math.floor(+f.elements.n.value || 1))), ms = n * (+f.elements.u.value || 3600000);
     const t = userById(S.soc.banFor); if (!t || t.id === cur().id) return;
     if (API_URL){ api("admin/ban", { id: t.id, until: Date.now() + ms }).then(() => { S.soc.banFor = null; render(); refreshAdmin(); }); return; }
@@ -1286,16 +1381,16 @@ document.addEventListener("submit", e => { const f = e.target.closest("[data-sf]
 document.addEventListener("input", e => {
   const t = e.target;
   if (t.dataset && t.dataset.f) S.soc.f[t.dataset.f] = t.value;
-  if (t.id === "adq"){ S.soc.aq = t.value; reloadDB(); const me = cur(), el = $("adlist"); if (el && me && me.admin) el.innerHTML = adminRows(me); }
+  if (t.id === "adq"){ S.soc.aq = t.value; reloadDB(); const me = cur(), el = $("adlist"); if (el && isAdm(me)) el.innerHTML = adminRows(me); }
 });
 // lista de utilizadores (servidor): atualiza o número e a lista em tempo real
 async function refreshAdmin(){
-  if (!API_URL) return; const me = cur(); if (!me || !me.admin) return;
+  if (!API_URL) return; const me = cur(); if (!isAdm(me)) return;
   const r = await api("admin/list"); if (!r.ok) return;
-  DBc.users = r.users; DBc.allow = r.allow || []; if (S.view !== "admin") return;
-  const now = Date.now(), el = $("adstat"), ls = $("adlist");
-  if (el) el.innerHTML = `<div><b>${DBc.users.length}</b>utilizadores</div><div><b>${DBc.allow.filter(a => a.exp > now).length}</b>com VIP</div><div><b>${DBc.users.filter(x => x.banUntil > now).length}</b>banidos</div>`;
+  DBc.users = r.users; DBc.allow = r.allow || []; DBc.tadmins = r.tadmins || []; if (S.view !== "admin") return;
+  const el = $("adstat"), ls = $("adlist"), tl = $("adtl"); if (el) el.innerHTML = statHtml(me);
   if (ls && !S.soc.banFor) ls.innerHTML = adminRows(me);
+  if (tl) tl.innerHTML = tadmRows();
 }
 // sessão no servidor: conta apagada ou banida perde o acesso em poucos segundos
 async function checkSession(){
@@ -1307,13 +1402,13 @@ async function checkSession(){
   else return;
   render();
 }
-if (API_URL){ setInterval(checkSession, 4000); setInterval(() => { if (cur() && cur().admin && S.view === "admin" && document.visibilityState === "visible") refreshAdmin(); }, 4000); checkSession(); }
+if (API_URL){ setInterval(checkSession, 4000); setInterval(() => { if (isAdm(cur()) && S.view === "admin" && document.visibilityState === "visible") refreshAdmin(); }, 4000); checkSession(); }
 // atualização periódica: banimentos aplicam-se em tempo real
 setInterval(() => { reloadDB(); if (!cur() && S.soc.was) render(); }, 3000);
 window.addEventListener("storage", e => { if (e.key === DBK || e.key === SESK){ reloadDB(); if (!cur()){ if (S.soc.was) render(); } else if (!S.soc.was) render(); } });
 
 /* ---------- Navegação e eventos ---------- */
-const TRANSITION_MS = 120; // transição rápida entre ecrãs
+const TRANSITION_MS = 100; // transição entre ecrãs: 0,10 s
 let busyTimer = null;
 function startBusy(){
   S.busy = true; S.fade = false; clearTimeout(busyTimer);
