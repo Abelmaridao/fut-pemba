@@ -670,6 +670,17 @@ function vipPick(f){
   const n = lr([r.home, r.draw ?? Math.max(0, 1 - r.home - r.away), r.away]);
   return { team: r.home >= r.away ? f.home_team : f.away_team, pct: r.home >= r.away ? n[0] : n[2], side: r.home >= r.away ? "h" : "a" };
 }
+function pastDays(n){ // os últimos n dias, do mais antigo (esquerda) até hoje (direita)
+  const out = [];
+  for (let i = n - 1; i >= 0; i--){
+    const d = new Date(Date.now() - i * 86400e3), iso = d.toISOString();
+    const wd = new Intl.DateTimeFormat("pt", { timeZone: S.tz, weekday: "short" }).format(d).replace(".", "");
+    const dn = new Intl.DateTimeFormat("pt", { timeZone: S.tz, day: "numeric" }).format(d);
+    const mo = (i === n - 1 || dn === "1") ? new Intl.DateTimeFormat("pt", { timeZone: S.tz, month: "short" }).format(d).replace(".", "") : "";
+    out.push({ key: dayKey(iso), wd: wd.charAt(0).toUpperCase() + wd.slice(1), dn, mo });
+  }
+  return out;
+}
 function vipDays(u){
   const ax = access(u); if (u.admin || !ax.exp) return 7;
   return Math.max(1, Math.min(7, Math.ceil((ax.exp - Date.now()) / DAYMS))); // até 7 dias; vai diminuindo com os dias que restam
@@ -682,11 +693,14 @@ function vipView(){
   const u = cur(); if (!u || !canVip(u)) return `<div class="empty" style="font-weight:800;color:var(--ink);font-size:18px">NÃO TENS ACESSO AO VIP</div>`;
   if (S.vtab === "win" || S.vtab === "loss"){
     const ck = createdKey(u), won = f => { const fin = finalOf(f), p = vipPick(f); return fin ? (p.side === "h" ? fin.h > fin.a : fin.a > fin.h) : null; };
-    const fin = S.history.filter(f => vipPick(f) && dayKey(f.kickoff_utc) >= ck && won(f) !== null); // todas as análises VIP já terminadas
-    const w = fin.filter(f => won(f)).length, l = fin.length - w, pc = n => fin.length ? Math.round(n * 100 / fin.length) : 0;
+    const fin = S.history.filter(f => vipPick(f) && dayKey(f.kickoff_utc) >= ck && won(f) !== null); // análises VIP já terminadas
+    const past = pastDays(7); if (!past.some(d => d.key === S.vwday)) S.vwday = past[past.length - 1].key;
+    const cnt = new Map(); fin.forEach(f => { const k = dayKey(f.kickoff_utc); cnt.set(k, (cnt.get(k) || 0) + 1); });
+    const strip = past.map(d => `<button class="dy" data-s="vwday" data-k="${esc(d.key)}" aria-pressed="${S.vwday === d.key}"><span>${esc(d.wd)}</span><b>${esc(d.dn)}</b><em class="mo">${esc(d.mo)}</em><i class="${cnt.get(d.key) ? "has" : ""}"></i></button>`).join("");
+    const day = fin.filter(f => dayKey(f.kickoff_utc) === S.vwday), w = day.filter(f => won(f)).length, l = day.length - w, pc = n => day.length ? Math.round(n * 100 / day.length) : 0;
     const stat = `<div class="stat" style="grid-template-columns:repeat(2,1fr)"><div><b style="color:var(--ok)">${pc(w)}%</b>Ganhos (${w})</div><div><b style="color:var(--bad)">${pc(l)}%</b>Perdas (${l})</div></div>`;
-    const list = fin.filter(f => !vHid.has(f.id) && (S.vtab === "win") === won(f)).sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc));
-    return vipTabs() + stat + (list.length ? `<div class="row" style="justify-content:flex-end;margin:0 0 10px"><button class="btn alt" data-s="vclear">Limpar</button></div>` : "") + msgHtml() + (list.length ? vipGrouped(list, true) : `<div class="empty">${S.vtab === "win" ? "Ainda não há ganhos." : "Ainda não há perdas."}</div>`);
+    const list = day.filter(f => (S.vtab === "win") === won(f)).sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc));
+    return vipTabs() + `<div class="stripw"><div class="strip">${strip}</div></div>` + stat + msgHtml() + (list.length ? vipGrouped(list, true) : `<div class="empty">${S.vtab === "win" ? "Sem ganhos neste dia." : "Sem perdas neste dia."}</div>`);
   }
   const days = dayList().slice(0, vipDays(u));
   if (!days.some(d => d.key === S.vday)) S.vday = days[0].key;
@@ -696,7 +710,7 @@ function vipView(){
   const strip = days.map(d => `<button class="dy" data-vday="${esc(d.key)}" aria-pressed="${S.vday === d.key}"><span>${esc(d.wd)}</span><b>${esc(d.dn)}</b><em class="mo">${esc(d.mo)}</em><i class="${count.get(d.key) ? "has" : ""}"></i></button>`).join("");
   const list = all.filter(f => dayKey(f.kickoff_utc) === S.vday).sort((a, b) => (a.competitions?.name ?? "").localeCompare(b.competitions?.name ?? "") || a.kickoff_utc.localeCompare(b.kickoff_utc));
   return vipTabs() + `<div class="stripw"><div class="strip" id="vstrip">${strip}</div></div>${msgHtml()}` +
-    (list.length ? vipGrouped(list) : `<div class="empty">Sem jogos com 50% ou mais de probabilidade de vitória neste dia.</div>`);
+    (list.length ? vipGrouped(list) : `<div class="empty">Sem jogos para o VIP</div>`);
 }
 function vipGrouped(list, hist){
   let h = "", lc = "", ld = "";
@@ -706,7 +720,7 @@ function vipGrouped(list, hist){
     if (c !== lc){ h += `<div class="cn">${esc(c)}${f.competitions?.country ? " · " + esc(f.competitions.country) : ""}</div>`; lc = c; }
     const p = vipPick(f), fin = hist ? finalOf(f) : null;
     const mark = fin ? ((p.side === "h" ? fin.h > fin.a : fin.a > fin.h) ? ` <span style="color:var(--ok)">✓</span>` : ` <span style="color:var(--bad)">✗</span>`) : "";
-    h += matchCard(f, hist ? "hist" : undefined).replace("data-del=", 'data-s="vdel" data-id=').replace(/<div class="meta"><span>(<span class="st[^>]*>[^<]*<\/span>)<\/span>/, `<div class="meta"><span style="font-weight:700;color:var(--ink)">${esc(p.team)} vitória: ${p.pct}%${mark}</span>`);
+    h += matchCard(f).replace(/<div class="meta"><span>(<span class="st[^>]*>[^<]*<\/span>)<\/span>/, `<div class="meta"><span style="font-weight:700;color:var(--ink)">${esc(p.team)} vitória: ${p.pct}%${mark}</span>`);
   }
   return h;
 }
@@ -1284,6 +1298,7 @@ const ACT = {
   tipq: d => askAssistant(d.q),
   vip: () => { reloadDB(); if (cur()){ S.vtab = "vip"; go("vip"); } },
   vtab: d => { S.vtab = d.v; render(); },
+  vwday: d => { S.vwday = d.k; render(); },
   wa: () => { if (WHATSAPP_URL) window.open(WHATSAPP_URL, "_blank", "noopener"); else if (window.alert) window.alert("O link do grupo ainda não foi configurado."); },
   vdel: d => { if (window.confirm && !window.confirm("Remover este jogo do histórico VIP para sempre?")) return; vHid.add(d.id); saveVHid(); render(); },
   vclear: () => {
