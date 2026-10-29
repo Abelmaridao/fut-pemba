@@ -692,8 +692,8 @@ function vipTabs(){
 function vipView(){
   const u = cur(); if (!u || !canVip(u)) return `<div class="empty" style="font-weight:800;color:var(--ink);font-size:18px">NÃO TENS ACESSO AO VIP</div>`;
   if (S.vtab === "win" || S.vtab === "loss"){
-    const ck = createdKey(u), won = f => { const fin = finalOf(f), p = vipPick(f); return fin ? (p.side === "h" ? fin.h > fin.a : fin.a > fin.h) : null; };
-    const fin = S.history.filter(f => vipPick(f) && dayKey(f.kickoff_utc) >= ck && won(f) !== null); // análises VIP já terminadas
+    const won = f => { const fin = finalOf(f), p = vipPick(f); return fin ? (p.side === "h" ? fin.h > fin.a : fin.a > fin.h) : null; };
+    const fin = S.history.filter(f => vipPick(f) && won(f) !== null); // análises VIP já terminadas (todos os 7 dias, sem depender do dia de criação da conta)
     const past = pastDays(7); if (!past.some(d => d.key === S.vwday)) S.vwday = past[past.length - 1].key;
     const cnt = new Map(); fin.forEach(f => { const k = dayKey(f.kickoff_utc); cnt.set(k, (cnt.get(k) || 0) + 1); });
     const strip = past.map(d => `<button class="dy" data-s="vwday" data-k="${esc(d.key)}" aria-pressed="${S.vwday === d.key}"><span>${esc(d.wd)}</span><b>${esc(d.dn)}</b><em class="mo">${esc(d.mo)}</em><i class="${cnt.get(d.key) ? "has" : ""}"></i></button>`).join("");
