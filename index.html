@@ -1055,7 +1055,7 @@ async function openAnalysis(id){
    ===================================================================== */
 const ADMIN_EMAIL = "abelmaridao@gmail.com";
 const MAIL_ENDPOINT = null; // URL do teu serviço de envio de e-mail; null = modo demonstração (código mostrado no ecrã)
-const API_URL = null; // endereço do accounts-worker.js (ex.: "https://contas.teu-nome.workers.dev"). null = modo local (só neste aparelho)
+const API_URL = "https://contas.abelpemba939.workers.dev"; // endereço do accounts-worker.js (ex.: "https://contas.teu-nome.workers.dev"). null = modo local (só neste aparelho)
 const DBK = "eb_db_v1", SESK = "eb_session", MEK = "eb_me";
 const emptyDB = () => ({ users: [], resets: {}, allow: [], tadmins: [], deleted: [] });
 const rawDB = () => { const d = store.get(DBK, null); if (!(d && d.users)) return emptyDB(); if (!Array.isArray(d.allow)) d.allow = []; if (!Array.isArray(d.tadmins)) d.tadmins = []; if (!Array.isArray(d.deleted)) d.deleted = []; return d; };
@@ -1080,8 +1080,8 @@ const tm = t => { const iso = new Date(t).toISOString(); return dayKey(iso) === 
 const userById = id => DBc.users.find(x => x.id === id);
 const WHATSAPP_URL = "https://chat.whatsapp.com/C8DfJGozZr90IlVDU8H1Kt?s=cl&p=a&mlu=4&ilr=4"; // link do grupo de WhatsApp (ex.: "https://chat.whatsapp.com/xxxxxxxx")
 const DAYMS = 86400e3;
-const vHid = new Set((store.get("hiddenVip", []) || []));
-const saveVHid = () => store.set("hiddenVip", [...vHid].slice(-600));
+const vHid = new Set(); store.set("hiddenVip", []); // jogos do VIP já não se apagam: os que tinham sido removidos voltam aos seus dias
+const saveVHid = () => {};
 const VDAYS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30];
 const vdayOpts = (sel, max = 99) => VDAYS.filter(n => n <= max).map(n => `<option value="${n}"${n === sel ? " selected" : ""}>${n} ${n === 1 ? "dia" : "dias"}</option>`).join("");
 const allowOf = e => (DBc.allow || []).find(a => a.email === e);
