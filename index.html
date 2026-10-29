@@ -1126,6 +1126,7 @@ function cur(){
 }
 function dropSession(msg){ store.set(SESK, null); store.set(MEK, null); S.soc.me = null; S.pwPlain = ""; S.soc.mode = "login"; S.soc.err = msg || ""; S.soc.info = ""; clearF(); S.view = "home"; S.drawer = false; }
 const startSession = r => { store.set(SESK, r.token); store.set(MEK, r.user); S.soc.me = r.user; S.pwPlain = S.soc.f.pw; clearF(); S.soc.err = ""; S.soc.info = ""; S.view = "home"; startBusy(); render(); };
+if (API_URL){ try { store.set(DBK, null); if (!store.get(MEK, null)) store.set(SESK, null); } catch (e) {} } // contas antigas (só no aparelho) são descartadas: só valem contas criadas no servidor
 if (API_URL) S.soc.me = store.get(SESK, null) ? store.get(MEK, null) : null;
 const avatar = (u, s = 40) => u.photo ? `<img class="av" style="--s:${s}px" src="${esc(u.photo)}" alt="">` : `<span class="av" style="--s:${s}px" aria-hidden="true">${esc((u.name || "?").trim().charAt(0).toUpperCase())}</span>`;
 
