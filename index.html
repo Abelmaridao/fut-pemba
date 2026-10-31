@@ -813,11 +813,11 @@ function drawerHtml(){
   if (!S.drawer){ if (!S.search && !S.lg) $("ov").innerHTML = ""; return; }
   const dark = isDark(), u = cur(), B = "width:100%;font-size:18px;padding:14px;margin-bottom:8px";
   const top = u ? `<div class="mrow">${avatar(u, 44)}<b>${esc(u.name)}</b></div>
-    ${isAdm(u) ? `<button class="btn" style="${B};background:#1f7a4d" data-s="admin">Painel</button>` : ""}<button class="btn" style="${B};background:#b8860b" data-s="vip">VIP</button>${u.admin ? `<button class="btn" style="${B};background:#6a1b9a" data-s="svip">Super VIP</button>` : ""}` : "";
+    ${isAdm(u) ? `<button class="btn" style="${B};background:#d32f2f;color:#fff" data-s="admin">Painel</button>` : ""}<button class="btn" style="${B};background:#ffd600;color:#1b1500" data-s="vip">VIP</button>${u.admin ? `<button class="btn" style="${B};background:linear-gradient(135deg,#f7dc7e,#d4af37 50%,#a67c00);color:#2a1d00" data-s="svip">Super VIP</button>` : ""}` : "";
   $("ov").innerHTML = `<div class="ov" data-act="close"><div class="drawer" role="dialog" aria-label="Menu">${top}
-    <button class="btn" style="${B}" data-act="toggle" aria-pressed="${dark}">${dark ? "☀️ Modo claro" : "🌙 Modo escuro"}</button>
+    <button class="btn" style="${B};${dark ? "background:#fff;color:#000;border:1px solid #999" : "background:#000;color:#fff;border:1px solid #777"}" data-act="toggle" aria-pressed="${dark}">${dark ? "☀️ Modo claro" : "🌙 Modo escuro"}</button>
     <button class="btn" style="${B};background:#1fa463" data-s="wa">WhatsApp</button>
-    <button class="btn" style="${B};background:${S.upd === "ok" ? "#2e7d32" : "#e65100"}" data-s="upd">${S.upd === "ok" ? "Actualizado" : S.upd === "busy" ? "A actualizar…" : S.upd === "off" ? "Sem ligação" : "Actualizar"}</button>
+    <button class="btn" style="${B};background:${S.upd === "ok" ? "#757575" : "#1565c0"};color:#fff" data-s="upd">${S.upd === "ok" ? "Actualizado" : S.upd === "busy" ? "A actualizar…" : S.upd === "off" ? "Sem ligação" : "Actualizar"}</button>
     ${u ? `<button class="btn alt" style="width:100%;margin-top:8px" data-s="logout">Terminar sessão</button>` : ""}</div></div>`;
 }
 function searchHtml(){

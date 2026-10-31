@@ -20,11 +20,11 @@ jobs:
           cp error.html www/error.html
       - run: npm install
       - run: npx cap add android
+      - run: npx cap sync android
       - name: Aplicar o ícone
         run: |
           echo "Imagens encontradas no repositório:"
           find . -maxdepth 2 -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \) -not -path './node_modules/*' -not -path './android/*' -not -path './www/*'
-          # 1) nomes certos; 2) qualquer imagem com icon/ícon/logo no nome; 3) qualquer imagem na pasta assets
           SRC=""
           for f in assets/icon.png assets/icon.jpg assets/icon.jpeg assets/icon.webp icon.png icon.jpg icon.jpeg logo.png logo.jpg; do [ -f "$f" ] && SRC="$f" && break; done
           [ -z "$SRC" ] && SRC=$(find . -maxdepth 2 -type f \( -iname '*icon*' -o -iname '*ícon*' -o -iname '*logo*' \) \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \) -not -path './node_modules/*' -not -path './android/*' -not -path './www/*' | head -1)
@@ -32,21 +32,35 @@ jobs:
           [ -z "$SRC" ] && SRC=$(ls ./*.png ./*.jpg ./*.jpeg ./*.webp 2>/dev/null | head -1)
           if [ -z "$SRC" ]; then echo "ERRO: não encontrei nenhuma imagem de ícone. Põe a imagem com o nome icon.png na pasta principal do repositório."; exit 1; fi
           echo "Ícone usado: $SRC"
+          identify "$SRC" || { echo "ERRO: a imagem $SRC não abre. Exporta-a de novo como PNG."; exit 1; }
           IM=convert; command -v convert >/dev/null || IM="magick"
           RES=android/app/src/main/res
-          rm -rf $RES/mipmap-anydpi-v26 $RES/drawable-v24/ic_launcher_foreground.xml
+          # ícone com nome próprio (eb_launcher): nada do modelo do Capacitor o pode substituir
           for d in mdpi:48 hdpi:72 xhdpi:96 xxhdpi:144 xxxhdpi:192; do
             n=${d%%:*}; px=${d##*:}; mkdir -p $RES/mipmap-$n
-            for name in ic_launcher ic_launcher_round ic_launcher_foreground; do
-              $IM "$SRC" -resize ${px}x${px}^ -gravity center -background none -extent ${px}x${px} PNG32:$RES/mipmap-$n/$name.png
-            done
+            $IM "$SRC[0]" -resize ${px}x${px}^ -gravity center -background none -extent ${px}x${px} PNG32:$RES/mipmap-$n/eb_launcher.png
+            # também por cima dos nomes antigos
+            for name in ic_launcher ic_launcher_round ic_launcher_foreground; do cp $RES/mipmap-$n/eb_launcher.png $RES/mipmap-$n/$name.png; done
           done
+          rm -rf $RES/mipmap-anydpi-v26 $RES/mipmap-anydpi $RES/drawable-v24/ic_launcher_foreground.xml
+          MAN=android/app/src/main/AndroidManifest.xml
+          sed -i 's#android:icon="[^"]*"#android:icon="@mipmap/eb_launcher"#; s#android:roundIcon="[^"]*"#android:roundIcon="@mipmap/eb_launcher"#' $MAN
+          grep -q 'android:icon="@mipmap/eb_launcher"' $MAN || { echo "ERRO: não consegui apontar o AndroidManifest ao novo ícone."; exit 1; }
+          grep -n 'android:icon\|android:roundIcon' $MAN
           ls -la $RES/mipmap-xxxhdpi/
-          echo "Ícones criados."
-      - run: npx cap sync android
+          cp $RES/mipmap-xxxhdpi/eb_launcher.png icone-usado.png
+          echo "Ícones criados e ligados ao AndroidManifest."
       - name: Construir o APK
         run: cd android && chmod +x gradlew && ./gradlew assembleDebug
+      - name: Confirmar o ícone dentro do APK
+        run: |
+          AAPT=$(ls $ANDROID_HOME/build-tools/*/aapt2 2>/dev/null | tail -1)
+          [ -n "$AAPT" ] && $AAPT dump badging android/app/build/outputs/apk/debug/app-debug.apk | grep -E "application-icon|launchable-activity" || echo "(aapt2 não encontrado)"
       - uses: actions/upload-artifact@v4
         with:
           name: Elephalpit-Bet-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: icone-usado
+          path: icone-usado.png
