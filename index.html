@@ -59,7 +59,7 @@ select,input[type=search],input[type=text],input[type=email],input[type=password
 .btn[disabled]{opacity:.5}
 .fav{background:none;border:0;font-size:22px;color:var(--amber);line-height:1}
 .empty{text-align:center;color:var(--mute);padding:36px 12px}
-nav.bot{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--hdr);display:grid;grid-template-columns:repeat(4,1fr);padding:6px 2px calc(6px + env(safe-area-inset-bottom,0px))}
+nav.bot{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--hdr);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 2px calc(6px + env(safe-area-inset-bottom,0px))}
 nav.bot button{position:relative;background:none;border:0;color:#cfe1fb;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;padding:4px 1px}
 nav.bot button[aria-current=page]{color:#fff;font-weight:800}
 nav.bot svg{width:26px;height:26px}
@@ -174,6 +174,8 @@ main.fi{animation:fi .1s ease}
 .rp.wd{grid-template-columns:minmax(0,1fr) auto 40px 40px 14px}
 .rp.wd .v{text-align:right;font-weight:800;white-space:nowrap}
 .vsw{text-align:center}
+.mk{font-size:20px;font-weight:900;line-height:1;margin-top:2px}
+.avc{margin:0 0 12px;padding:14px 16px;font-weight:700;line-height:1.35}
 .mn{color:var(--bad);font-weight:800;font-size:14px;margin-top:2px}
 /* ao vivo */
 .vs.lv{color:var(--bad)}
@@ -455,6 +457,7 @@ const ICON = {
   cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="8" cy="14" r=".8" fill="currentColor"/><circle cx="12" cy="14" r=".8" fill="currentColor"/><circle cx="16" cy="14" r=".8" fill="currentColor"/></svg>',
   star: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 17.5 6.1 20.7l1.2-6.6L2.5 9.5l6.6-.9z"/></svg>',
   tips: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.7.6 1 1.3 1 2.1h5c0-.8.3-1.5 1-2.1A6 6 0 0 0 12 3z"/></svg>',
+  warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5L2.8 19.5h18.4z"/><path d="M12 10v4.5M12 17.4v.1"/></svg>',
   hist: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5M3.5 4v4.5H8"/><path d="M12 7.5V12l3 2"/></svg>'
 };
 function header(){
@@ -463,13 +466,13 @@ function header(){
     <div style="width:40px" aria-hidden="true"></div></header>`;
 }
 function nav(){
-  const it = [["home","Home",ICON.home],["cal","Calendário",ICON.cal],["fav","Favoritos",ICON.star],["hist","Histórico",ICON.hist]];
+  const it = [["home","Home",ICON.home],["aviso","Aviso",ICON.warn],["cal","Calendário",ICON.cal],["fav","Favoritos",ICON.star],["hist","Histórico",ICON.hist]];
   return `<nav class="bot">${it.map(([k,l,i]) => `<button data-nav="${k}" ${S.view === k || (k === "home" && S.view === "comp") ? 'aria-current="page"' : ""}>${i}<span>${l}</span></button>`).join("")}</nav>`;
 }
 /* ---------- Ajuda e assistente ---------- */
 const ASSISTANT_URL = null; // endereço do assistant-worker.js (assistente com IA real). null = assistente integrado
 S.tips = { msgs: [], busy: false };
-const upcoming = () => S.fixtures.filter(f => f.analysis && ["NS", "TBD"].includes(f.status));
+const upcoming = () => S.fixtures.filter(f => f.analysis && ["NS", "TBD"].includes(f.status) && !vipLocked(f));
 function topPick(f){
   const secs = sections(f.analysis.result, { h: f.home_team, a: f.away_team }); let best = null;
   for (const sec of secs) for (const g of sec.groups){ const n = ints(sec, g); g.forEach((x, i) => { if (x.pick && x.v !== "Não" && !sec.noTop && x.l !== "Mais de 0,5" && (!best || x.p > best.x.p)) best = { x, n: n[i], sec }; }); }
@@ -484,7 +487,7 @@ function assistLocal(q){
   const n = norm(q), words = n.split(/[^a-z0-9]+/).filter(Boolean);
   const has = (...k) => k.some(x => n.includes(x));
   const hit = f => [f.home_team, f.away_team].some(t => norm(t).split(/[^a-z0-9]+/).some(w => w.length >= 4 && !GEN.has(w) && words.includes(w)));
-  const games = [...S.fixtures, ...S.history].filter(f => f.analysis && hit(f)).slice(0, 3);
+  const games = [...S.fixtures, ...S.history].filter(f => f.analysis && hit(f) && !vipLocked(f)).slice(0, 3);
   if (games.length) return games.map(gameSummary).join("\n\n") + "\n\nSão estimativas estatísticas, não garantias. Para ver tudo, abre o jogo e carrega em “Analisar com IA”.";
   if (has("melhor", "segura", "mais provavel", "top") || (has("hoje") && has("jogo", "aposta", "previs", "dica"))){
     const l = upcoming().map(f => ({ f, b: topPick(f) })).filter(x => x.b).sort((a, b) => b.b.x.p - a.b.x.p).slice(0, 5);
@@ -496,7 +499,6 @@ function assistLocal(q){
   if (has("percent", "%", "barra") || (has("sim") && has("nao"))) return "Cada linha tem Sim/Não (ou Vence/Empata…) e uma percentagem. A percentagem é a chance estimada de aquilo acontecer. “Não 25%” quer dizer que há 25% de chance de acontecer e, por isso, o modelo não o escolhe. Nos mercados que não podem acontecer ao mesmo tempo (1X2, intervalo) somam 100%.";
   if (has("analisar", "como uso", "como usar", "como vejo", "passo", "como funciona o app", "como faco")) return "Para ver uma análise: 1) abre Home ou Calendário e escolhe o jogo; 2) carrega em “Analisar com IA”; 3) no topo vês a hora do apito, quanto falta e os últimos jogos das equipas; 4) mais abaixo estão as probabilidades de resultado, golos, ambas marcam, intervalo e outras. Também podes pesquisar um jogo na lupa.";
   if (has("modelo", "poisson", "como calcula", "calculo", "como sao feitas", "fiab", "confi", "precis", "como funciona")) return "As análises usam um modelo estatístico (Poisson): olha para os golos marcados e sofridos nos últimos 5 jogos de cada equipa e nos confrontos diretos, estima quantos golos cada equipa deve marcar e daí tira as probabilidades de resultado, golos, ambas marcam, etc. É uma estimativa, não uma garantia: o futebol tem muita surpresa.";
-  if (has("vip")) return "O VIP mostra os jogos em que uma das equipas tem 50% ou mais de probabilidade de vitória. Os jogos do dia ficam lá até ao dia seguinte.";
   if (has("calendario", "liga", "selecionar")) return "No Calendário vês os próximos 30 dias. Em “Selecionar ligas” escolhes até 3 das 10 ligas. O dia que passa sai e entra um novo automaticamente.";
   if (has("limpar historico", "apagar historico")) return "No separador Histórico há o botão “Limpar histórico”, que apaga todos os jogos terminados da lista. Também podes apagar um só jogo no ✕ do cartão.";
   if (has("historico")) return "O Histórico guarda os jogos terminados, com o resultado e os círculos verde/vermelho a mostrar se a previsão acertou. Os jogos passam para lá assim que terminam e ficam guardados no teu aparelho.";
@@ -548,11 +550,18 @@ function matchCard(f, mode){
   const score = has ? `${f.home_goals} - ${f.away_goals}` : (done ? "– –" : "vs");
   const top = f.time_confirmed ? `${dayKey(f.kickoff_utc)} ${fmtHour(f.kickoff_utc)}` : `${dayKey(f.kickoff_utc)} · hora por confirmar`;
   let action;
-  if (done) action = `<button class="btn" data-an="${esc(f.id)}">Ver estatísticas</button>`;
+  const gated = S.view !== "vip" && S.view !== "svip" && !!vipPick(f); // jogo do VIP fora das áreas VIP: só diz "VIP", sem mostrar nada
+  if (gated) action = `<button class="btn" style="background:#b8860b;color:#fff" data-an="${esc(f.id)}">VIP</button>`;
+  else if (done) action = `<button class="btn" data-an="${esc(f.id)}">Ver estatísticas</button>`;
   else action = `<button class="btn amber" data-an="${esc(f.id)}" ${["NS","TBD"].includes(f.status) || isLive(f.status) ? "" : "disabled"}>Analisar com IA</button>`;
+  let mk = ""; // histórico normal: ✓ ou ✗ por baixo do placar (a escolha do modelo no "Resultado final" acertou?)
+  if (mode === "hist" && has && f.analysis && (!vipPick(f) || vipOpen(f))){
+    try { const fin = finalOf(f), sec = sections(f.analysis.result, { h: f.home_team, a: f.away_team })[0], ok = sec && fin ? groupHit(sec.groups[0], fin) : null;
+      if (ok !== null) mk = `<div class="mk" style="color:var(${ok ? "--ok" : "--bad"})" aria-label="${ok ? "Acertou" : "Falhou"}">${ok ? "✓" : "✗"}</div>`; } catch (e) {}
+  }
   const del = mode === "hist" ? `<button class="x" data-del="${esc(f.id)}" aria-label="Remover este jogo do histórico">✕</button>` : "";
   return `<article class="match">${del}<div class="dt">${esc(top)}</div><div class="teams">
-    <div class="t">${logo(f.home_logo)}<span>${esc(f.home_team)}</span></div><div class="vsw"><div class="vs">${esc(score)}</div></div>
+    <div class="t">${logo(f.home_logo)}<span>${esc(f.home_team)}</span></div><div class="vsw"><div class="vs">${esc(score)}</div>${mk}</div>
     <div class="t r"><span>${esc(f.away_team)}</span>${logo(f.away_logo)}</div></div>
     <div class="meta"><span><span class="st ${isLive(f.status) ? "live" : ""}">${esc(STATUS[f.status] ?? f.status)}</span></span>
     <span class="row">${favStar(f)}${action}</span></div></article>`;
@@ -664,12 +673,31 @@ function favView(){
   return `<h1 class="ttl">Favoritos</h1><p class="sub">Jogos que guardaste com a estrela ☆ ou analisaste na lupa.</p>` +
     (list.length ? list.map(favCard).join("") : `<div class="empty">Ainda não tens favoritos. Toca na estrela ☆ de qualquer jogo para o guardar aqui.</div>`);
 }
-function vipPick(f){
+const VIP_MIN = 0.5, SUP_MIN = 0.6, SUP_ROWS = 70; // VIP: vitória 50%+; Super VIP: vitória 60%+ e só mostra linhas de 70%+
+const AVISOS = ["ESSAS ANÁLISES SÃO APENAS ESTIMATIVAS NÃO GARANTIAS DE VITÓRIA, CADA JOGO É UM JOGO.",
+  "APOSTE APENAS O QUE PODES PERDER E COM RESPONSABILIDADES.",
+  "NÃO USE TODAS AS PROBABILIDADES USE A QUE ACHARES MELHOR.",
+  "PARA MAIS SEGURANÇA USE GANHA OU EMPATA.",
+  "APOSTAS SÓ PARA MAIORES DE 18 ANOS E ONDE FOR PERMITIDO POR LEI.",
+  "DEFINE ANTES UM LIMITE DE VALOR E DE TEMPO E RESPEITA-O. NUNCA AUMENTES O VALOR PARA RECUPERAR PERDAS.",
+  "RESULTADOS PASSADOS NÃO GARANTEM RESULTADOS FUTUROS. LESÕES, CASTIGOS, CANSAÇO E MUDANÇAS DE ÚLTIMA HORA NÃO ENTRAM NO CÁLCULO.",
+  "SE SENTIRES QUE PERDES O CONTROLO, PÁRA E FALA COM ALGUÉM DE CONFIANÇA."];
+function avisoView(){
+  return `<h1 class="ttl">Aviso</h1>` + AVISOS.map(t => `<div class="card avc">${esc(t)}</div>`).join("");
+}
+function vipPick(f, min = VIP_MIN){
   const r = f.analysis?.result?.result; if (!r || !Number.isFinite(r.home) || !Number.isFinite(r.away)) return null;
-  const p = Math.max(r.home, r.away); if (p < 0.5) return null;
+  const p = Math.max(r.home, r.away); if (p < min) return null;
   const n = lr([r.home, r.draw ?? Math.max(0, 1 - r.home - r.away), r.away]);
   return { team: r.home >= r.away ? f.home_team : f.away_team, pct: r.home >= r.away ? n[0] : n[2], side: r.home >= r.away ? "h" : "a" };
 }
+// jogo do VIP: só abre a quem tem VIP e, nos jogos futuros, só dentro dos dias de VIP que lhe restam
+function vipOpen(f){
+  const u = cur(); if (!u || !canVip(u)) return false;
+  if (isDone(f.status)) return true;
+  return dayList().slice(0, vipDays(u)).some(d => d.key === dayKey(f.kickoff_utc));
+}
+const vipLocked = f => !!vipPick(f) && !vipOpen(f);
 function pastDays(n){ // os últimos n dias, do mais antigo (esquerda) até hoje (direita)
   const out = [];
   for (let i = n - 1; i >= 0; i--){
@@ -685,40 +713,42 @@ function vipDays(u){
   const ax = access(u); if (u.admin || !ax.exp) return 7;
   return Math.max(1, Math.min(7, Math.ceil((ax.exp - Date.now()) / DAYMS))); // até 7 dias; vai diminuindo com os dias que restam
 }
-function vipTabs(){
+function vipTabs(sup){
   const t = S.vtab === "win" || S.vtab === "loss" ? S.vtab : "vip", b = (v, l) => `<button type="button" class="vtb" data-s="vtab" data-v="${v}" aria-pressed="${t === v}">${l}</button>`;
-  return `<div class="vtabs">${b("vip", "VIP")}${b("win", "Ganhos")}${b("loss", "Perdas")}</div>`;
+  return `<div class="vtabs">${b("vip", sup ? "Super VIP" : "VIP")}${b("win", "Ganhos")}${b("loss", "Perdas")}</div>`;
 }
-function vipView(){
-  const u = cur(); if (!u || !canVip(u)) return `<div class="empty" style="font-weight:800;color:var(--ink);font-size:18px">NÃO TENS ACESSO AO VIP</div>`;
+function vipView(kind){
+  const sup = kind === "svip", pk = f => vipPick(f, sup ? SUP_MIN : VIP_MIN), tabs = () => vipTabs(sup), grp = (l, h) => vipGrouped(l, h, sup ? SUP_MIN : VIP_MIN);
+  const u = cur(); if (kind === "svip" && !(u && u.admin)){ S.view = "home"; return homeView(); }
+  if (!u || !canVip(u)) return `<div class="empty" style="font-weight:800;color:var(--ink);font-size:18px">NÃO TENS ACESSO AO VIP</div>`;
   if (S.vtab === "win" || S.vtab === "loss"){
-    const won = f => { const fin = finalOf(f), p = vipPick(f); return fin ? (p.side === "h" ? fin.h > fin.a : fin.a > fin.h) : null; };
-    const fin = S.history.filter(f => vipPick(f) && won(f) !== null); // análises VIP já terminadas (todos os 7 dias, sem depender do dia de criação da conta)
+    const won = f => { const fin = finalOf(f), p = pk(f); return fin ? (p.side === "h" ? fin.h > fin.a : fin.a > fin.h) : null; };
+    const fin = S.history.filter(f => pk(f) && won(f) !== null); // análises VIP já terminadas (todos os 7 dias, sem depender do dia de criação da conta)
     const past = pastDays(7); if (!past.some(d => d.key === S.vwday)) S.vwday = past[past.length - 1].key;
     const cnt = new Map(); fin.forEach(f => { const k = dayKey(f.kickoff_utc); cnt.set(k, (cnt.get(k) || 0) + 1); });
     const strip = past.map(d => `<button class="dy" data-s="vwday" data-k="${esc(d.key)}" aria-pressed="${S.vwday === d.key}"><span>${esc(d.wd)}</span><b>${esc(d.dn)}</b><em class="mo">${esc(d.mo)}</em><i class="${cnt.get(d.key) ? "has" : ""}"></i></button>`).join("");
     const day = fin.filter(f => dayKey(f.kickoff_utc) === S.vwday), w = day.filter(f => won(f)).length, l = day.length - w, pc = n => day.length ? Math.round(n * 100 / day.length) : 0;
     const stat = `<div class="stat" style="grid-template-columns:repeat(2,1fr)"><div><b style="color:var(--ok)">${pc(w)}%</b>Ganhos (${w})</div><div><b style="color:var(--bad)">${pc(l)}%</b>Perdas (${l})</div></div>`;
     const list = day.filter(f => (S.vtab === "win") === won(f)).sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc));
-    return vipTabs() + `<div class="stripw"><div class="strip">${strip}</div></div>` + stat + msgHtml() + (list.length ? vipGrouped(list, true) : `<div class="empty">${S.vtab === "win" ? "Sem ganhos neste dia." : "Sem perdas neste dia."}</div>`);
+    return tabs() + `<div class="stripw"><div class="strip">${strip}</div></div>` + stat + msgHtml() + (list.length ? grp(list, true) : `<div class="empty">${S.vtab === "win" ? "Sem ganhos neste dia." : "Sem perdas neste dia."}</div>`);
   }
   const days = dayList().slice(0, vipDays(u));
   if (!days.some(d => d.key === S.vday)) S.vday = days[0].key;
   const today = dayKey(new Date().toISOString());
-  const all = S.fixtures.filter(f => !["PST", "CANC"].includes(f.status) && !isDone(f.status) && dayKey(f.kickoff_utc) >= today && vipPick(f));
+  const all = S.fixtures.filter(f => !["PST", "CANC"].includes(f.status) && !isDone(f.status) && dayKey(f.kickoff_utc) >= today && pk(f));
   const count = new Map(); all.forEach(f => { const k = dayKey(f.kickoff_utc); count.set(k, (count.get(k) || 0) + 1); });
   const strip = days.map(d => `<button class="dy" data-vday="${esc(d.key)}" aria-pressed="${S.vday === d.key}"><span>${esc(d.wd)}</span><b>${esc(d.dn)}</b><em class="mo">${esc(d.mo)}</em><i class="${count.get(d.key) ? "has" : ""}"></i></button>`).join("");
   const list = all.filter(f => dayKey(f.kickoff_utc) === S.vday).sort((a, b) => (a.competitions?.name ?? "").localeCompare(b.competitions?.name ?? "") || a.kickoff_utc.localeCompare(b.kickoff_utc));
-  return vipTabs() + `<div class="stripw"><div class="strip" id="vstrip">${strip}</div></div>${msgHtml()}` +
-    (list.length ? vipGrouped(list) : `<div class="empty">Sem jogos para o VIP</div>`);
+  return tabs() + `<div class="stripw"><div class="strip" id="vstrip">${strip}</div></div>${msgHtml()}` +
+    (list.length ? grp(list) : `<div class="empty">Sem jogos para o ${sup ? "Super VIP" : "VIP"}</div>`);
 }
-function vipGrouped(list, hist){
+function vipGrouped(list, hist, min = VIP_MIN){
   let h = "", lc = "", ld = "";
   for (const f of list){
     if (hist){ const d = dayKey(f.kickoff_utc); if (d !== ld){ h += `<h2 class="day">${esc(fmtDay(f.kickoff_utc))}</h2>`; ld = d; lc = ""; } }
     const c = f.competitions?.name ?? "Outros";
     if (c !== lc){ h += `<div class="cn">${esc(c)}${f.competitions?.country ? " · " + esc(f.competitions.country) : ""}</div>`; lc = c; }
-    const p = vipPick(f), fin = hist ? finalOf(f) : null;
+    const p = vipPick(f, min), fin = hist ? finalOf(f) : null;
     const mark = fin ? ((p.side === "h" ? fin.h > fin.a : fin.a > fin.h) ? ` <span style="color:var(--ok)">✓</span>` : ` <span style="color:var(--bad)">✗</span>`) : "";
     h += matchCard(f).replace(/<div class="meta"><span>(<span class="st[^>]*>[^<]*<\/span>)<\/span>/, `<div class="meta"><span style="font-weight:700;color:var(--ink)">${esc(p.team)} vitória: ${p.pct}%${mark}</span>`);
   }
@@ -732,7 +762,7 @@ function goBack(){
   S.view = "home"; S.compId = null; try { history.replaceState({ v: "home", c: null, i: 0 }, ""); } catch {}
   startBusy(); render(); window.scrollTo && window.scrollTo(0, 0);
 }
-function view(){ return ({ vip: vipView, home: homeView, comp: compView, tips: tipsView, cal: calView, fav: favView, hist: histView,
+function view(){ return ({ vip: () => vipView("vip"), svip: () => vipView("svip"), aviso: avisoView, home: homeView, comp: compView, tips: tipsView, cal: calView, fav: favView, hist: histView,
   admin: adminView })[S.view](); }
 function pruneFavs(){
   const keep = S.favs.filter(f => f.gid || Date.parse(f.kickoff_utc) >= Date.now() - 86400e3); // favoritos de jogos do app ficam até os removeres
@@ -776,7 +806,7 @@ function drawerHtml(){
   if (!S.drawer){ if (!S.search && !S.lg) $("ov").innerHTML = ""; return; }
   const dark = isDark(), u = cur(), B = "width:100%;font-size:18px;padding:14px;margin-bottom:8px";
   const top = u ? `<div class="mrow">${avatar(u, 44)}<b>${esc(u.name)}</b></div>
-    ${isAdm(u) ? `<button class="btn" style="${B};background:#1f7a4d" data-s="admin">Painel</button>` : ""}<button class="btn" style="${B};background:#b8860b" data-s="vip">VIP</button>` : "";
+    ${isAdm(u) ? `<button class="btn" style="${B};background:#1f7a4d" data-s="admin">Painel</button>` : ""}<button class="btn" style="${B};background:#b8860b" data-s="vip">VIP</button>${u.admin ? `<button class="btn" style="${B};background:#6a1b9a" data-s="svip">Super VIP</button>` : ""}` : "";
   $("ov").innerHTML = `<div class="ov" data-act="close"><div class="drawer" role="dialog" aria-label="Menu">${top}
     <button class="btn" style="${B}" data-act="toggle" aria-pressed="${dark}">${dark ? "☀️ Modo claro" : "🌙 Modo escuro"}</button>
     <button class="btn" style="${B};background:#1fa463" data-s="wa">WhatsApp</button>
@@ -807,7 +837,7 @@ const knownLeague = typed => ORDER.some(id => [...(LABEL[id] ?? []), S.leagues.f
 async function lookupInternal(q, now, to){
   if (!(await fetchData())) throw coded("offline");
   reclassify();
-  const open = S.fixtures.filter(f => ["NS", "TBD"].includes(f.status) && Date.parse(f.kickoff_utc) >= now && Date.parse(f.kickoff_utc) <= to);
+  const open = S.fixtures.filter(f => !vipLocked(f) && ["NS", "TBD"].includes(f.status) && Date.parse(f.kickoff_utc) >= now && Date.parse(f.kickoff_utc) <= to);
   const hit = open.filter(f => nameOk(q.home, f.home_team) && nameOk(q.away, f.away_team) && leagueOk(f, q.league)).sort((a, b) => a.kickoff_utc.localeCompare(b.kickoff_utc))[0];
   if (!hit){
     const swapped = open.find(f => nameOk(q.home, f.away_team) && nameOk(q.away, f.home_team) && leagueOk(f, q.league));
@@ -911,6 +941,11 @@ function sections(r, nm){
       out.push({ title: "Resultado final", pct: true, groups: [excl(it.map(([l, p, fn, k]) => [k === "d" ? l : `${l} vence`, p, fn]))] });
     }
   }
+  { const rr = r.result, dd = rr.draw ?? Math.max(0, 1 - rr.home - rr.away); // hipótese dupla
+    const it = [[`${H} ganha ou Empata`, rr.home + dd, f => f.h >= f.a], ["Qualquer ganha", rr.home + rr.away, f => f.h !== f.a], [`Empata ou ${A} ganha`, dd + rr.away, f => f.h <= f.a]];
+    const tp = topI(it);
+    out.push({ title: "Hipótese dupla", pct: true, groups: it.map(([l, p, fn], i) => [one(l, p, fn, i === tp)]) });
+  }
   const t = r.totals, tg = [];
   for (const [k, key] of [["0.5", "0_5"], ["1.5", "1_5"], ["2.5", "2_5"], ["3.5", "3_5"]]){
     const over = t["over_" + key], under = t["under_" + key];
@@ -932,8 +967,8 @@ function sections(r, nm){
     const ph = anyHalf(r.lambda.home, r.lambda.away), pa = anyHalf(r.lambda.away, r.lambda.home);
     const hw = side => f => noHt(f) ? null : side === "h" ? (f.hh > f.ah || (f.h - f.hh) > (f.a - f.ah)) : (f.ah > f.hh || (f.a - f.ah) > (f.h - f.hh));
     out.push({ title: "Vence qualquer parte", pct: true, groups: [
-      [{ l: H, p: ph, fn: hw("h"), v: ph >= 0.5 ? "Sim" : "Não", pick: ph >= 0.5 }],
-      [{ l: A, p: pa, fn: hw("a"), v: pa >= 0.5 ? "Sim" : "Não", pick: pa >= 0.5 }]] });
+      [{ l: H, p: ph, fn: hw("h"), v: "Sim", pick: ph >= pa }],
+      [{ l: A, p: pa, fn: hw("a"), v: "Sim", pick: pa > ph }]] });
   }
   if (r.bothHalves){
     const bh = side => f => noHt(f) ? null : (side === "h" ? f.hh > 0 && f.h - f.hh > 0 : f.ah > 0 && f.a - f.ah > 0);
@@ -1012,8 +1047,8 @@ function analysisHtml(an, f, extra = "", opts = {}){
              : `<div class="rp">${lab}<span class="trk"><span style="width:${n}%"></span></span><strong>${n}%</strong>${dot(rowOk(x, fin))}</div>`)
       : `<div class="rp nv">${lab}<strong class="v">${esc(x.v ?? "")}</strong>${dot(rowOk(x, fin))}</div>`;
   };
-  const min = opts.min50 ? 50 : 0;
-  const body = secs.map(sec => { const rows = sec.groups.map(g => { const n = ints(sec, g); return g.map((x, i) => [x, n[i]]).filter(([, p]) => !sec.pct || p >= min).map(([x, p]) => row(x, p, sec, false)).join(""); }).join(""); return rows ? `<div class="sec">${esc(sec.title)}</div>` + rows : ""; }).join("");
+  const min = opts.min || 0;
+  const body = secs.map(sec => { const rows = sec.groups.map(g => { const n = ints(sec, g); return g.map((x, i) => [x, n[i]]).filter(([x, p]) => !sec.pct || p >= min || (min > 50 && sec.title === "Resultado final" && x.pick)).map(([x, p]) => row(x, p, sec, false)).join(""); }).join(""); return rows ? `<div class="sec">${esc(sec.title)}</div>` + rows : ""; }).join("");
   // as 5 análises mais prováveis: só a mais provável de cada mercado
   const cand = [];
   for (const sec of secs){ let best = null; for (const g of sec.groups){ const n = ints(sec, g); g.forEach((x, i) => { if (x.pick && !sec.noTop && x.l !== "Mais de 0,5" && n[i] >= min && (!best || x.p > best.x.p)) best = { x, n: n[i], sec }; }); } if (best) cand.push(best); }
@@ -1021,7 +1056,7 @@ function analysisHtml(an, f, extra = "", opts = {}){
   const topHtml = cand.slice(0, 5).map(c => row(c.x, c.n, c.sec, true)).join("");
   const legend = fin ? `<p class="note"><span class="dot g"></span> certo · <span class="dot r"></span> errado · <span class="dot n"></span> sem dados para avaliar (por exemplo, quem marca primeiro quando as duas equipas marcam). Resultado final: ${fin.h} - ${fin.a}.</p>` : "";
   return `<div class="dtop"><form method="dialog"><button class="dbk" aria-label="Fechar">✕</button></form></div>${kickHeader(f, fin)}${legend}
-    <p class="warn">ESSAS ANÁLISES SÃO APENAS ESTIMATIVAS NÃO GARANTIAS, CADA JOGO É UM JOGO.</p>${body}
+    <p class="warn">ESSAS ANÁLISES SÃO APENAS ESTIMATIVAS NÃO GARANTIAS DE VITÓRIA, CADA JOGO É UM JOGO.</p>${body}
     ${topHtml ? `<div class="sec">As 5 análises mais prováveis deste jogo</div>${topHtml}` : ""}
     ${extra}
     <form method="dialog"><button class="btn">Fechar</button></form>`;
@@ -1032,15 +1067,17 @@ async function openAnalysis(id){
   const paint = f => {
     const fb = isDone(f.status) ? "" : `<button type="button" class="btn alt" style="width:100%;margin:10px 0" data-favgame="${esc(f.id)}">${favG(f.id) ? "★ Remover dos favoritos" : "☆ Adicionar aos favoritos"}</button>`;
     const sc = dlg.scrollTop;
-    dlg.innerHTML = analysisHtml(f.analysis || genericAn(f), f, fb, { min50: S.view === "vip" }); dlg.dataset.gid = id; dlg.dataset.sig = JSON.stringify(f.analysis || 0).length + ":" + f.status; showRecent(f);
+    dlg.innerHTML = analysisHtml(f.analysis || genericAn(f), f, fb, { min: S.view === "vip" ? 50 : S.view === "svip" ? SUP_ROWS : 0 }); dlg.dataset.gid = id; dlg.dataset.sig = JSON.stringify(f.analysis || 0).length + ":" + f.status; showRecent(f);
     if (sc) dlg.scrollTop = sc;
   };
   const f0 = find();
+  if (f0 && vipLocked(f0)) return; // jogo do VIP: só abre a quem tem acesso e dentro dos seus dias
   if (f0) paint(f0); else { dlg.dataset.gid = id; dlg.innerHTML = `<p class="note">A obter a análise mais recente…</p>`; }
   if (!dlg.open) dlg.showModal();
   const ok = await fetchData(); render(); // atualiza em segundo plano: as análises podem ter sido acrescentadas ou atualizadas
   if (!dlg.open || dlg.dataset.gid !== id) return;
   const f = find();
+  if (f && vipLocked(f)){ if (dlg.open) dlg.close(); return; }
   if (!f){ if (!f0) dlg.innerHTML = `<div class="msg">${ok ? "Este jogo já não está na lista atual." : "Sem ligação à internet. O app precisa de estar online para mostrar as análises."}</div>${close}`; return; }
   if (!f0 || dlg.dataset.sig !== JSON.stringify(f.analysis || 0).length + ":" + f.status) paint(f);
 }
@@ -1281,7 +1318,7 @@ function adminRows(me){
   return list.map(u => {
     const a = al.find(x => x.email === u.email), on = !!(a && a.exp > now), b = u.banUntil > now, self = u.id === me.id, E = esc(u.email);
     const vip = u.admin ? "VIP sempre" : on ? "VIP até " + dt(a.exp) : a ? "VIP terminou" : "sem VIP";
-    const vipBtns = left > 0 ? `<select class="vsel" style="width:auto;padding:6px" aria-label="Dias de VIP">${vdayOpts(7, left)}</select><button class="mbtn" data-s="renew" data-e="${E}">Dar VIP</button>` : "";
+    const vipBtns = left > 0 ? `<select class="vsel" style="width:auto;padding:6px" aria-label="Dias de VIP">${vdayOpts(7, left)}</select><button class="mbtn" data-s="renew" data-e="${E}" data-on="${on ? 1 : 0}">${on ? "Adicionar dias" : "Dar VIP"}</button>` : "";
     const main = me.admin ? `${b ? `<button class="mbtn" data-s="unban" data-id="${u.id}">Remover ban</button>` : `<button class="mbtn" data-s="banopen" data-id="${u.id}">Banir</button>`}<button class="mbtn" style="background:var(--bad)" data-s="deluser" data-id="${u.id}">Excluir conta</button>` : "";
     return `<div class="urow"><b>${esc(u.name)}</b>${u.admin ? `<span class="tag">ADMIN</span>` : ""}<br><small style="color:var(--mute)">${E} · ${b ? "Banido até " + esc(tm(u.banUntil)) : "Ativo"} · ${esc(vip)}</small>
       ${self ? "" : `<div class="row">${vipBtns}${a ? `<button class="mbtn" data-s="rmallow" data-e="${E}">Remover VIP</button>` : ""}${main}</div>`}</div>`;
@@ -1298,6 +1335,7 @@ const ACT = {
   admin: () => { if (!isAdm(cur())) return; go("admin"); refreshAdmin(); },
   tipq: d => askAssistant(d.q),
   vip: () => { reloadDB(); if (cur()){ S.vtab = "vip"; go("vip"); } },
+  svip: () => { reloadDB(); if (cur() && cur().admin){ S.vtab = "vip"; go("svip"); } },
   vtab: d => { S.vtab = d.v; render(); },
   vwday: d => { S.vwday = d.k; render(); },
   wa: () => { if (WHATSAPP_URL) window.open(WHATSAPP_URL, "_blank", "noopener"); else if (window.alert) window.alert("O link do grupo ainda não foi configurado."); },
@@ -1307,7 +1345,7 @@ const ACT = {
     const win = S.vtab === "win";
     S.history.forEach(f => { const p = vipPick(f), fin = finalOf(f); if (!p || !fin) return; const w = p.side === "h" ? fin.h > fin.a : fin.a > fin.h; if (w === win) vHid.add(f.id); }); saveVHid(); render();
   },
-  renew: (d, el) => { if (!adminOnly()) return; const sel = el.parentNode.querySelector("select"), n = +(sel && sel.value); if (!VDAYS.includes(n)) return; allowSave(d.e, { days: n }, `VIP de ${d.e} definido para ${n} ${dword(n)}.`); },
+  renew: (d, el) => { if (!adminOnly()) return; const sel = el.parentNode.querySelector("select"), n = +(sel && sel.value); if (!VDAYS.includes(n)) return; allowSave(d.e, { days: n }, d.on === "1" ? `Adicionados ${n} ${dword(n)} ao VIP de ${d.e}.` : `VIP de ${d.e} definido para ${n} ${dword(n)}.`); },
   rmallow: d => {
     const me = adminOnly(); if (!me) return;
     if (API_URL){ api("admin/unallow", { email: d.e }).then(r => { S.soc.amsg = r.ok ? "VIP removido." : "!" + (r.error || "Erro."); refreshAdmin(); render(); }); return; }
@@ -1347,7 +1385,7 @@ function allowSave(email, o, okMsg){
     const a0 = allowOf(email); if (a0 && a0.exp > now && a0.by !== me.email) return msg("!Este utilizador já tem VIP.");
   }
   let a = allowOf(email); if (!a){ a = { email, exp: 0, by: "", created: now }; DBc.allow.push(a); }
-  a.exp = now + o.days * DAYMS; a.by = me.admin ? "" : me.email;
+  a.exp = Math.max(a.exp || 0, now) + o.days * DAYMS; a.by = me.admin ? "" : me.email;
   saveDB(); msg(okMsg || "Guardado.");
 }
 function vipAll(days){ // só o principal; só quem ainda não tem VIP
@@ -1495,7 +1533,7 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 window.addEventListener("online", load);
 // transições automáticas: começa -> Ao vivo, termina -> Histórico (sem precisar de atualizar a página)
 const stateSig = () => { reclassify(); return dayKey(new Date().toISOString()) + "|" + S.fixtures.map(f => f.id + f.status + f.home_goals + f.away_goals + "").join(",") + "|" + S.history.length; };
-const AUTO_VIEWS = ["home", "comp", "cal", "fav", "hist", "vip"];
+const AUTO_VIEWS = ["home", "comp", "cal", "fav", "hist", "vip", "svip"];
 let lastSig = "";
 const checkState = () => { if (!cur()) return; const g = stateSig(); const first = lastSig === ""; if (g !== lastSig){ lastSig = g; if (!first && AUTO_VIEWS.includes(S.view)) render(); } };
 setInterval(checkState, 15000);
