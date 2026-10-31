@@ -1,0 +1,52 @@
+name: Criar aplicativo Android
+on:
+  workflow_dispatch:
+  push:
+    paths: ["package.json", "capacitor.config.json", "error.html", ".github/workflows/android.yml", "assets/**", "*.png", "*.jpg", "*.jpeg", "*.webp"]
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "17" }
+      - name: Preparar o aplicativo
+        run: |
+          mkdir -p www
+          cp index.html www/index.html
+          cp error.html www/error.html
+      - run: npm install
+      - run: npx cap add android
+      - name: Aplicar o ícone
+        run: |
+          echo "Imagens encontradas no repositório:"
+          find . -maxdepth 2 -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \) -not -path './node_modules/*' -not -path './android/*' -not -path './www/*'
+          # 1) nomes certos; 2) qualquer imagem com icon/ícon/logo no nome; 3) qualquer imagem na pasta assets
+          SRC=""
+          for f in assets/icon.png assets/icon.jpg assets/icon.jpeg assets/icon.webp icon.png icon.jpg icon.jpeg logo.png logo.jpg; do [ -f "$f" ] && SRC="$f" && break; done
+          [ -z "$SRC" ] && SRC=$(find . -maxdepth 2 -type f \( -iname '*icon*' -o -iname '*ícon*' -o -iname '*logo*' \) \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \) -not -path './node_modules/*' -not -path './android/*' -not -path './www/*' | head -1)
+          [ -z "$SRC" ] && SRC=$(ls assets/*.png assets/*.jpg assets/*.jpeg assets/*.webp 2>/dev/null | head -1)
+          [ -z "$SRC" ] && SRC=$(ls ./*.png ./*.jpg ./*.jpeg ./*.webp 2>/dev/null | head -1)
+          if [ -z "$SRC" ]; then echo "ERRO: não encontrei nenhuma imagem de ícone. Põe a imagem com o nome icon.png na pasta principal do repositório."; exit 1; fi
+          echo "Ícone usado: $SRC"
+          IM=convert; command -v convert >/dev/null || IM="magick"
+          RES=android/app/src/main/res
+          rm -rf $RES/mipmap-anydpi-v26 $RES/drawable-v24/ic_launcher_foreground.xml
+          for d in mdpi:48 hdpi:72 xhdpi:96 xxhdpi:144 xxxhdpi:192; do
+            n=${d%%:*}; px=${d##*:}; mkdir -p $RES/mipmap-$n
+            for name in ic_launcher ic_launcher_round ic_launcher_foreground; do
+              $IM "$SRC" -resize ${px}x${px}^ -gravity center -background none -extent ${px}x${px} PNG32:$RES/mipmap-$n/$name.png
+            done
+          done
+          ls -la $RES/mipmap-xxxhdpi/
+          echo "Ícones criados."
+      - run: npx cap sync android
+      - name: Construir o APK
+        run: cd android && chmod +x gradlew && ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Elephalpit-Bet-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
