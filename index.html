@@ -167,7 +167,7 @@ dialog::backdrop{background:#0009}
 .bar span{display:block;height:100%;width:0;background:var(--blue2);animation:bar linear forwards}
 @keyframes bar{to{width:100%}}
 @keyframes fi{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-main.fi{animation:fi .1s ease}
+main.fi{animation:none}
 #off{position:fixed;inset:0;z-index:1000;background:#000;color:#fff;display:none;align-items:center;justify-content:center;text-align:center;font-size:24px;font-weight:700;padding:24px}
 #off.on{display:flex}
 /* Sim/Não com percentagem */
@@ -735,10 +735,10 @@ function vipView(kind){
   const days = dayList().slice(0, vipDays(u));
   if (!days.some(d => d.key === S.vday)) S.vday = days[0].key;
   const today = dayKey(new Date().toISOString());
-  const all = S.fixtures.filter(f => !["PST", "CANC"].includes(f.status) && !isDone(f.status) && dayKey(f.kickoff_utc) >= today && pk(f));
+  const all = S.fixtures.filter(f => !["PST", "CANC"].includes(f.status) && !isDone(f.status) && (isLive(f.status) || dayKey(f.kickoff_utc) >= today) && pk(f));
   const count = new Map(); all.forEach(f => { const k = dayKey(f.kickoff_utc); count.set(k, (count.get(k) || 0) + 1); });
   const strip = days.map(d => `<button class="dy" data-vday="${esc(d.key)}" aria-pressed="${S.vday === d.key}"><span>${esc(d.wd)}</span><b>${esc(d.dn)}</b><em class="mo">${esc(d.mo)}</em><i class="${count.get(d.key) ? "has" : ""}"></i></button>`).join("");
-  const list = all.filter(f => dayKey(f.kickoff_utc) === S.vday).sort((a, b) => (a.competitions?.name ?? "").localeCompare(b.competitions?.name ?? "") || a.kickoff_utc.localeCompare(b.kickoff_utc));
+  const list = all.filter(f => (isLive(f.status) && dayKey(f.kickoff_utc) < today ? today : dayKey(f.kickoff_utc)) === S.vday).sort((a, b) => (a.competitions?.name ?? "").localeCompare(b.competitions?.name ?? "") || a.kickoff_utc.localeCompare(b.kickoff_utc));
   return tabs() + `<div class="stripw"><div class="strip" id="vstrip">${strip}</div></div>${msgHtml()}` +
     (list.length ? grp(list) : `<div class="empty">Sem jogos para o ${sup ? "Super VIP" : "VIP"}</div>`);
 }
@@ -750,7 +750,7 @@ function vipGrouped(list, hist, min = VIP_MIN){
     if (c !== lc){ h += `<div class="cn">${esc(c)}${f.competitions?.country ? " · " + esc(f.competitions.country) : ""}</div>`; lc = c; }
     const p = vipPick(f, min), fin = hist ? finalOf(f) : null;
     const mark = fin ? ((p.side === "h" ? fin.h > fin.a : fin.a > fin.h) ? ` <span style="color:var(--ok)">✓</span>` : ` <span style="color:var(--bad)">✗</span>`) : "";
-    h += matchCard(f).replace(/<div class="meta"><span>(<span class="st[^>]*>[^<]*<\/span>)<\/span>/, `<div class="meta"><span style="font-weight:700;color:var(--ink)">${esc(p.team)} vitória: ${p.pct}%${mark}</span>`);
+    h += matchCard(f).replace(/<div class="meta"><span>(<span class="st[^>]*>[^<]*<\/span>)<\/span>/, (m, badge) => `<div class="meta"><span style="font-weight:700;color:var(--ink)">${isLive(f.status) ? badge + " " : ""}${esc(p.team)} vitória: ${p.pct}%${mark}</span>`);
   }
   return h;
 }
@@ -1462,11 +1462,10 @@ setInterval(() => { reloadDB(); if (!cur() && S.soc.was) render(); }, 3000);
 window.addEventListener("storage", e => { if (e.key === DBK || e.key === SESK){ reloadDB(); if (!cur()){ if (S.soc.was) render(); } else if (!S.soc.was) render(); } });
 
 /* ---------- Navegação e eventos ---------- */
-const TRANSITION_MS = 100; // transição entre ecrãs: 0,10 s
+const TRANSITION_MS = 0; // transição entre ecrãs: 0 segundos (instantânea)
 let busyTimer = null;
 function startBusy(){
-  S.busy = true; S.fade = false; clearTimeout(busyTimer);
-  busyTimer = setTimeout(() => { S.busy = false; S.fade = true; render(); window.scrollTo && window.scrollTo(0, 0); }, TRANSITION_MS);
+  clearTimeout(busyTimer); S.busy = false; S.fade = false; // sem espera nem animação entre ecrãs
 }
 const loaderHtml = () => `<div class="ldr" role="status" aria-live="polite"></div>`;
 function go(view, compId){
