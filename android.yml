@@ -21,6 +21,11 @@ jobs:
       - run: npm install
       - run: npx cap add android
       - run: npx cap sync android
+      - name: Ligar o AdMob ao aplicativo
+        run: |
+          MAN=android/app/src/main/AndroidManifest.xml
+          grep -q 'com.google.android.gms.ads.APPLICATION_ID' $MAN || sed -i 's#</application>#    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-6879431019562494~1623114911"/>\n    </application>#' $MAN
+          grep -n 'APPLICATION_ID' $MAN || { echo "ERRO: não consegui ligar o AdMob ao AndroidManifest."; exit 1; }
       - name: Aplicar o ícone
         run: |
           echo "Imagens encontradas no repositório:"
@@ -56,6 +61,11 @@ jobs:
         run: |
           AAPT=$(ls $ANDROID_HOME/build-tools/*/aapt2 2>/dev/null | tail -1)
           [ -n "$AAPT" ] && $AAPT dump badging android/app/build/outputs/apk/debug/app-debug.apk | grep -E "application-icon|launchable-activity" || echo "(aapt2 não encontrado)"
+      - name: Confirmar o AdMob dentro do APK
+        run: |
+          AAPT=$(ls $ANDROID_HOME/build-tools/*/aapt2 | tail -1)
+          $AAPT dump xmltree --file AndroidManifest.xml android/app/build/outputs/apk/debug/app-debug.apk > m.txt
+          grep -A1 'gms.ads.APPLICATION_ID' m.txt || { echo "ERRO: o APK nao tem o ID do AdMob. O aplicativo fecharia ao abrir."; exit 1; }
       - uses: actions/upload-artifact@v4
         with:
           name: Elephalpit-Bet-APK
