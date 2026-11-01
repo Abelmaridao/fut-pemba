@@ -21,11 +21,6 @@ jobs:
       - run: npm install
       - run: npx cap add android
       - run: npx cap sync android
-      - name: Ligar o AdMob ao aplicativo
-        run: |
-          MAN=android/app/src/main/AndroidManifest.xml
-          grep -q 'com.google.android.gms.ads.APPLICATION_ID' $MAN || sed -i 's#</application>#    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-6879431019562494~1623114911"/>\n    </application>#' $MAN
-          grep -n 'APPLICATION_ID' $MAN || { echo "ERRO: não consegui ligar o AdMob ao AndroidManifest."; exit 1; }
       - name: Aplicar o ícone
         run: |
           echo "Imagens encontradas no repositório:"
