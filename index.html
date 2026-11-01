@@ -727,7 +727,7 @@ function vipTabs(sup){
 function vipView(kind){
   const sup = kind === "svip", pk = f => vipPick(f, sup ? SUP_MIN : VIP_MIN), tabs = () => vipTabs(sup), grp = (l, h) => vipGrouped(l, h, sup ? SUP_MIN : VIP_MIN);
   const u = cur(); if (kind === "svip" && !(u && u.admin)){ S.view = "home"; return homeView(); }
-  if (!u || !canVip(u)) return `<div class="empty" style="font-weight:800;color:var(--ink);font-size:18px">NÃO TENS ACESSO AO VIP</div>` + (rwWanted() ? `<button class="btn" style="display:block;margin:6px auto;font-size:18px;padding:14px 22px;background:#00897b;color:#fff" data-s="rwd">${esc(rwLabel())}</button>` : "");
+  if (!u || !canVip(u)) return `<div class="empty" style="font-weight:800;color:var(--ink);font-size:18px">NÃO TENS ACESSO AO VIP</div>`;
   if (S.vtab === "res"){
     const won = f => { const fin = finalOf(f), p = pk(f); return fin ? (p.side === "h" ? fin.h > fin.a : fin.a > fin.h) : null; };
     const fin = S.history.filter(f => pk(f) && won(f) !== null); // análises VIP já terminadas (todos os 7 dias, sem depender do dia de criação da conta)
@@ -813,7 +813,7 @@ function drawerHtml(){
   if (!S.drawer){ if (!S.search && !S.lg) $("ov").innerHTML = ""; return; }
   const dark = isDark(), u = cur(), B = "width:100%;font-size:18px;padding:14px;margin-bottom:8px";
   const top = u ? `<div class="mrow">${avatar(u, 44)}<b>${esc(u.name)}</b></div>
-    ${isAdm(u) ? `<button class="btn" style="${B};background:#d32f2f;color:#fff" data-s="admin">Painel</button>` : ""}<button class="btn" style="${B};background:#ffd600;color:#1b1500" data-s="vip">VIP</button>${rwWanted() ? `<button class="btn" style="${B};background:#00897b;color:#fff" data-s="rwd">${esc(rwLabel())}</button>` : ""}${u.admin ? `<button class="btn" style="${B};background:linear-gradient(135deg,#f7dc7e,#d4af37 50%,#a67c00);color:#2a1d00" data-s="svip">Super VIP</button>` : ""}` : "";
+    ${isAdm(u) ? `<button class="btn" style="${B};background:#d32f2f;color:#fff" data-s="admin">Painel</button>` : ""}<button class="btn" style="${B};background:#ffd600;color:#1b1500" data-s="vip">VIP</button>${u.admin ? `<button class="btn" style="${B};background:linear-gradient(135deg,#f7dc7e,#d4af37 50%,#a67c00);color:#2a1d00" data-s="svip">Super VIP</button>` : ""}` : "";
   $("ov").innerHTML = `<div class="ov" data-act="close"><div class="drawer" role="dialog" aria-label="Menu">${top}
     <button class="btn" style="${B};${dark ? "background:#fff;color:#000;border:1px solid #999" : "background:#000;color:#fff;border:1px solid #777"}" data-act="toggle" aria-pressed="${dark}">${dark ? "☀️ Modo claro" : "🌙 Modo escuro"}</button>
     <button class="btn" style="${B};background:#1fa463" data-s="wa">WhatsApp</button>
@@ -1346,7 +1346,6 @@ const ACT = {
   svip: () => { reloadDB(); if (cur() && cur().admin){ S.vtab = "vip"; go("svip"); } },
   vtab: d => { S.vtab = d.v; render(); },
   vwday: d => { S.vwday = d.k; render(); },
-  rwd: () => rwWatch(),
   upd: () => { if (S.upd === "busy") return; if (S.upd === "ok"){ checkUpdate().then(() => { if (S.upd === "new") doUpdate(); }); return; } doUpdate(); },
   wa: () => { if (WHATSAPP_URL) window.open(WHATSAPP_URL, "_blank", "noopener"); else if (window.alert) window.alert("O link do grupo ainda não foi configurado."); },
   vdel: d => { if (window.confirm && !window.confirm("Remover este jogo do histórico VIP para sempre?")) return; vHid.add(d.id); saveVHid(); render(); },
@@ -1538,45 +1537,6 @@ document.addEventListener("change", e => {
   if (e.target.id === "fcomp"){ S.comp = e.target.value; render(); }
 });
 
-
-/* ---------- VIP por anúncios (AdMob premiados): 6 anúncios vistos = +1 dia de VIP. Só no aplicativo Android. ---------- */
-const ADS = { test: true, // true = anúncios de TESTE (seguro). Passa a false só depois de confirmares que tudo funciona
-  reward: "ca-app-pub-6879431019562494/7461594488" }; // teu bloco "Premiados"
-const ADM = () => (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform() && Capacitor.Plugins && Capacitor.Plugins.AdMob) || null;
-const pause = ms => new Promise(r => setTimeout(r, ms));
-S.rw = { n: 0, left: 30, total: 0, note: "", busy: false };
-let rwInit = null, rwGot = false, rwTimer = null;
-const rwWanted = () => { const u = cur(); return !!u && !u.admin && !!API_URL; };
-function rwLabel(){ const u = cur(); return S.rw.note || ((u && canVip(u) ? "Ganhar mais VIP" : "Ganhar VIP") + ` (${S.rw.n}/6)`); }
-function rwNote(t, ms){ S.rw.note = t; clearTimeout(rwTimer); if (ms) rwTimer = setTimeout(() => { S.rw.note = ""; render(); }, ms); render(); }
-async function rwStatus(){ if (!rwWanted()) return; const r = await api("reward/status"); if (r.ok){ S.rw.n = r.n; S.rw.left = r.left; S.rw.total = r.total; render(); } }
-async function rwWatch(){
-  const A = ADM(), u = cur(); if (!rwWanted() || S.rw.busy) return;
-  if (!A){ rwNote("Só no aplicativo Android.", 3500); return; }
-  if (S.rw.left <= 0){ rwNote("Limite de hoje atingido. Volta amanhã.", 4000); return; }
-  S.rw.busy = true; rwNote("A carregar anúncio…");
-  try {
-    if (!rwInit){ rwInit = A.initialize({ initializeForTesting: ADS.test }); try { A.addListener("onRewardedVideoAdReward", () => { rwGot = true; }); } catch (e) {} }
-    await rwInit; rwGot = false;
-    await A.prepareRewardVideoAd({ adId: ADS.reward, isTesting: ADS.test, ssv: { userId: u.id, customData: "eb" } });
-    await A.showRewardVideoAd();
-    await pause(800);
-    if (!rwGot){ rwNote("Vê o anúncio até ao fim para receber.", 4000); S.rw.busy = false; return; }
-    rwNote("A confirmar…");
-    const before = S.rw.n, t0 = S.rw.total;
-    await api("reward/claim"); // só conta se o servidor estiver em modo de teste; normalmente a confirmação vem do AdMob
-    for (let k = 0; k < 8; k++){
-      await pause(1500); const r = await api("reward/status");
-      if (r.ok && r.total > t0){
-        S.rw.n = r.n; S.rw.left = r.left; S.rw.total = r.total; await checkSession();
-        rwNote(r.n < before ? "VIP +1 dia recebido!" : `Anúncio contado (${r.n}/6)`, 4500); S.rw.busy = false; return;
-      }
-    }
-    rwNote("Ainda sem confirmação. Tenta de novo daqui a pouco.", 4500);
-  } catch (e) { rwNote("Anúncio indisponível. Tenta de novo.", 4000); }
-  S.rw.busy = false;
-}
-setInterval(() => { if (rwWanted() && !S.rw.busy) rwStatus(); }, 30000); setTimeout(rwStatus, 1500);
 
 // ---- actualização do aplicativo: compara o index.html que está aberto com a versão mais recente no GitHub ----
 S.upd = "x"; // "ok" = actualizado · "new" = há versão nova · "x" = ainda não confirmado · "busy" · "off"
