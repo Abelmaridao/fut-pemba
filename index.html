@@ -21,7 +21,7 @@ header.top{position:sticky;top:0;z-index:5;background:var(--hdr);color:#fff;disp
 .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:20px;letter-spacing:.2px}
 .brand em{font-style:normal;color:#9cc9ff}
 .mark{width:30px;height:30px;border-radius:50%;background:#fff;color:var(--blue);display:grid;place-items:center;font-size:18px}
-main{max-width:760px;margin:0 auto;padding:12px 12px calc(88px + env(safe-area-inset-bottom,0px))}
+main{max-width:760px;margin:0 auto;padding:12px 12px calc(88px + var(--adh,0px) + env(safe-area-inset-bottom,0px))}
 .ttl{font-size:24px;text-align:center;margin:8px 0 12px}
 .sub{color:var(--mute);font-size:14px;margin:0 0 8px;text-align:center}
 .comp{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:8px}
@@ -61,12 +61,12 @@ select,input[type=search],input[type=text],input[type=email],input[type=password
 .btn[disabled]{opacity:.5}
 .fav{background:none;border:0;font-size:22px;color:var(--amber);line-height:1}
 .empty{text-align:center;color:var(--mute);padding:36px 12px}
-nav.bot{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--hdr);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 2px calc(6px + env(safe-area-inset-bottom,0px))}
+nav.bot{position:fixed;left:0;right:0;bottom:var(--adh,0px);z-index:5;background:var(--hdr);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 2px calc(6px + env(safe-area-inset-bottom,0px))}
 nav.bot button{position:relative;background:none;border:0;color:#cfe1fb;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;padding:4px 1px}
 nav.bot button[aria-current=page]{color:#fff;font-weight:800}
 nav.bot svg{width:26px;height:26px}
 .ov{position:fixed;inset:0;z-index:20;background:#0009;display:flex}
-.drawer{background:var(--card);width:min(320px,86vw);height:100%;padding:calc(16px + env(safe-area-inset-top,0px)) 16px 16px;overflow:auto}
+.drawer{background:var(--card);width:min(320px,86vw);height:100%;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + var(--adh,0px));overflow:auto}
 .drawer h3{margin:18px 0 8px}
 .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .seg button{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:10px 4px}
@@ -194,7 +194,7 @@ main.fi{animation:none}
 .match .btn{padding:6px 12px;font-size:14px}
 .match .btn[data-an]{min-width:132px;text-align:center}
 /* análise em ecrã inteiro */
-dialog:has(.dtop){background:var(--kbg);width:100%;max-width:none;height:100%;max-height:none;margin:0;border:0;border-radius:0;padding:0 14px 20px}
+dialog:has(.dtop){background:var(--kbg);width:100%;max-width:none;height:100%;max-height:none;margin:0;border:0;border-radius:0;padding:0 14px calc(20px + var(--adh,0px))}
 dialog:has(.dtop) > *:not(.dtop){max-width:560px;margin-left:auto;margin-right:auto}
 .dtop{position:sticky;top:0;z-index:2;background:var(--kbg);padding:10px 0;margin:0 -14px 6px;padding-right:10px;display:flex;justify-content:flex-end}
 .dtop form{margin:0}
@@ -256,7 +256,7 @@ const store = {
   get(k, d){ try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 };
-let S = { view: "home", compId: null, raw: [], rawHist: [], fixtures: [], history: [], hidden: new Set(store.get("hiddenHist", [])), leagues: [], lastSync: null, lastFinal: null, msg: null, loading: true, tab: "all", comp: "", day: "",
+let S = { hday: "all", view: "home", compId: null, raw: [], rawHist: [], fixtures: [], history: [], hidden: new Set(store.get("hiddenHist", [])), leagues: [], lastSync: null, lastFinal: null, msg: null, loading: true, tab: "all", comp: "", day: "",
   tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
   theme: store.get("theme", "auto"), drawer: false, search: false, q: "",
   na: { home: "", away: "", league: "" }, favs: store.get("favSearch", []), ext: null };
@@ -658,11 +658,28 @@ function finalOf(f){
 }
 function histList(){ return S.history; }
 const createdKey = u => dayKey(new Date((u && u.created) || 0).toISOString());
+function histOk(f){ // true = acertou, false = falhou, null = sem análise ou jogo do VIP (igual ao ✓/✗ do cartão)
+  if (!(f.home_goals != null && f.away_goals != null && isDone(f.status) && f.analysis && (!vipPick(f) || vipOpen(f) || vipLost(f)))) return null;
+  try { const fin = finalOf(f), sec = sections(f.analysis.result, { h: f.home_team, a: f.away_team })[0]; return sec && fin ? groupHit(sec.groups[0], fin) : null; } catch (e) { return null; }
+}
+function histStat(arr){ let w = 0, l = 0; arr.forEach(f => { const o = histOk(f); if (o === true) w++; else if (o === false) l++; }); const n = w + l; return { w, l, n, pw: n ? Math.round(w / n * 100) : 0, pl: n ? 100 - Math.round(w / n * 100) : 0 }; }
 function histView(){
   const ck = createdKey(cur()), list = histList().filter(f => dayKey(f.kickoff_utc) >= ck); // só jogos a partir do dia em que a conta foi criada
-  const top = list.length ? `<div class="row" style="justify-content:flex-end;margin:0 0 10px"><button class="btn alt" data-act="clearhist">Limpar histórico</button></div>` : "";
-  return `${top}${updLine()}${msgHtml()}` + (list.length ? grouped(list, "hist")
-    : `<div class="empty">Ainda não há jogos terminados. Os jogos passam para aqui assim que terminam.</div>`);
+  const top = "";
+  const days = []; // calendário dos últimos 7 dias (hoje e os 6 anteriores)
+  for (let i = 0; i < 7; i++){
+    const d = new Date(Date.now() - i * 86400e3), dn = new Intl.DateTimeFormat("pt", { timeZone: S.tz, day: "numeric" }).format(d);
+    const wd = new Intl.DateTimeFormat("pt", { timeZone: S.tz, weekday: "short" }).format(d).replace(".", "");
+    const mo = (i === 0 || dn === "1") ? new Intl.DateTimeFormat("pt", { timeZone: S.tz, month: "short" }).format(d).replace(".", "") : "";
+    days.push({ key: dayKey(d.toISOString()), wd: wd.charAt(0).toUpperCase() + wd.slice(1), dn, mo });
+  }
+  if (!days.some(d => d.key === S.hday)) S.hday = (days.find(d => list.some(f => dayKey(f.kickoff_utc) === d.key)) || days[0]).key; // abre no dia mais recente com jogos
+  const cnt = new Map(); list.forEach(f => { const k = dayKey(f.kickoff_utc); cnt.set(k, (cnt.get(k) || 0) + 1); });
+  const strip = days.map(d => `<button class="dy" data-hday="${esc(d.key)}" aria-pressed="${S.hday === d.key}"><span>${esc(d.wd)}</span><b>${esc(d.dn)}</b><em class="mo">${esc(d.mo)}</em><i class="${cnt.get(d.key) ? "has" : ""}"></i></button>`).join("");
+  const shown = list.filter(f => dayKey(f.kickoff_utc) === S.hday);
+  const st = histStat(shown), sum = st.n ? `<div class="row" style="gap:8px;margin:0 0 10px"><div style="flex:1;text-align:center;border:1px solid var(--ok);color:var(--ok);border-radius:10px;padding:8px 4px;font-weight:800">Ganhos ${st.pw}%<div style="font-size:11px;font-weight:600">${st.w} ${st.w === 1 ? "jogo" : "jogos"}</div></div><div style="flex:1;text-align:center;border:1px solid var(--bad);color:var(--bad);border-radius:10px;padding:8px 4px;font-weight:800">Perdidos ${st.pl}%<div style="font-size:11px;font-weight:600">${st.l} ${st.l === 1 ? "jogo" : "jogos"}</div></div></div>` : "";
+  return `<h1 class="ttl">Histórico</h1><div class="stripw"><div class="strip" id="hstrip">${strip}</div></div>${sum}${top}${updLine()}${msgHtml()}` + (shown.length ? grouped(shown, "hist")
+    : `<div class="empty">${list.length ? "Sem jogos terminados neste dia." : "Ainda não há jogos terminados. Os jogos passam para aqui assim que terminam."}</div>`);
 }
 const favG = id => S.favs.some(x => x.id === "g:" + id);
 const favStar = f => isDone(f.status) ? "" : `<button type="button" class="fv" data-favgame="${esc(f.id)}" aria-label="${favG(f.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}" aria-pressed="${favG(f.id)}">${favG(f.id) ? "★" : "☆"}</button>`;
@@ -1485,7 +1502,7 @@ function go(view, compId){
 }
 window.addEventListener("popstate", e => { const s = e.state || { v: "home", c: null }; S.view = s.v; S.compId = s.c; S.drawer = false; S.search = false; S.lg = false; $("ov").innerHTML = ""; startBusy(); render(); window.scrollTo && window.scrollTo(0, 0); });
 document.addEventListener("click", e => {
-  const el = e.target.closest("[data-nav],[data-comp],[data-tab],[data-day],[data-vday],[data-an],[data-del],[data-favtoggle],[data-favgame],[data-favdel],[data-favopen],[data-act]"); if (!el) return;
+  const el = e.target.closest("[data-nav],[data-comp],[data-tab],[data-day],[data-vday],[data-hday],[data-an],[data-del],[data-favtoggle],[data-favgame],[data-favdel],[data-favopen],[data-act]"); if (!el) return;
   const d = el.dataset;
   if (d.act === "close"){ if (e.target !== el && el.classList.contains("ov") && e.target.closest(".drawer")) return; S.drawer = false; S.search = false; S.lg = false; $("ov").innerHTML = ""; return; }
   if (d.act === "leagues"){ S.lg = true; S.drawer = false; S.search = false; leaguesHtml(); return; }
@@ -1525,6 +1542,7 @@ document.addEventListener("click", e => {
   }
   if (d.del){ if (window.confirm && !window.confirm("Remover este jogo do histórico para sempre? Não dá para desfazer.")) return; S.hidden.add(d.del); store.set("hiddenHist", [...S.hidden]); return render(); }
   if (d.act === "toggle"){ setTheme(isDark() ? "light" : "dark"); return; }
+  if (d.hday){ const st = $("hstrip"), sc = st ? st.scrollLeft : 0; S.hday = d.hday; render(); const n = $("hstrip"); if (n) n.scrollLeft = sc; return; }
   if (d.vday){ const st = $("vstrip"), sc = st ? st.scrollLeft : 0; S.vday = d.vday; render(); const n = $("vstrip"); if (n) n.scrollLeft = sc; return; }
   if (d.day){ const st = $("strip"), sc = st ? st.scrollLeft : 0; S.day = d.day; render(); const n = $("strip"); if (n) n.scrollLeft = sc; return; }
   if (d.nav) return go(d.nav);
@@ -1536,6 +1554,7 @@ document.addEventListener("input", e => { const k = ({ "na-home": "home", "na-aw
 document.addEventListener("change", e => {
   if (e.target.id === "fcomp"){ S.comp = e.target.value; render(); }
 });
+
 
 // ---- actualização do aplicativo: compara o index.html que está aberto com a versão mais recente no GitHub ----
 S.upd = "x"; // "ok" = actualizado · "new" = há versão nova · "x" = ainda não confirmado · "busy" · "off"
