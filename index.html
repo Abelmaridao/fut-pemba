@@ -664,7 +664,7 @@ function histOk(f){ // true = acertou, false = falhou, null = sem análise ou jo
 }
 function histStat(arr){ let w = 0, l = 0; arr.forEach(f => { const o = histOk(f); if (o === true) w++; else if (o === false) l++; }); const n = w + l; return { w, l, n, pw: n ? Math.round(w / n * 100) : 0, pl: n ? 100 - Math.round(w / n * 100) : 0 }; }
 function shareCard(id){
-  const f = [...S.fixtures, ...S.history].find(x => x.id === id); if (!f || !f.analysis || vipPick(f) || S.view === "vip" || S.view === "svip") return;
+  const f = [...S.fixtures, ...S.history].find(x => x.id === id); if (!f || !f.analysis || vipPick(f) || S.view === "vip" || S.view === "svip" || S.view === "comb") return;
   const r = f.analysis.result, R = r.result || {}, h = R.home || 0, d = R.draw || 0, a = R.away || 0;
   const dc = [[h + d, `${f.home_team} ou Empate`], [d + a, `Empate ou ${f.away_team}`], [h + a, `${f.home_team} ou ${f.away_team}`]].sort((x, y) => y[0] - x[0])[0];
   const W = 1080, H = 1350, c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
@@ -831,7 +831,79 @@ function goBack(){
   S.view = "home"; S.compId = null; try { history.replaceState({ v: "home", c: null, i: 0 }, ""); } catch {}
   startBusy(); render(); window.scrollTo && window.scrollTo(0, 0);
 }
-function view(){ return ({ vip: () => vipView("vip"), svip: () => vipView("svip"), aviso: avisoView, home: homeView, comp: compView, tips: tipsView, cal: calView, fav: favView, hist: histView, taxa: taxaView,
+/* ---------- Combinação (só administrador): ficha com 2 análises por jogo ---------- */
+const CB_PARTES = 70, CB_GOLOS = 82; // mínimos: "Marca duas partes" 70% e "Mais de 1,5 golos" 82%
+function cbPick(f){
+  const an = f.analysis, r = an && !an.generic ? an.result : null;
+  if (!r || !r.bothHalves || !r.totals) return null;
+  const h = r.bothHalves.home?.yes, a = r.bothHalves.away?.yes, g = r.totals.over_1_5;
+  if (![h, a, g].every(Number.isFinite)) return null;
+  const hp = Math.round(h * 100), ap = Math.round(a * 100), gp = Math.round(g * 100);
+  // "Marca duas partes": Sim ou Não de cada equipa; fica a opção com a maior percentagem
+  const opts = [{ side: "h", v: "Sim", p: hp }, { side: "h", v: "Não", p: 100 - hp }, { side: "a", v: "Sim", p: ap }, { side: "a", v: "Não", p: 100 - ap }];
+  const best = opts.reduce((m, x) => (x.p > m.p ? x : m), opts[0]);
+  if (best.p < CB_PARTES || gp < CB_GOLOS) return null; // os dois mínimos têm de se cumprir no mesmo jogo
+  return { team: best.side === "h" ? f.home_team : f.away_team, side: best.side, v: best.v, p: best.p, g: gp };
+}
+function cbRes(f){ // {b: marca nas duas partes, g: mais de 1,5} -> true/false/null
+  const p = cbPick(f), fin = p && isDone(f.status) ? finalOf(f) : null; if (!fin) return { b: null, g: null };
+  const noHt = fin.hh == null || fin.ah == null;
+  const sc = noHt ? null : (p.side === "h" ? fin.hh > 0 && fin.h - fin.hh > 0 : fin.ah > 0 && fin.a - fin.ah > 0);
+  const b = sc === null ? null : (p.v === "Sim" ? sc : !sc);
+  return { b, g: fin.h + fin.a >= 2 };
+}
+function cbOk(f){ const r = cbRes(f); if (r.b === false || r.g === false) return false; return r.b === null || r.g === null ? null : true; }
+function cbCard(f, hist){
+  const p = cbPick(f), fin = hist ? finalOf(f) : null, r = hist ? cbRes(f) : { b: null, g: null }, ok = hist ? cbOk(f) : null;
+  const logo = u => u ? `<img src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : "";
+  const dot = o => !hist ? "<span></span>" : `<span class="dot ${o === true ? "g" : o === false ? "r" : "n"}" role="img" aria-label="${o === true ? "Acertou" : o === false ? "Falhou" : "Sem dados para avaliar"}"></span>`;
+  const row = (l, n, o, v) => `<div class="rp${v ? " wd" : ""}"><span>${esc(l)}</span>${v ? `<b class="v">${esc(v)}</b>` : ""}<span class="trk"><span style="width:${n}%"></span></span><strong>${n}%</strong>${dot(o)}</div>`;
+  const top = f.time_confirmed ? `${dayKey(f.kickoff_utc)} ${fmtHour(f.kickoff_utc)}` : `${dayKey(f.kickoff_utc)} · hora por confirmar`;
+  const mk = ok === null || !hist ? "" : `<div class="mk" style="color:var(${ok ? "--ok" : "--bad"})" aria-label="${ok ? "Acertou" : "Falhou"}">${ok ? "✓" : "✗"}</div>`;
+  return `<article class="match"><div class="dt">${esc(top)}</div><div class="teams">
+    <div class="t">${logo(f.home_logo)}<span>${esc(f.home_team)}</span></div><div class="vsw"><div class="vs">${fin ? `${fin.h} - ${fin.a}` : "vs"}</div>${mk}</div>
+    <div class="t r"><span>${esc(f.away_team)}</span>${logo(f.away_logo)}</div></div>
+    <div style="margin:8px 0 2px">${row(`${p.team}: Marca duas partes`, p.p, r.b, p.v)}${row("Mais de 1,5 golos", p.g, r.g)}</div>
+    <div class="meta"><span><span class="st ${isLive(f.status) ? "live" : ""}">${esc(STATUS[f.status] ?? f.status)}</span></span>
+    ${fin ? `<span class="row"><button class="btn" data-an="${esc(f.id)}">Ver estatísticas</button></span>` : ""}</div></article>`;
+}
+function cbGrouped(list, hist){
+  let h = "", lc = "", ld = "";
+  for (const f of list){
+    if (hist){ const d = dayKey(f.kickoff_utc); if (d !== ld){ h += `<h2 class="day">${esc(fmtDay(f.kickoff_utc))}</h2>`; ld = d; lc = ""; } }
+    const c = f.competitions?.name ?? "Outros";
+    if (c !== lc){ h += `<div class="cn">${esc(c)}${f.competitions?.country ? " · " + esc(f.competitions.country) : ""}</div>`; lc = c; }
+    h += cbCard(f, hist);
+  }
+  return h;
+}
+function combView(){
+  const u = cur(); if (!(u && u.admin)){ S.view = "home"; return homeView(); }
+  const t = S.ctab === "hist" ? "hist" : "now", b = (v, l) => `<button type="button" class="vtb" data-s="ctab" data-v="${v}" aria-pressed="${t === v}">${l}</button>`;
+  const tabs = `<div class="vtabs">${b("now", "Combinação")}${b("hist", "Histórico")}</div>`;
+  const dayBtn = (d, attr, on, has) => `<button class="dy" ${attr} aria-pressed="${on}"><span>${esc(d.wd)}</span><b>${esc(d.dn)}</b><em class="mo">${esc(d.mo)}</em><i class="${has ? "has" : ""}"></i></button>`;
+  if (t === "hist"){
+    const fin = S.history.filter(f => cbPick(f) && finalOf(f));
+    const past = pastDays(7); if (!past.some(d => d.key === S.cwday)) S.cwday = past[past.length - 1].key;
+    const cnt = new Map(); fin.forEach(f => { const k = dayKey(f.kickoff_utc); cnt.set(k, (cnt.get(k) || 0) + 1); });
+    const strip = past.map(d => dayBtn(d, `data-s="cwday" data-k="${esc(d.key)}"`, S.cwday === d.key, cnt.get(d.key))).join("");
+    const day = fin.filter(f => dayKey(f.kickoff_utc) === S.cwday), oks = day.map(cbOk), w = oks.filter(o => o === true).length, l = oks.filter(o => o === false).length, n = w + l, pc = x => n ? Math.round(x * 100 / n) : 0;
+    const stat = n ? `<div class="stat" style="grid-template-columns:repeat(2,1fr)"><div><b style="color:var(--ok)">${pc(w)}%</b>Ganhos (${w})</div><div><b style="color:var(--bad)">${100 - pc(w)}%</b>Perdidos (${l})</div></div>` : "";
+    const list = day.slice().sort((a, b2) => b2.kickoff_utc.localeCompare(a.kickoff_utc));
+    return tabs + `<div class="stripw"><div class="strip">${strip}</div></div>` + stat + msgHtml() + (list.length ? cbGrouped(list, true) : `<div class="empty">Sem combinações terminadas neste dia.</div>`);
+  }
+  const days = dayList().slice(0, 7);
+  const today = dayKey(new Date().toISOString());
+  const all = S.fixtures.filter(f => !["PST", "CANC"].includes(f.status) && !isDone(f.status) && (isLive(f.status) || dayKey(f.kickoff_utc) >= today) && cbPick(f));
+  const dk = f => isLive(f.status) && dayKey(f.kickoff_utc) < today ? today : dayKey(f.kickoff_utc);
+  const cnt = new Map(); all.forEach(f => { const k = dk(f); cnt.set(k, (cnt.get(k) || 0) + 1); });
+  if (!days.some(d => d.key === S.cday)) S.cday = (days.find(d => cnt.has(d.key)) || days[0]).key; // abre no primeiro dia com jogos
+  const strip = days.map(d => dayBtn(d, `data-s="cday" data-k="${esc(d.key)}"`, S.cday === d.key, cnt.get(d.key))).join("");
+  const list = all.filter(f => dk(f) === S.cday).sort((a, b2) => (a.competitions?.name ?? "").localeCompare(b2.competitions?.name ?? "") || a.kickoff_utc.localeCompare(b2.kickoff_utc));
+  const head = list.length ? `<div class="card" style="text-align:center;font-weight:800">Ficha do dia · ${list.length} ${list.length === 1 ? "jogo" : "jogos"} · ${list.length * 2} análises</div>` : "";
+  return tabs + `<div class="stripw"><div class="strip">${strip}</div></div>` + msgHtml() + head + (list.length ? cbGrouped(list, false) : `<div class="empty">Nenhum jogo cumpre as duas regras neste dia.</div>`);
+}
+function view(){ return ({ comb: combView, vip: () => vipView("vip"), svip: () => vipView("svip"), aviso: avisoView, home: homeView, comp: compView, tips: tipsView, cal: calView, fav: favView, hist: histView, taxa: taxaView,
   admin: adminView })[S.view](); }
 function pruneFavs(){
   const keep = S.favs.filter(f => f.gid || Date.parse(f.kickoff_utc) >= Date.now() - 86400e3); // favoritos de jogos do app ficam até os removeres
@@ -875,7 +947,7 @@ function drawerHtml(){
   if (!S.drawer){ if (!S.search && !S.lg) $("ov").innerHTML = ""; return; }
   const dark = isDark(), u = cur(), B = "width:100%;font-size:18px;padding:14px;margin-bottom:8px";
   const top = u ? `<div class="mrow">${avatar(u, 44)}<b>${esc(u.name)}</b></div>
-    ${isAdm(u) ? `<button class="btn" style="${B};background:#d32f2f;color:#fff" data-s="admin">Painel</button>` : ""}<button class="btn" style="${B};background:#ffd600;color:#1b1500" data-s="vip">VIP</button>${u.admin ? `<button class="btn" style="${B};background:linear-gradient(135deg,#f7dc7e,#d4af37 50%,#a67c00);color:#2a1d00" data-s="svip">Super VIP</button>` : ""}` : "";
+    ${isAdm(u) ? `<button class="btn" style="${B};background:#d32f2f;color:#fff" data-s="admin">Painel</button>` : ""}<button class="btn" style="${B};background:#ffd600;color:#1b1500" data-s="vip">VIP</button>${u.admin ? `<button class="btn" style="${B};background:linear-gradient(135deg,#f7dc7e,#d4af37 50%,#a67c00);color:#2a1d00" data-s="svip">Super VIP</button><button class="btn" style="${B};background:linear-gradient(135deg,#3b82f6,#1e3a8a);color:#fff" data-s="comb">Combinação</button>` : ""}` : "";
   $("ov").innerHTML = `<div class="ov" data-act="close"><div class="drawer" role="dialog" aria-label="Menu">${top}
     <button class="btn" style="${B};${dark ? "background:#fff;color:#000;border:1px solid #999" : "background:#000;color:#fff;border:1px solid #777"}" data-act="toggle" aria-pressed="${dark}">${dark ? "☀️ Modo claro" : "🌙 Modo escuro"}</button>
     <button class="btn" style="${B};background:#1fa463" data-s="wa">WhatsApp</button>
@@ -1136,7 +1208,7 @@ async function openAnalysis(id){
   const find = () => [...S.fixtures, ...S.history].find(x => x.id === id);
   const paint = f => {
     const fb0 = isDone(f.status) ? "" : `<button type="button" class="btn alt" style="width:100%;margin:10px 0" data-favgame="${esc(f.id)}">${favG(f.id) ? "★ Remover dos favoritos" : "☆ Adicionar aos favoritos"}</button>`;
-    const fb = fb0 + (!vipPick(f) && S.view !== "vip" && S.view !== "svip" && f.analysis ? `<button type="button" class="btn alt" style="width:100%;margin:10px 0" data-shr="${esc(f.id)}">📤 Partilhar como imagem</button>` : ""); // nunca em jogos nem áreas VIP
+    const fb = fb0 + (!vipPick(f) && S.view !== "vip" && S.view !== "svip" && S.view !== "comb" && f.analysis ? `<button type="button" class="btn alt" style="width:100%;margin:10px 0" data-shr="${esc(f.id)}">📤 Partilhar como imagem</button>` : ""); // nunca em jogos nem áreas VIP
     const sc = dlg.scrollTop;
     dlg.innerHTML = analysisHtml(f.analysis || genericAn(f), f, fb, { min: S.view === "vip" ? 50 : S.view === "svip" ? SUP_ROWS : 0 }); dlg.dataset.gid = id; dlg.dataset.sig = JSON.stringify(f.analysis || 0).length + ":" + f.status; showRecent(f);
     if (sc) dlg.scrollTop = sc;
@@ -1407,6 +1479,10 @@ const ACT = {
   tipq: d => askAssistant(d.q),
   vip: () => { reloadDB(); if (cur()){ S.vtab = "vip"; go("vip"); } },
   svip: () => { reloadDB(); if (cur() && cur().admin){ S.vtab = "vip"; go("svip"); } },
+  comb: () => { reloadDB(); if (cur() && cur().admin){ S.ctab = "now"; go("comb"); } },
+  ctab: d => { S.ctab = d.v; render(); },
+  cday: d => { S.cday = d.k; render(); },
+  cwday: d => { S.cwday = d.k; render(); },
   vtab: d => { S.vtab = d.v; render(); },
   vwday: d => { S.vwday = d.k; render(); },
   upd: () => { if (S.upd === "busy") return; if (S.upd === "ok"){ checkUpdate().then(() => { if (S.upd === "new") doUpdate(); }); return; } doUpdate(); },
@@ -1628,7 +1704,7 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 window.addEventListener("online", load);
 // transições automáticas: começa -> Ao vivo, termina -> Histórico (sem precisar de atualizar a página)
 const stateSig = () => { reclassify(); return dayKey(new Date().toISOString()) + "|" + S.fixtures.map(f => f.id + f.status + f.home_goals + f.away_goals + "").join(",") + "|" + S.history.length; };
-const AUTO_VIEWS = ["home", "comp", "cal", "fav", "hist", "vip", "svip"];
+const AUTO_VIEWS = ["home", "comp", "cal", "fav", "hist", "vip", "svip", "comb"];
 let lastSig = "";
 const checkState = () => { if (!cur()) return; const g = stateSig(); const first = lastSig === ""; if (g !== lastSig){ lastSig = g; if (!first && AUTO_VIEWS.includes(S.view)) render(); } };
 setInterval(checkState, 15000);
