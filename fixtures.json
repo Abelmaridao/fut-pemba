@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-05T22:12:06.373Z",
-  "lastSuccessAt": "2026-11-05T22:12:06.373Z",
+  "generatedAt": "2026-11-05T22:45:25.075Z",
+  "lastSuccessAt": "2026-11-05T22:45:25.075Z",
   "lastFinalAt": "2026-11-05T22:12:06.373Z",
   "windowDays": 7,
   "leagues": [
@@ -73,7 +73,7 @@
       "name": "Brasileirão Série A",
       "country": "Brasil",
       "ok": true,
-      "count": 9,
+      "count": 8,
       "error": null
     },
     {
@@ -86,255 +86,6 @@
     }
   ],
   "matches": [
-    {
-      "id": "555073",
-      "competition_id": "BSA",
-      "competitions": {
-        "name": "Brasileirão Série A",
-        "country": "Brasil"
-      },
-      "home_team_id": 1772,
-      "away_team_id": 4364,
-      "home_team": "Chapecoense AF",
-      "away_team": "Mirassol FC",
-      "home_logo": "https://crests.football-data.org/1772_large.png",
-      "away_logo": "https://crests.football-data.org/4364.png",
-      "kickoff_utc": "2026-11-03T22:30:00.000Z",
-      "time_confirmed": true,
-      "status": "FT",
-      "home_goals": 1,
-      "away_goals": 2,
-      "home_ht": 1,
-      "away_ht": 1,
-      "analysis": {
-        "model_version": "poisson-v2",
-        "created_at": "2026-11-03T22:10:57.886Z",
-        "result": {
-          "ok": true,
-          "model": "poisson-v2",
-          "lambda": {
-            "home": 1.4505,
-            "away": 1.6266
-          },
-          "result": {
-            "home": 0.3425,
-            "draw": 0.2385,
-            "away": 0.419
-          },
-          "totals": {
-            "over_0_5": 0.9539,
-            "over_1_5": 0.8121,
-            "over_2_5": 0.5938,
-            "over_3_5": 0.37,
-            "under_1_5": 0.1879,
-            "under_2_5": 0.4062,
-            "under_3_5": 0.63
-          },
-          "btts": {
-            "yes": 0.615,
-            "no": 0.385
-          },
-          "halftime": {
-            "home": 0.2835,
-            "draw": 0.3851,
-            "away": 0.3314
-          },
-          "teamGoals": {
-            "home": {
-              "0": 0.2345,
-              "1": 0.3401,
-              "2": 0.2466,
-              "3+": 0.1788
-            },
-            "away": {
-              "0": 0.1966,
-              "1": 0.3198,
-              "2": 0.2601,
-              "3+": 0.2235
-            }
-          },
-          "exactScores": [
-            {
-              "score": "1-1",
-              "p": 0.1088
-            },
-            {
-              "score": "1-2",
-              "p": 0.0884
-            },
-            {
-              "score": "2-1",
-              "p": 0.0789
-            },
-            {
-              "score": "0-1",
-              "p": 0.075
-            },
-            {
-              "score": "1-0",
-              "p": 0.0669
-            }
-          ],
-          "productiveHalf": {
-            "first": 0.3151,
-            "draw": 0.2365,
-            "second": 0.4484
-          },
-          "bothHalves": {
-            "home": {
-              "yes": 0.2635,
-              "no": 0.7365
-            },
-            "away": {
-              "yes": 0.3069,
-              "no": 0.6931
-            }
-          },
-          "reach": {
-            "ge3": 0.5938,
-            "ge4": 0.37,
-            "ge5": 0.1978,
-            "ge6": 0.0919
-          },
-          "min10": {
-            "home": 0.1161,
-            "draw": 0.7526,
-            "away": 0.1313
-          },
-          "firstToScore": {
-            "home": 0.4497,
-            "away": 0.5042,
-            "none": 0.0461
-          },
-          "quality": {
-            "homeMatches": 12,
-            "awayMatches": 12,
-            "level": "boa"
-          }
-        }
-      },
-      "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
-      "source": "football-data.org",
-      "recent": {
-        "home": [
-          {
-            "h": "Bragantino",
-            "a": "Chapecoense",
-            "hg": 3,
-            "ag": 0,
-            "hl": "https://crests.football-data.org/4286.png",
-            "al": "https://crests.football-data.org/1772_large.png",
-            "side": "a",
-            "date": "2026-10-28T22:30:00Z"
-          },
-          {
-            "h": "Chapecoense",
-            "a": "Fluminense",
-            "hg": 2,
-            "ag": 1,
-            "hl": "https://crests.football-data.org/1772_large.png",
-            "al": "https://crests.football-data.org/1765.png",
-            "side": "h",
-            "date": "2026-10-24T22:30:00Z"
-          },
-          {
-            "h": "Botafogo",
-            "a": "Chapecoense",
-            "hg": 1,
-            "ag": 0,
-            "hl": "https://crests.football-data.org/1770.png",
-            "al": "https://crests.football-data.org/1772_large.png",
-            "side": "a",
-            "date": "2026-10-17T21:00:00Z"
-          },
-          {
-            "h": "Chapecoense",
-            "a": "Paranaense",
-            "hg": 1,
-            "ag": 4,
-            "hl": "https://crests.football-data.org/1772_large.png",
-            "al": "https://crests.football-data.org/1768.png",
-            "side": "h",
-            "date": "2026-10-12T22:30:00Z"
-          },
-          {
-            "h": "Vitória",
-            "a": "Chapecoense",
-            "hg": 4,
-            "ag": 0,
-            "hl": "https://crests.football-data.org/1782.png",
-            "al": "https://crests.football-data.org/1772_large.png",
-            "side": "a",
-            "date": "2026-10-07T23:00:00Z"
-          }
-        ],
-        "away": [
-          {
-            "h": "Corinthians",
-            "a": "Mirassol",
-            "hg": 2,
-            "ag": 0,
-            "hl": "https://crests.football-data.org/1779.png",
-            "al": "https://crests.football-data.org/4364.png",
-            "side": "a",
-            "date": "2026-10-30T23:00:00Z"
-          },
-          {
-            "h": "Mirassol",
-            "a": "São Paulo",
-            "hg": 1,
-            "ag": 1,
-            "hl": "https://crests.football-data.org/4364.png",
-            "al": "https://crests.football-data.org/1776.png",
-            "side": "h",
-            "date": "2026-10-24T19:30:00Z"
-          },
-          {
-            "h": "Mirassol",
-            "a": "Internacional",
-            "hg": 2,
-            "ag": 0,
-            "hl": "https://crests.football-data.org/4364.png",
-            "al": "https://crests.football-data.org/6684.png",
-            "side": "h",
-            "date": "2026-10-16T23:00:00Z"
-          },
-          {
-            "h": "Bahia",
-            "a": "Mirassol",
-            "hg": 1,
-            "ag": 0,
-            "hl": "https://crests.football-data.org/1777.png",
-            "al": "https://crests.football-data.org/4364.png",
-            "side": "a",
-            "date": "2026-10-11T22:30:00Z"
-          },
-          {
-            "h": "Bragantino",
-            "a": "Mirassol",
-            "hg": 1,
-            "ag": 1,
-            "hl": "https://crests.football-data.org/4286.png",
-            "al": "https://crests.football-data.org/4364.png",
-            "side": "a",
-            "date": "2026-10-07T22:30:00Z"
-          }
-        ],
-        "h2h": [
-          {
-            "h": "Mirassol",
-            "a": "Chapecoense",
-            "hg": 1,
-            "ag": 1,
-            "hl": "https://crests.football-data.org/4364.png",
-            "al": "https://crests.football-data.org/1772_large.png",
-            "side": "a",
-            "date": "2026-05-10T21:30:00Z"
-          }
-        ]
-      }
-    },
     {
       "id": "555076",
       "competition_id": "BSA",
@@ -463,7 +214,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -606,7 +357,7 @@
       "away_ht": 1,
       "analysis": null,
       "analysis_note": "Dados insuficientes: são precisos pelo menos 5 jogos recentes de cada equipa (tem 3 e 12).",
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -718,7 +469,7 @@
       "away_ht": 1,
       "analysis": null,
       "analysis_note": "Dados insuficientes: são precisos pelo menos 5 jogos recentes de cada equipa (tem 3 e 12).",
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -936,7 +687,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -1174,7 +925,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -1433,7 +1184,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -1545,7 +1296,7 @@
       "away_ht": 2,
       "analysis": null,
       "analysis_note": "Dados insuficientes: são precisos pelo menos 5 jogos recentes de cada equipa (tem 3 e 12).",
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -1688,7 +1439,7 @@
       "away_ht": 1,
       "analysis": null,
       "analysis_note": "Dados insuficientes: são precisos pelo menos 5 jogos recentes de cada equipa (tem 12 e 3).",
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -1926,7 +1677,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -2144,7 +1895,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -2362,7 +2113,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -2454,7 +2205,7 @@
       "away_ht": 1,
       "analysis": null,
       "analysis_note": "Dados insuficientes: são precisos pelo menos 5 jogos recentes de cada equipa (tem 3 e 3).",
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -2652,7 +2403,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -2890,7 +2641,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -3139,7 +2890,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -3398,7 +3149,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -3657,7 +3408,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -3803,9 +3554,9 @@
       "away_logo": "https://crests.football-data.org/4287.png",
       "kickoff_utc": "2026-11-05T22:30:00.000Z",
       "time_confirmed": true,
-      "status": "NS",
-      "home_goals": null,
-      "away_goals": null,
+      "status": "LIVE",
+      "home_goals": 1,
+      "away_goals": 0,
       "home_ht": null,
       "away_ht": null,
       "analysis": {
@@ -3916,7 +3667,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -4059,7 +3810,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -4165,7 +3916,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -4318,7 +4069,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -4424,7 +4175,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -4556,7 +4307,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -4662,7 +4413,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -4815,7 +4566,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -4921,7 +4672,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -5053,7 +4804,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -5159,7 +4910,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -5312,7 +5063,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -5418,7 +5169,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -5550,7 +5301,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -5656,7 +5407,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -5788,7 +5539,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -5894,7 +5645,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -6047,7 +5798,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -6153,7 +5904,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -6306,7 +6057,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -6412,7 +6163,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -6565,7 +6316,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -6671,7 +6422,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -6824,7 +6575,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -6930,7 +6681,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -7062,7 +6813,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -7168,7 +6919,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -7321,7 +7072,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -7427,7 +7178,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -7580,7 +7331,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -7686,7 +7437,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -7818,7 +7569,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -7924,7 +7675,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -8077,7 +7828,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -8183,7 +7934,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -8315,7 +8066,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -8421,7 +8172,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -8574,7 +8325,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -8680,7 +8431,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -8812,7 +8563,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -8918,7 +8669,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -9071,7 +8822,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -9177,7 +8928,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -9309,7 +9060,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -9415,7 +9166,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -9547,7 +9298,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -9653,7 +9404,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -9806,7 +9557,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -9912,7 +9663,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -10044,7 +9795,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -10150,7 +9901,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -10282,7 +10033,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -10388,7 +10139,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -10541,7 +10292,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -10647,7 +10398,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -10800,7 +10551,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -10906,7 +10657,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -11038,7 +10789,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -11144,7 +10895,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -11297,7 +11048,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -11403,7 +11154,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -11556,7 +11307,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -11662,7 +11413,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -11815,7 +11566,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -11921,7 +11672,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -12053,7 +11804,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -12159,7 +11910,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -12312,7 +12063,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -12418,7 +12169,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -12550,7 +12301,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -12656,7 +12407,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -12809,7 +12560,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -12915,7 +12666,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -13068,7 +12819,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -13174,7 +12925,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -13327,7 +13078,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -13433,7 +13184,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -13586,7 +13337,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -13692,7 +13443,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -13824,7 +13575,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -13930,7 +13681,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -14083,7 +13834,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -14189,7 +13940,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -14342,7 +14093,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -14448,7 +14199,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -14601,7 +14352,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -14707,7 +14458,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -14860,7 +14611,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -14966,7 +14717,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -15119,7 +14870,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -15225,7 +14976,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -15357,7 +15108,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -15463,7 +15214,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -15616,7 +15367,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -15722,7 +15473,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -15875,7 +15626,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -15981,7 +15732,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -16134,7 +15885,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -16240,7 +15991,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -16393,7 +16144,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -16499,7 +16250,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -16652,7 +16403,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -16758,7 +16509,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -16911,7 +16662,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -17017,7 +16768,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -17170,7 +16921,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -17276,7 +17027,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -17408,7 +17159,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -17514,7 +17265,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -17667,7 +17418,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -17773,7 +17524,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -17926,7 +17677,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -18032,7 +17783,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -18164,7 +17915,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -18270,7 +18021,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -18423,7 +18174,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -18529,7 +18280,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -18682,7 +18433,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -18788,7 +18539,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -18941,7 +18692,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -19047,7 +18798,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -19179,7 +18930,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -19285,7 +19036,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -19438,7 +19189,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -19544,7 +19295,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -19697,7 +19448,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -19803,7 +19554,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -19935,7 +19686,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -20041,7 +19792,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -20173,7 +19924,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -20279,7 +20030,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -20432,7 +20183,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -20538,7 +20289,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -20691,7 +20442,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -20797,7 +20548,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -20950,7 +20701,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -21056,7 +20807,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -21209,7 +20960,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -21315,7 +21066,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -21468,7 +21219,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -21574,7 +21325,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -21727,7 +21478,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -21833,7 +21584,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -21986,7 +21737,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -22092,7 +21843,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -22245,7 +21996,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -22351,7 +22102,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -22504,7 +22255,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -22610,7 +22361,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -22742,7 +22493,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -22848,7 +22599,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -23001,7 +22752,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -23107,7 +22858,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -23260,7 +23011,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -23366,7 +23117,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -23519,7 +23270,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -23625,7 +23376,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -23778,7 +23529,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -23884,7 +23635,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -24037,7 +23788,7 @@
       "away_ht": null,
       "analysis": {
         "model_version": "poisson-v2",
-        "created_at": "2026-11-05T22:12:06.373Z",
+        "created_at": "2026-11-05T22:45:25.075Z",
         "result": {
           "ok": true,
           "model": "poisson-v2",
@@ -24143,7 +23894,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -24404,7 +24155,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -24663,7 +24414,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -24922,7 +24673,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -25171,7 +24922,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -25430,7 +25181,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -25542,7 +25293,7 @@
       "away_ht": 2,
       "analysis": null,
       "analysis_note": "Dados insuficientes: são precisos pelo menos 5 jogos recentes de cada equipa (tem 3 e 12).",
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -25685,7 +25436,7 @@
       "away_ht": 1,
       "analysis": null,
       "analysis_note": "Dados insuficientes: são precisos pelo menos 5 jogos recentes de cada equipa (tem 12 e 3).",
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -25923,7 +25674,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -26141,7 +25892,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -26359,7 +26110,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -26451,7 +26202,7 @@
       "away_ht": 1,
       "analysis": null,
       "analysis_note": "Dados insuficientes: são precisos pelo menos 5 jogos recentes de cada equipa (tem 3 e 3).",
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -26649,7 +26400,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -26887,7 +26638,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -27125,7 +26876,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -27278,7 +27029,7 @@
       "away_ht": 1,
       "analysis": null,
       "analysis_note": "Dados insuficientes: são precisos pelo menos 5 jogos recentes de cada equipa (tem 3 e 12).",
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -27390,7 +27141,7 @@
       "away_ht": 1,
       "analysis": null,
       "analysis_note": "Dados insuficientes: são precisos pelo menos 5 jogos recentes de cada equipa (tem 3 e 12).",
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -27608,7 +27359,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -27857,7 +27608,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -28106,7 +27857,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -28324,7 +28075,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -28542,7 +28293,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -28780,7 +28531,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -29018,7 +28769,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -29110,7 +28861,7 @@
       "away_ht": 0,
       "analysis": null,
       "analysis_note": "Dados insuficientes: são precisos pelo menos 5 jogos recentes de cada equipa (tem 3 e 12).",
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -29222,7 +28973,7 @@
       "away_ht": 0,
       "analysis": null,
       "analysis_note": "Dados insuficientes: são precisos pelo menos 5 jogos recentes de cada equipa (tem 3 e 3).",
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -29420,7 +29171,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -29679,7 +29430,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -29938,7 +29689,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -30176,7 +29927,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -30435,7 +30186,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -30694,7 +30445,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -30932,7 +30683,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -31170,7 +30921,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -31429,7 +31180,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -31582,7 +31333,7 @@
       "away_ht": 0,
       "analysis": null,
       "analysis_note": "Dados insuficientes: são precisos pelo menos 5 jogos recentes de cada equipa (tem 3 e 12).",
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -31694,7 +31445,7 @@
       "away_ht": 0,
       "analysis": null,
       "analysis_note": "Dados insuficientes: são precisos pelo menos 5 jogos recentes de cada equipa (tem 3 e 11).",
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -31912,7 +31663,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -32171,7 +31922,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -32430,7 +32181,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -32689,7 +32440,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -32948,7 +32699,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -33186,7 +32937,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -33445,7 +33196,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -33704,7 +33455,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -33963,7 +33714,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -34222,7 +33973,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -34481,7 +34232,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -34740,7 +34491,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -34999,7 +34750,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -35237,7 +34988,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -35475,7 +35226,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -35734,7 +35485,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -35993,7 +35744,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -36252,7 +36003,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -36511,7 +36262,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -36770,7 +36521,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -37029,7 +36780,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -37288,7 +37039,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -37547,7 +37298,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -37785,7 +37536,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -38044,7 +37795,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -38282,7 +38033,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -38541,7 +38292,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -38800,7 +38551,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -39059,7 +38810,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -39318,7 +39069,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -39577,7 +39328,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -39815,7 +39566,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -40053,7 +39804,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -40312,7 +40063,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -40571,7 +40322,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -40830,7 +40581,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -41089,7 +40840,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -41327,7 +41078,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -41586,7 +41337,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -41824,7 +41575,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -42073,7 +41824,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -42332,7 +42083,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -42570,7 +42321,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -42829,7 +42580,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -43067,7 +42818,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -43326,7 +43077,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -43585,7 +43336,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -43844,7 +43595,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -44103,7 +43854,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -44362,7 +44113,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -44621,7 +44372,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -44880,7 +44631,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -45118,7 +44869,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -45356,7 +45107,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -45615,7 +45366,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -45853,7 +45604,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -46091,7 +45842,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -46350,7 +46101,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -46588,7 +46339,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -46847,7 +46598,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -47085,7 +46836,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -47344,7 +47095,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -47603,7 +47354,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -47841,7 +47592,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -48079,7 +47830,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -48338,7 +48089,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -48597,7 +48348,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -48856,7 +48607,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -49094,7 +48845,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -49353,7 +49104,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -49612,7 +49363,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -49871,7 +49622,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -50130,7 +49881,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -50368,7 +50119,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -50627,7 +50378,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -50886,7 +50637,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -51145,7 +50896,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -51404,7 +51155,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -51663,7 +51414,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -51901,7 +51652,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -52160,7 +51911,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -52419,7 +52170,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -52668,7 +52419,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -52927,7 +52678,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -53186,7 +52937,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -53445,7 +53196,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -53683,7 +53434,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -53942,7 +53693,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -54191,7 +53942,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -54440,7 +54191,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -54699,7 +54450,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -54958,7 +54709,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -55217,7 +54968,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -55455,7 +55206,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -55714,7 +55465,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -55963,7 +55714,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -56222,7 +55973,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -56481,7 +56232,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -56740,7 +56491,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -56999,7 +56750,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -57258,7 +57009,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -57507,7 +57258,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -57766,7 +57517,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -58025,7 +57776,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -58284,7 +58035,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -58522,7 +58273,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -58781,7 +58532,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -59040,7 +58791,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -59299,7 +59050,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -59558,7 +59309,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -59817,7 +59568,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -60076,7 +59827,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -60335,7 +60086,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -60594,7 +60345,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -60853,7 +60604,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -61112,7 +60863,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -61371,7 +61122,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -61630,7 +61381,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -61868,7 +61619,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -62106,7 +61857,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -62365,7 +62116,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -62624,7 +62375,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -62883,7 +62634,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -63142,7 +62893,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -63401,7 +63152,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -63660,7 +63411,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -63919,7 +63670,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -64157,7 +63908,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -64395,7 +64146,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -64633,7 +64384,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -64892,7 +64643,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -65151,7 +64902,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -65410,7 +65161,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -65669,7 +65420,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -65928,7 +65679,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -66187,7 +65938,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -66446,7 +66197,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -66695,7 +66446,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -66954,7 +66705,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -67213,7 +66964,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -67472,7 +67223,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -67731,7 +67482,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -67990,7 +67741,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -68239,7 +67990,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -68477,7 +68228,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -68715,7 +68466,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -68974,7 +68725,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -69233,7 +68984,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -69492,7 +69243,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -69730,7 +69481,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -69989,7 +69740,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -70248,7 +69999,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -70507,7 +70258,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -70766,7 +70517,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -71025,7 +70776,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -71284,7 +71035,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -71522,7 +71273,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -71781,7 +71532,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -72019,7 +71770,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -72257,7 +72008,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -72516,7 +72267,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -72775,7 +72526,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -73034,7 +72785,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -73272,7 +73023,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -73510,7 +73261,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -73769,7 +73520,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -74007,7 +73758,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -74266,7 +74017,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -74504,7 +74255,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -74742,7 +74493,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -74980,7 +74731,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -75239,7 +74990,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -75498,7 +75249,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -75757,7 +75508,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -76016,7 +75767,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -76275,7 +76026,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -76534,7 +76285,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -76793,7 +76544,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -77052,7 +76803,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -77301,7 +77052,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -77539,7 +77290,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -77777,7 +77528,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -78026,7 +77777,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -78264,7 +78015,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -78502,7 +78253,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -78761,7 +78512,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -79020,7 +78771,7 @@
         }
       },
       "analysis_note": null,
-      "updated_at": "2026-11-05T22:12:06.373Z",
+      "updated_at": "2026-11-05T22:45:25.075Z",
       "source": "football-data.org",
       "recent": {
         "home": [
@@ -96849,30 +96600,6 @@
   ],
   "changes": [
     {
-      "id": "575381",
-      "match": "Club Atlético de Madrid vs FC Bayern München",
-      "field": "home_goals",
-      "old": null,
-      "new": 0,
-      "at": "2026-11-03T20:43:36.024Z"
-    },
-    {
-      "id": "575381",
-      "match": "Club Atlético de Madrid vs FC Bayern München",
-      "field": "away_goals",
-      "old": null,
-      "new": 0,
-      "at": "2026-11-03T20:43:36.024Z"
-    },
-    {
-      "id": "575382",
-      "match": "Villarreal CF vs Paris Saint-Germain FC",
-      "field": "status",
-      "old": "NS",
-      "new": "LIVE",
-      "at": "2026-11-03T20:43:36.024Z"
-    },
-    {
       "id": "575382",
       "match": "Villarreal CF vs Paris Saint-Germain FC",
       "field": "home_goals",
@@ -98447,6 +98174,30 @@
       "old": "LIVE",
       "new": "FT",
       "at": "2026-11-05T14:54:30.924Z"
+    },
+    {
+      "id": "555077",
+      "match": "SE Palmeiras vs Clube do Remo",
+      "field": "status",
+      "old": "NS",
+      "new": "LIVE",
+      "at": "2026-11-05T22:45:25.075Z"
+    },
+    {
+      "id": "555077",
+      "match": "SE Palmeiras vs Clube do Remo",
+      "field": "home_goals",
+      "old": null,
+      "new": 1,
+      "at": "2026-11-05T22:45:25.075Z"
+    },
+    {
+      "id": "555077",
+      "match": "SE Palmeiras vs Clube do Remo",
+      "field": "away_goals",
+      "old": null,
+      "new": 0,
+      "at": "2026-11-05T22:45:25.075Z"
     }
   ]
 }
