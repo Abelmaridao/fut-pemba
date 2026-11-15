@@ -663,37 +663,6 @@ function histOk(f){ // true = acertou, false = falhou, null = sem análise ou jo
   try { const fin = finalOf(f), sec = sections(f.analysis.result, { h: f.home_team, a: f.away_team })[0]; return sec && fin ? groupHit(sec.groups[0], fin) : null; } catch (e) { return null; }
 }
 function histStat(arr){ let w = 0, l = 0; arr.forEach(f => { const o = histOk(f); if (o === true) w++; else if (o === false) l++; }); const n = w + l; return { w, l, n, pw: n ? Math.round(w / n * 100) : 0, pl: n ? 100 - Math.round(w / n * 100) : 0 }; }
-function shareCard(id){
-  const f = [...S.fixtures, ...S.history].find(x => x.id === id); if (!f || !f.analysis || vipPick(f) || S.view === "vip" || S.view === "svip" || S.view === "comb") return;
-  const r = f.analysis.result, R = r.result || {}, h = R.home || 0, d = R.draw || 0, a = R.away || 0;
-  const dc = [[h + d, `${f.home_team} ou Empate`], [d + a, `Empate ou ${f.away_team}`], [h + a, `${f.home_team} ou ${f.away_team}`]].sort((x, y) => y[0] - x[0])[0];
-  const W = 1080, H = 1350, c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
-  const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, "#0b2a66"); bg.addColorStop(1, "#060d1f"); g.fillStyle = bg; g.fillRect(0, 0, W, H);
-  g.textAlign = "center"; g.fillStyle = "#ffd600"; g.font = "800 40px system-ui,sans-serif"; g.fillText("ELEPHALPIT BET", W / 2, 110);
-  g.font = "120px system-ui,sans-serif"; g.fillText("🦁", W / 2, 260);
-  g.fillStyle = "#8ea0c9"; g.font = "600 34px system-ui,sans-serif"; g.fillText(`${f.competitions?.name ?? ""} · ${dayKey(f.kickoff_utc)}`, W / 2, 340);
-  g.fillStyle = "#fff"; g.font = "900 62px system-ui,sans-serif";
-  const fit = (t, y) => { let s = 62; do { g.font = `900 ${s}px system-ui,sans-serif`; s -= 2; } while (g.measureText(t).width > W - 120 && s > 26); g.fillText(t, W / 2, y); };
-  fit(f.home_team, 440); g.fillStyle = "#8ea0c9"; g.font = "700 40px system-ui,sans-serif"; g.fillText("vs", W / 2, 500); g.fillStyle = "#fff"; fit(f.away_team, 575);
-  g.fillStyle = "#ffffff12"; g.beginPath(); g.roundRect(70, 650, W - 140, 250, 28); g.fill();
-  g.fillStyle = "#ffd600"; g.font = "800 32px system-ui,sans-serif"; g.fillText("HIPÓTESE DUPLA", W / 2, 710);
-  g.fillStyle = "#fff"; g.font = "900 54px system-ui,sans-serif"; g.fillText(dc[1], W / 2, 790); g.fillStyle = "#26d07c"; g.font = "900 70px system-ui,sans-serif"; g.fillText(Math.round(dc[0] * 100) + "%", W / 2, 875);
-  const bx = 70, bw = W - 140, parts = [[h, "#2f7bff"], [d, "#5b6b92"], [a, "#ff7a3d"]]; let x = bx;
-  g.fillStyle = "#8ea0c9"; g.font = "700 30px system-ui,sans-serif"; g.fillText("RESULTADO FINAL", W / 2, 980);
-  parts.forEach(([p, col], i) => { const w = bw * p; g.fillStyle = col; g.fillRect(x, 1005, w, 70); if (w > 90){ g.fillStyle = "#fff"; g.font = "900 36px system-ui,sans-serif"; g.fillText(Math.round(p * 100) + "%", x + w / 2, 1052); } x += w; });
-  g.fillStyle = "#8ea0c9"; g.font = "600 28px system-ui,sans-serif"; g.textAlign = "left"; g.fillText(f.home_team, bx, 1115); g.textAlign = "right"; g.fillText(f.away_team, bx + bw, 1115); g.textAlign = "center";
-  g.fillStyle = "#6b7da8"; g.font = "600 26px system-ui,sans-serif"; g.fillText("Estimativa estatística. Não garante resultados. +18", W / 2, 1230);
-  g.fillStyle = "#ffd600"; g.font = "800 32px system-ui,sans-serif"; g.fillText("abelmaridao.github.io/fut-pemba", W / 2, 1290);
-  c.toBlob(async blob => {
-    if (!blob) return;
-    const file = new File([blob], "elephalpit-bet.png", { type: "image/png" });
-    try { if (navigator.canShare && navigator.canShare({ files: [file] })){ await navigator.share({ files: [file], text: `${f.home_team} vs ${f.away_team} · Elephalpit Bet` }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
-    const url = URL.createObjectURL(blob), box = document.createElement("div");
-    box.style.cssText = "position:fixed;inset:0;z-index:99999;background:#000d;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px";
-    box.innerHTML = `<img src="${url}" style="max-width:100%;max-height:72%;border-radius:12px"><div style="color:#fff;text-align:center;font-size:14px">Mantém o dedo na imagem e escolhe <b>Guardar imagem</b>.</div><a download="elephalpit-bet.png" href="${url}" style="color:#1b1500;background:#ffd600;border-radius:10px;padding:10px 18px;font-weight:800;text-decoration:none">Descarregar</a><button style="background:#fff3;color:#fff;border:0;border-radius:10px;padding:10px 18px;font-weight:700">Fechar</button>`;
-    box.querySelector("button").onclick = () => { box.remove(); URL.revokeObjectURL(url); }; (document.getElementById("dlg").open ? document.getElementById("dlg") : document.body).appendChild(box);
-  }, "image/png");
-}
 function taxaView(){
   const all = S.history.map(f => ({ f, o: histOk(f) })).filter(x => x.o !== null), tot = all.length, w = all.filter(x => x.o).length;
   const pct = (a, b) => b ? Math.round(a / b * 100) : 0, bar = (p, c) => `<span class="trk"><span style="width:${p}%;background:${c}"></span></span>`;
@@ -1085,19 +1054,20 @@ function sections(r, nm){
   }
   { const rr = r.result, dd = rr.draw ?? Math.max(0, 1 - rr.home - rr.away); // hipótese dupla
     const it = [[`${H} ganha ou Empata`, rr.home + dd, f => f.h >= f.a], ["Qualquer ganha", rr.home + rr.away, f => f.h !== f.a], [`Empata ou ${A} ganha`, dd + rr.away, f => f.h <= f.a]];
-    const tp = topI(it);
-    out.push({ title: "Hipótese dupla", pct: true, groups: it.map(([l, p, fn], i) => [one(l, p, fn, i === tp)]) });
+    const tp = topI(it), lowI = it.reduce((b, x, i, arr) => (x[1] < arr[b][1] ? i : b), 0); // a de menor percentagem diz Não, as outras dizem Sim
+    out.push({ title: "Hipótese dupla", pct: true, groups: it.map(([l, p, fn], i) => [{ l, p, fn, v: i === lowI ? "Não" : "Sim", pick: i === tp }]) });
   }
+  const sn = (p, lim) => p >= lim ? "Sim" : "Não"; // abaixo do limite diz Não, a partir do limite diz Sim
   const t = r.totals, tg = [];
   for (const [k, key] of [["0.5", "0_5"], ["1.5", "1_5"], ["2.5", "2_5"], ["3.5", "3_5"]]){
     const over = t["over_" + key], under = t["under_" + key];
     if (over == null) continue;
     const ov = f => f.h + f.a > +k, un = f => f.h + f.a < +k;
-    if (under != null){ const o = over >= under; tg.push([one(`Mais de ${ck(k)}`, over, ov, o), one(`Menos de ${ck(k)}`, under, un, !o)]); }
-    else tg.push([one(`Mais de ${ck(k)}`, over, ov, over >= 0.5)]);
+    if (under != null){ const o = over >= under; tg.push([{ l: `Mais de ${ck(k)}`, p: over, fn: ov, v: sn(over, 0.21), pick: o }, { l: `Menos de ${ck(k)}`, p: under, fn: un, v: sn(under, 0.21), pick: !o }]); }
+    else tg.push([{ l: `Mais de ${ck(k)}`, p: over, fn: ov, v: sn(over, 0.21), pick: over >= 0.5 }]);
   }
   out.push({ title: "Total de golos", pct: true, groups: tg });
-  if (r.reach) out.push({ title: "Alcance de golos", pct: true, groups: [[4, r.reach.ge4], [5, r.reach.ge5], [6, r.reach.ge6]].filter(x => x[1] != null).map(([n, p]) => [one(`${n}+`, p, f => f.h + f.a >= n, p >= 0.5)]) });
+  if (r.reach) out.push({ title: "Alcance de golos", pct: true, groups: [[4, r.reach.ge4], [5, r.reach.ge5]].filter(x => x[1] != null).map(([n, p]) => [{ l: `${n}+`, p, fn: f => f.h + f.a >= n, v: sn(p, 0.20), pick: p >= 0.5 }]) });
   const by = r.btts.yes >= r.btts.no;
   out.push({ title: "Ambas as equipas marcam", pct: true, groups: [[one("Sim", r.btts.yes, f => f.h > 0 && f.a > 0, by), one("Não", r.btts.no, f => !(f.h > 0 && f.a > 0), !by)]] });
   out.push({ title: "Resultado ao intervalo", pct: true, groups: [excl([[H, r.halftime.home, f => noHt(f) ? null : f.hh > f.ah], ["Empate", r.halftime.draw, f => noHt(f) ? null : f.hh === f.ah], [A, r.halftime.away, f => noHt(f) ? null : f.hh < f.ah]], win)] });
@@ -1113,18 +1083,25 @@ function sections(r, nm){
       [{ l: A, p: pa, fn: hw("a"), v: "Sim", pick: pa > ph }]] });
   }
   if (r.bothHalves){
+    // só aparece o Sim da equipa dada a vitória (resultado final) e o Não da equipa dada a derrota
     const bh = side => f => noHt(f) ? null : (side === "h" ? f.hh > 0 && f.h - f.hh > 0 : f.ah > 0 && f.a - f.ah > 0);
-    const ph = r.bothHalves.home.yes, pa = r.bothHalves.away.yes, best = Math.max(ph, pa), pH = best >= 0.5 && ph >= pa, pA = best >= 0.5 && !pH;
     const no = side => f => { const v = bh(side)(f); return v === null ? null : !v; };
+    const ph = r.bothHalves.home.yes, pa = r.bothHalves.away.yes;
+    const winH = r.result.home >= r.result.away, winSide = winH ? "h" : "a", loseSide = winH ? "a" : "h";
+    const winL = winH ? H : A, loseL = winH ? A : H, winP = winH ? ph : pa, loseP = winH ? pa : ph;
     out.push({ title: "Marca duas partes", pct: true, groups: [
-      [one(`${H}: Sim`, ph, bh("h"), ph >= 0.5), one(`${H}: Não`, 1 - ph, no("h"), ph < 0.5)],
-      [one(`${A}: Sim`, pa, bh("a"), pa >= 0.5), one(`${A}: Não`, 1 - pa, no("a"), pa < 0.5)]] });
+      [{ l: `${winL}: Sim`, p: winP, fn: bh(winSide), v: "Sim", pick: true }],
+      [{ l: `${loseL}: Não`, p: 1 - loseP, fn: no(loseSide), v: "Não", pick: true }]] });
   }
-  const bucket = (obj, side) => { const items = Object.entries(obj).map(([k, p]) => [`${k} golo${k === "1" ? "" : "s"}`, p, f => (k === "3+" ? f[side] >= 3 : f[side] === +k)]); const tp = topI(items); return items.map(([l, p, fn], i) => one(l, p, fn, i === tp)); };
-  out.push({ title: "Golos da equipa da casa", pct: true, groups: [bucket(r.teamGoals.home, "h")] });
-  out.push({ title: "Golos da equipa visitante", pct: true, groups: [bucket(r.teamGoals.away, "a")] });
-  const ex = r.exactScores[0];
-  out.push({ title: "Resultado exato mais provável", pct: true, groups: [[one(ex.score, ex.p, f => `${f.h}-${f.a}` === ex.score, true)]] });
+  // só aparece uma opção por equipa: a de maior percentagem, com 0 / 1+ / 2+ / 3+
+  const bucketTop = (obj, side) => {
+    const p0 = obj["0"] ?? 0, p1 = obj["1"] ?? 0, p2 = obj["2"] ?? 0, p3 = obj["3+"] ?? 0;
+    const items = [["0", p0, f => f[side] === 0], ["1+", p1 + p2 + p3, f => f[side] >= 1], ["2+", p2 + p3, f => f[side] >= 2], ["3+", p3, f => f[side] >= 3]];
+    const tp = topI(items);
+    return [one(items[tp][0], items[tp][1], items[tp][2], true)];
+  };
+  out.push({ title: "Golos da equipa da casa", pct: true, groups: [bucketTop(r.teamGoals.home, "h")] });
+  out.push({ title: "Golos da equipa visitante", pct: true, groups: [bucketTop(r.teamGoals.away, "a")] });
   // quem marcou primeiro só é certo se uma das equipas não marcou
   const first = f => (f.h + f.a === 0 ? "none" : f.a === 0 ? "home" : f.h === 0 ? "away" : null);
   out.push({ title: "Quem marca primeiro", pct: true, groups: [excl([[H, r.firstToScore.home, f => { const v = first(f); return v === null ? null : v === "home"; }], ["Sem golos", r.firstToScore.none, f => f.h + f.a === 0], [A, r.firstToScore.away, f => { const v = first(f); return v === null ? null : v === "away"; }]])] });
@@ -1208,7 +1185,7 @@ async function openAnalysis(id){
   const find = () => [...S.fixtures, ...S.history].find(x => x.id === id);
   const paint = f => {
     const fb0 = isDone(f.status) ? "" : `<button type="button" class="btn alt" style="width:100%;margin:10px 0" data-favgame="${esc(f.id)}">${favG(f.id) ? "★ Remover dos favoritos" : "☆ Adicionar aos favoritos"}</button>`;
-    const fb = fb0 + (!vipPick(f) && S.view !== "vip" && S.view !== "svip" && S.view !== "comb" && f.analysis ? `<button type="button" class="btn alt" style="width:100%;margin:10px 0" data-shr="${esc(f.id)}">📤 Partilhar como imagem</button>` : ""); // nunca em jogos nem áreas VIP
+    const fb = fb0; // botão "Partilhar como imagem" removido
     const sc = dlg.scrollTop;
     dlg.innerHTML = analysisHtml(f.analysis || genericAn(f), f, fb, { min: S.view === "vip" ? 50 : S.view === "svip" ? SUP_ROWS : 0 }); dlg.dataset.gid = id; dlg.dataset.sig = JSON.stringify(f.analysis || 0).length + ":" + f.status; showRecent(f);
     if (sc) dlg.scrollTop = sc;
@@ -1624,7 +1601,7 @@ function go(view, compId){
 }
 window.addEventListener("popstate", e => { const s = e.state || { v: "home", c: null }; S.view = s.v; S.compId = s.c; S.drawer = false; S.search = false; S.lg = false; $("ov").innerHTML = ""; startBusy(); render(); window.scrollTo && window.scrollTo(0, 0); });
 document.addEventListener("click", e => {
-  const el = e.target.closest("[data-nav],[data-comp],[data-tab],[data-day],[data-vday],[data-hday],[data-an],[data-del],[data-favtoggle],[data-favgame],[data-shr],[data-favdel],[data-favopen],[data-act]"); if (!el) return;
+  const el = e.target.closest("[data-nav],[data-comp],[data-tab],[data-day],[data-vday],[data-hday],[data-an],[data-del],[data-favtoggle],[data-favgame],[data-favdel],[data-favopen],[data-act]"); if (!el) return;
   const d = el.dataset;
   if (d.act === "close"){ if (e.target !== el && el.classList.contains("ov") && e.target.closest(".drawer")) return; S.drawer = false; S.search = false; S.lg = false; $("ov").innerHTML = ""; return; }
   if (d.act === "leagues"){ S.lg = true; S.drawer = false; S.search = false; leaguesHtml(); return; }
@@ -1642,7 +1619,6 @@ document.addEventListener("click", e => {
   if (d.act === "search"){ S.search = true; S.drawer = false; searchHtml(); return; }
   if (d.act === "next"){ const st = $("strip"); if (st && st.scrollBy) st.scrollBy({ left: 240, behavior: "smooth" }); return; }
   if (d.act === "analyze") return runNewAnalysis();
-  if (d.shr){ shareCard(d.shr); return; }
   if (d.favgame){
     const f = [...S.fixtures, ...S.history].find(x => x.id === d.favgame); if (!f || isDone(f.status)) return;
     if (favG(f.id)) S.favs = S.favs.filter(x => x.id !== "g:" + f.id);
