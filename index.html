@@ -1082,26 +1082,29 @@ function sections(r, nm){
       [{ l: H, p: ph, fn: hw("h"), v: "Sim", pick: ph >= pa }],
       [{ l: A, p: pa, fn: hw("a"), v: "Sim", pick: pa > ph }]] });
   }
+  // equipa dada a vitória/derrota no "Resultado final", usada em "Marca duas partes" e "Golos da equipa"
+  const winH = r.result.home >= r.result.away, winSide = winH ? "h" : "a", loseSide = winH ? "a" : "h";
+  const winL = winH ? H : A, loseL = winH ? A : H;
   if (r.bothHalves){
     // só aparece o Sim da equipa dada a vitória (resultado final) e o Não da equipa dada a derrota
     const bh = side => f => noHt(f) ? null : (side === "h" ? f.hh > 0 && f.h - f.hh > 0 : f.ah > 0 && f.a - f.ah > 0);
-    const no = side => f => { const v = bh(side)(f); return v === null ? null : !v; };
     const ph = r.bothHalves.home.yes, pa = r.bothHalves.away.yes;
-    const winH = r.result.home >= r.result.away, winSide = winH ? "h" : "a", loseSide = winH ? "a" : "h";
-    const winL = winH ? H : A, loseL = winH ? A : H, winP = winH ? ph : pa, loseP = winH ? pa : ph;
+    const winP = winH ? ph : pa, loseP = winH ? pa : ph;
     out.push({ title: "Marca duas partes", pct: true, groups: [
       [{ l: `${winL}: Sim`, p: winP, fn: bh(winSide), v: "Sim", pick: true }],
-      [{ l: `${loseL}: Não`, p: 1 - loseP, fn: no(loseSide), v: "Não", pick: true }]] });
+      [{ l: `${loseL}: Não`, p: 1 - loseP, fn: bh(loseSide), v: "Não", pick: true }]] });
   }
-  // só aparece uma opção por equipa: a de maior percentagem, com 0 / 1+ / 2+ / 3+
+  // equipa dada a vitória: só a opção com maior percentagem (0 / 1+ / 2+ / 3+)
+  // equipa dada a derrota: "4-" (4 golos ou menos), uma estimativa sempre alta e fiável para quem está a perder
   const bucketTop = (obj, side) => {
     const p0 = obj["0"] ?? 0, p1 = obj["1"] ?? 0, p2 = obj["2"] ?? 0, p3 = obj["3+"] ?? 0;
     const items = [["0", p0, f => f[side] === 0], ["1+", p1 + p2 + p3, f => f[side] >= 1], ["2+", p2 + p3, f => f[side] >= 2], ["3+", p3, f => f[side] >= 3]];
     const tp = topI(items);
     return [one(items[tp][0], items[tp][1], items[tp][2], true)];
   };
-  out.push({ title: "Golos da equipa da casa", pct: true, groups: [bucketTop(r.teamGoals.home, "h")] });
-  out.push({ title: "Golos da equipa visitante", pct: true, groups: [bucketTop(r.teamGoals.away, "a")] });
+  const le4 = side => { const l = side === "h" ? r.lambda.home : r.lambda.away; let p = 0; for (let k = 0; k <= 4; k++) p += poi(k, l); return [one("4-", p, f => f[side] <= 4, true)]; };
+  out.push({ title: "Golos da equipa da casa", pct: true, groups: [loseSide === "h" ? le4("h") : bucketTop(r.teamGoals.home, "h")] });
+  out.push({ title: "Golos da equipa visitante", pct: true, groups: [loseSide === "a" ? le4("a") : bucketTop(r.teamGoals.away, "a")] });
   // quem marcou primeiro só é certo se uma das equipas não marcou
   const first = f => (f.h + f.a === 0 ? "none" : f.a === 0 ? "home" : f.h === 0 ? "away" : null);
   out.push({ title: "Quem marca primeiro", pct: true, groups: [excl([[H, r.firstToScore.home, f => { const v = first(f); return v === null ? null : v === "home"; }], ["Sem golos", r.firstToScore.none, f => f.h + f.a === 0], [A, r.firstToScore.away, f => { const v = first(f); return v === null ? null : v === "away"; }]])] });
