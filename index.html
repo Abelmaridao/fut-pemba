@@ -1302,7 +1302,7 @@ const expMsg = t => `O teu acesso terminou em ${fmtFull(new Date(t).toISOString(
 
 function clearF(){ S.soc.f = { id: "", email: "", name: "", pw: "", code: "", pw2: "" }; }
 S.soc = { mode: "login", err: "", info: "", mail: null, was: false, showSearch: false, q: "", pwForm: false, pmsg: null, banFor: null, receipts: [],
-  vset: { kz: VIP_KZ_DIA, iban: PAYAPAY_IBAN, promo: "" }, vsetEdit: false, vmsg: null,
+  vset: { kz: VIP_KZ_DIA, iban: PAYAPAY_IBAN, promo: "" }, vsetEdit: false, vmsg: null, authBusy: false,
   f: { id: "", email: "", name: "", pw: "", code: "", pw2: "" } };
 
 async function hashPw(pw, salt){
@@ -1331,7 +1331,7 @@ function cur(){
   return u;
 }
 function dropSession(msg){ store.set(SESK, null); store.set(MEK, null); S.soc.me = null; S.pwPlain = ""; S.soc.mode = "login"; S.soc.err = msg || ""; S.soc.info = ""; clearF(); S.view = "home"; S.drawer = false; }
-const startSession = r => { store.set(SESK, r.token); store.set(MEK, r.user); S.soc.me = r.user; S.pwPlain = S.soc.f.pw; clearF(); S.soc.err = ""; S.soc.info = ""; S.view = "home"; startBusy(); render(); };
+const startSession = r => { store.set(SESK, r.token); store.set(MEK, r.user); S.soc.me = r.user; S.pwPlain = S.soc.f.pw; clearF(); S.soc.err = ""; S.soc.info = ""; S.soc.authBusy = false; S.view = "home"; startBusy(); render(); };
 if (API_URL){ try { store.set(DBK, null); if (!store.get(MEK, null)) store.set(SESK, null); } catch (e) {} } // contas antigas (só no aparelho) são descartadas: só valem contas criadas no servidor
 if (API_URL) S.soc.me = store.get(SESK, null) ? store.get(MEK, null) : null;
 const avatar = (u, s = 40) => u.photo ? `<img class="av" style="--s:${s}px" src="${esc(u.photo)}" alt="">` : `<span class="av" style="--s:${s}px" aria-hidden="true">${esc((u.name || "?").trim().charAt(0).toUpperCase())}</span>`;
@@ -1345,18 +1345,18 @@ function authView(){
   if (m === "register"){
     title = "Criar conta";
     body = `<form novalidate data-sf="register">${fld("email", "E-mail (tem de ser válido)", "email", "email")}${fld("name", "Nome de utilizador", "text", "username")}${fld("pw", "Palavra-passe (mínimo 6 caracteres)", "password", "new-password")}
-      <button class="btn" style="width:100%;margin-top:14px;padding:13px">Criar conta</button></form>${lnk("login", "Já tenho conta. Entrar")}`;
+      <button class="btn" style="width:100%;margin-top:14px;padding:13px" ${s.authBusy ? "disabled" : ""}>${s.authBusy ? "A criar conta…" : "Criar conta"}</button></form>${lnk("login", "Já tenho conta. Entrar")}`;
   } else {
     title = "Entrar";
     body = `<form novalidate data-sf="login">${fld("id", "E-mail", "text", "username")}${fld("pw", "Palavra-passe", "password", "current-password")}
-      <button class="btn" style="width:100%;margin-top:14px;padding:13px">Entrar</button></form>${lnk("register", "Criar conta")}`;
+      <button class="btn" style="width:100%;margin-top:14px;padding:13px" ${s.authBusy ? "disabled" : ""}>${s.authBusy ? "A entrar…" : "Entrar"}</button></form>${lnk("register", "Criar conta")}`;
   }
   return `<header class="top"><div style="width:40px"></div><div class="brand"><span class="mark" aria-hidden="true">🦁</span><span>Elephalpit <em>Bet</em></span></div><div style="width:40px"></div></header>
     <div class="auth"><h1 class="ttl">${title}</h1>
     ${s.err ? `<div class="msg" role="alert">${esc(s.err)}</div>` : ""}${s.info ? `<div class="msg ok">${esc(s.info)}</div>` : ""}
     <div class="card">${body}</div></div>`;
 }
-const err = t => { S.soc.err = t; S.soc.info = ""; render(); return false; };
+const err = t => { S.soc.err = t; S.soc.info = ""; S.soc.authBusy = false; render(); return false; };
 async function doRegister(){
   const f = S.soc.f, e = f.email.trim().toLowerCase(), n = f.name.trim();
   if (!validEmail(e)) return err("Escreve um e-mail válido.");
@@ -1373,7 +1373,7 @@ async function doRegister(){
   if (DBc.users.some(u => norm(u.name) === norm(n))) return err("Este nome de utilizador já existe.");
   const u = { id: uid(), email: e, name: n, salt, hash, photo: "", friends: [], admin: e === ADMIN_EMAIL, banUntil: 0, created: Date.now() };
   DBc.users.push(u); saveDB(); store.set(SESK, u.id);
-  S.pwPlain = S.soc.f.pw; clearF(); S.soc.err = ""; S.soc.info = ""; S.view = "home"; startBusy(); render();
+  S.pwPlain = S.soc.f.pw; clearF(); S.soc.err = ""; S.soc.info = ""; S.soc.authBusy = false; S.view = "home"; startBusy(); render();
 }
 async function doLogin(){
   const { id, pw } = S.soc.f, key = id.trim().toLowerCase();
@@ -1389,7 +1389,7 @@ async function doLogin(){
   const ok = u && u.hash === await hashPw(pw, u.salt);
   if (!ok) return err("E-mail ou palavra-passe incorretos.");
   if (u.banUntil > Date.now()) return err(`Esta conta está banida até ${tm(u.banUntil)}.`);
-  store.set(SESK, u.id); S.pwPlain = S.soc.f.pw; clearF(); S.soc.err = ""; S.soc.info = ""; S.view = "home"; startBusy(); render();
+  store.set(SESK, u.id); S.pwPlain = S.soc.f.pw; clearF(); S.soc.err = ""; S.soc.info = ""; S.soc.authBusy = false; S.view = "home"; startBusy(); render();
 }
 async function sendMail(to, code){
   if (MAIL_ENDPOINT){
@@ -1658,7 +1658,9 @@ const FORM = {
     if (VDAYS.includes(d)) tadmSave(e, d);
   },
   ask: f => { const v = f.elements.tq.value; f.elements.tq.value = ""; askAssistant(v); },
-  login: () => doLogin(), register: () => doRegister(), forgot1: () => doForgot1(), forgot2: () => doForgot2(),
+  login: () => { if (S.soc.authBusy) return; S.soc.authBusy = true; S.soc.err = ""; render(); doLogin(); },
+  register: () => { if (S.soc.authBusy) return; S.soc.authBusy = true; S.soc.err = ""; render(); doRegister(); },
+  forgot1: () => doForgot1(), forgot2: () => doForgot2(),
   ban: f => {
     if (!mainOnly()) return;
     const n = Math.min(3650, Math.max(1, Math.floor(+f.elements.n.value || 1))), ms = n * (+f.elements.u.value || 3600000);
