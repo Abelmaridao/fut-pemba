@@ -139,12 +139,13 @@ dialog::backdrop{background:#0009}
 .lupa{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--mute);display:grid}
 .lupa svg{width:22px;height:22px}
 .big{font-size:18px;font-weight:800;text-decoration:none;color:var(--ink)}
-.stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;margin-bottom:12px}
-.stat div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center;font-size:13px;color:var(--mute)}
-.stat b{display:block;font-size:26px;color:var(--ink)}
+.stat{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:5px;margin-bottom:12px}
+.stat div{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:6px 2px;text-align:center;font-size:10px;color:var(--mute);min-width:0}
+.stat b{display:block;font-size:17px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .urow{padding:10px 0;border-bottom:1px solid var(--line)}
 .urow .row{flex-wrap:wrap;margin-top:6px}
 .tag{background:var(--amber);color:#1b1500;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:800;margin-left:6px}
+.tag.t2{background:var(--blue);color:#fff}
 .mail{background:var(--tint);border:2px dashed var(--amber);border-radius:10px;padding:10px 12px;margin:10px 0;font-size:14px}
 .mail strong{font-size:22px;letter-spacing:4px}
 .mrow{display:flex;align-items:center;gap:10px;margin-bottom:12px}
@@ -555,11 +556,15 @@ function matchCard(f, mode){
   const score = has ? `${f.home_goals} - ${f.away_goals}` : (done ? "– –" : "vs");
   const top = f.time_confirmed ? `${dayKey(f.kickoff_utc)} ${fmtHour(f.kickoff_utc)}` : `${dayKey(f.kickoff_utc)} · hora por confirmar`;
   let action;
-  const gated = S.view !== "vip" && S.view !== "svip" && !!vipPick(f) && !(mode === "hist" && done && vipLost(f)); // jogo do VIP fora das áreas VIP: só diz "VIP", sem mostrar nada
+  const gated = S.view !== "vip" && S.view !== "svip" && !!vipPick(f) && !(mode === "hist" && done && vipLost(f)); // jogo do VIP fora das áreas VIP: mesma % da área VIP, mas continua bloqueado
+  const gp = gated ? vipPick(f) : null;
   if (gated) action = `<button class="btn" style="background:#b8860b;color:#fff" data-an="${esc(f.id)}">VIP</button>`;
   else if (done && mode === "hist" && vipPick(f) && vipLost(f) && S.view !== "vip" && S.view !== "svip") action = `<button class="btn amber" data-an="${esc(f.id)}">Analisar com IA</button>`;
   else if (done) action = `<button class="btn" data-an="${esc(f.id)}">Ver estatísticas</button>`;
   else action = `<button class="btn amber" data-an="${esc(f.id)}" ${["NS","TBD"].includes(f.status) || isLive(f.status) ? "" : "disabled"}>Analisar com IA</button>`;
+  // mesma regra de percentagem da área VIP: quando o jogo é bloqueado fora do VIP, mostra "<equipa> vitória: NN%" em vez do estado
+  const statusBadge = `<span><span class="st ${isLive(f.status) ? "live" : ""}">${esc(STATUS[f.status] ?? f.status)}</span></span>`;
+  const metaLead = gp ? `<span style="font-weight:700;color:var(--ink)">${isLive(f.status) ? `<span class="st live">${esc(STATUS[f.status] ?? f.status)}</span> ` : ""}${esc(gp.team)} vitória: ${gp.pct}%</span>` : statusBadge;
   let mk = ""; // histórico normal: ✓ ou ✗ por baixo do placar (a escolha do modelo no "Resultado final" acertou?)
   if (mode === "hist" && has && f.analysis && (!vipPick(f) || vipOpen(f) || vipLost(f))){
     try { const fin = finalOf(f), sec = sections(f.analysis.result, { h: f.home_team, a: f.away_team })[0], ok = sec && fin ? groupHit(sec.groups[0], fin) : null;
@@ -569,7 +574,7 @@ function matchCard(f, mode){
   return `<article class="match">${del}<div class="dt">${esc(top)}</div><div class="teams">
     <div class="t">${logo(f.home_logo)}<span>${esc(f.home_team)}</span></div><div class="vsw"><div class="vs">${esc(score)}</div>${mk}</div>
     <div class="t r"><span>${esc(f.away_team)}</span>${logo(f.away_logo)}</div></div>
-    <div class="meta"><span><span class="st ${isLive(f.status) ? "live" : ""}">${esc(STATUS[f.status] ?? f.status)}</span></span>
+    <div class="meta">${metaLead}
     <span class="row">${favStar(f)}${action}</span></div></article>`;
 }
 function grouped(list, mode){
@@ -746,7 +751,7 @@ function vipTabs(sup){
 }
 function vipView(kind){
   const sup = kind === "svip", pk = f => vipPick(f, sup ? SUP_MIN : VIP_MIN), tabs = () => vipTabs(sup), grp = (l, h) => vipGrouped(l, h, sup ? SUP_MIN : VIP_MIN);
-  const u = cur(); if (kind === "svip" && !(u && u.admin)){ S.view = "home"; return homeView(); }
+  const u = cur(); if (kind === "svip" && !isAdm(u)){ S.view = "home"; return homeView(); }
   if (!u || !canVip(u)) return vipLockedHtml(u);
   if (sup && S.vtab === "comb") return tabs() + combBody();
   if (S.vtab === "res"){
@@ -783,31 +788,51 @@ function vipGrouped(list, hist, min = VIP_MIN){
   return h;
 }
 /* ---------- Pagar VIP: pagamento (PAYAPAY/IBAN), envio de comprovativo e valores editáveis pelo admin ---------- */
-function pagarVipBody(u){
-  const s = S.soc, pend = u && u.receiptPending, rej = u && !pend && u.receiptRejected, admin = !!(u && u.admin), vs = s.vset;
-  const editForm = !admin ? "" : S.soc.vsetEdit ? `
-      <form data-sf="vset" novalidate style="margin-top:12px;border-top:1px dashed var(--line);padding-top:12px">
-        <label class="fl" for="vs-kz">Preço por dia (Kwanza)</label><input id="vs-kz" name="kz" type="number" min="1" step="1" value="${esc(vs.kz)}" required>
-        <label class="fl" for="vs-iban">IBAN / PAYAPAY</label><input id="vs-iban" name="iban" type="text" value="${esc(vs.iban)}" required>
-        <label class="fl" for="vs-promo">Mensagem da promoção (opcional)</label><input id="vs-promo" name="promo" type="text" value="${esc(vs.promo || "")}" maxlength="140">
-        <div class="row" style="margin-top:10px"><button type="button" class="btn alt" data-s="vsetx">Cancelar</button><button class="btn" id="vs-save">Guardar</button></div>
-      </form>` : `<button type="button" class="mbtn" style="margin-top:12px" data-s="vseto">✎ Editar preço, IBAN e promoção</button>`;
-  return `<div style="text-align:center;font-weight:800;font-size:20px;color:var(--ink)">💰 ${esc(vs.kz)} Kwanza por dia</div>
-    ${vs.promo ? `<p class="note" style="text-align:center;margin:4px 0 0;color:var(--blue);font-weight:700">${esc(vs.promo)}</p>` : ""}
-    <p class="note" style="text-align:center;margin:6px 0 14px">Paga por transferência e envia o comprovativo. O VIP ativa-se sozinho assim que for aprovado.</p>
-    <div style="background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px">
-      <div style="font-weight:800;color:var(--blue)">PAYAPAY</div>
-      <div class="row" style="align-items:center;gap:8px;margin-top:4px">
-        <code id="ibanv" style="flex:1;font-size:15px;letter-spacing:.5px;word-break:break-all">${esc(vs.iban)}</code>
-        <button type="button" class="mbtn" data-s="copyiban">Copiar</button>
-      </div>
+function pmList(){ return (S.soc.pm && S.soc.pm.length) ? S.soc.pm : [{ id: "payapay", name: "PAYAPAY", kz: VIP_KZ_DIA, iban: PAYAPAY_IBAN, promo: "" }]; }
+function pmCardHtml(m, admin){
+  const s = S.soc, editing = admin && s.pmEdit === m.id, eid = esc(m.id);
+  const body = editing ? `
+    <form data-sf="pmedit" novalidate style="margin-top:8px">
+      <input type="hidden" name="id" value="${eid}">
+      <label class="fl" for="pm-e-name-${eid}">Nome</label><input id="pm-e-name-${eid}" name="name" type="text" maxlength="30" value="${esc(m.name)}" required>
+      <label class="fl" for="pm-e-iban-${eid}">IBAN / conta de receção</label><input id="pm-e-iban-${eid}" name="iban" type="text" value="${esc(m.iban)}" required>
+      <label class="fl" for="pm-e-kz-${eid}">Preço por dia (Kwanza)</label><input id="pm-e-kz-${eid}" name="kz" type="number" min="1" step="1" value="${esc(m.kz)}" required>
+      <label class="fl" for="pm-e-promo-${eid}">Mensagem da promoção (opcional)</label><input id="pm-e-promo-${eid}" name="promo" type="text" maxlength="140" value="${esc(m.promo || "")}">
+      <div class="row" style="margin-top:8px"><button type="button" class="btn alt" data-s="pmeditx">Cancelar</button><button class="btn" id="pm-e-save">Guardar</button></div>
+    </form>` : `
+    <div style="text-align:center;font-weight:800;font-size:20px;color:var(--ink)">💰 ${esc(m.kz)} Kwanza por dia</div>
+    ${m.promo ? `<p class="note" style="text-align:center;margin:4px 0 0;color:var(--blue);font-weight:700">${esc(m.promo)}</p>` : ""}
+    <div class="row" style="align-items:center;gap:8px;margin-top:8px">
+      <code style="flex:1;font-size:15px;letter-spacing:.5px;word-break:break-all">${esc(m.iban)}</code>
+      <button type="button" class="mbtn" data-s="copyiban" data-id="${eid}">Copiar</button>
     </div>
+    ${admin ? `<div class="row" style="margin-top:8px">
+      <button type="button" class="mbtn" data-s="pmedito" data-id="${eid}">✎ Editar</button>
+      ${pmList().length > 1 ? `<button type="button" class="mbtn" style="background:var(--bad)" data-s="pmdel" data-id="${eid}">Eliminar</button>` : ""}
+    </div>` : ""}`;
+  return `<div style="background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px">
+    <div style="font-weight:800;color:var(--blue)">${esc(m.name)}</div>${body}
+  </div>`;
+}
+function pagarVipBody(u){
+  const s = S.soc, pend = u && u.receiptPending, rej = u && !pend && u.receiptRejected, admin = !!(u && u.admin);
+  const cards = pmList().map(m => pmCardHtml(m, admin)).join("");
+  const addForm = !admin ? "" : s.pmAdd ? `
+      <form data-sf="pmadd" novalidate style="margin-top:4px;border-top:1px dashed var(--line);padding-top:12px">
+        <label class="fl" for="pm-name">Nome da nova forma de pagamento</label><input id="pm-name" name="name" type="text" maxlength="30" required>
+        <label class="fl" for="pm-iban">IBAN / conta de receção</label><input id="pm-iban" name="iban" type="text" required>
+        <label class="fl" for="pm-kz">Preço por dia (Kwanza)</label><input id="pm-kz" name="kz" type="number" min="1" step="1" value="${VIP_KZ_DIA}" required>
+        <label class="fl" for="pm-promo">Mensagem da promoção (opcional)</label><input id="pm-promo" name="promo" type="text" maxlength="140">
+        <div class="row" style="margin-top:10px"><button type="button" class="btn alt" data-s="pmaddx">Cancelar</button><button class="btn" id="pm-save">Guardar</button></div>
+      </form>` : `<button type="button" class="mbtn" style="margin:4px 0 12px" data-s="pmaddo">➕ Adicionar forma de pagamento</button>`;
+  return `${cards}
     ${s.vmsg ? `<div class="msg ${s.vmsg[0] === "!" ? "" : "ok"}" role="status">${esc(s.vmsg.replace(/^!/, ""))}</div>` : ""}
+    <p class="note" style="text-align:center;margin:6px 0 14px">Paga por transferência e envia o comprovativo. O VIP ativa-se sozinho assim que for aprovado.</p>
     ${!u ? `<p class="note" style="text-align:center">Inicia sessão para enviares o comprovativo.</p>`
       : pend ? `<div class="msg ok" role="status">O teu comprovativo está em análise. Assim que for aprovado o VIP ativa-se sozinho — não precisas de fazer mais nada.</div>`
       : `${rej ? `<div class="msg" role="status">!${esc(typeof u.receiptRejected === "string" ? u.receiptRejected : "O comprovativo anterior não foi aceite.")}</div>` : ""}
          <button type="button" class="btn" style="width:100%" data-s="recopen">Enviar comprovativo</button>`}
-    ${editForm}`;
+    ${addForm}`;
 }
 const payOtherHtml = () => `<p class="note" style="text-align:center;margin:16px 0 6px">Outras formas de pagamento, contacte o ADM do grupo</p>
   <button type="button" class="btn alt" style="width:100%" data-s="wa">💬 Falar no WhatsApp</button>`;
@@ -818,16 +843,18 @@ function vipLockedHtml(u){
 }
 function payVipView(){
   const u = cur(), s = S.soc;
-  return `<h1 class="ttl">Pagar VIP</h1><p class="sub">${u && u.admin ? "Aqui estão os processos de pagamento do VIP. Como administrador, podes editar o preço, o IBAN e a promoção." : "Paga e envia o comprovativo para ativares o VIP."}</p>
+  return `<h1 class="ttl">Pagar VIP</h1><p class="sub">${u && u.admin ? "Aqui estão os processos de pagamento do VIP. Como administrador, podes editar o preço, o IBAN e a promoção de cada forma de pagamento, e adicionar ou eliminar formas de pagamento." : "Paga e envia o comprovativo para ativares o VIP."}</p>
     <div class="card">${pagarVipBody(u)}${payOtherHtml()}</div>`;
 }
 function receiptFormHtml(){
-  const kz = S.soc.vset.kz;
+  const methods = pmList(), m0 = methods[0];
+  const opts = methods.map(m => `<option value="${esc(m.id)}" data-kz="${esc(m.kz)}">${esc(m.name)} — ${esc(m.kz)} Kz/dia</option>`).join("");
   return `<div style="padding:16px"><h3 style="margin-top:0">Enviar comprovativo</h3>
     <form data-sf="receipt" novalidate>
+      ${methods.length > 1 ? `<label class="fl" for="rc-pm">Forma de pagamento usada</label><select id="rc-pm" name="pm">${opts}</select>` : `<input type="hidden" name="pm" value="${esc(m0.id)}">`}
       <label class="fl" for="rc-amt">Quanto pagaste (Kwanza)</label>
-      <input id="rc-amt" name="amt" type="number" min="${kz}" step="${kz}" value="${kz}" required>
-      <p class="note" style="margin:4px 0 12px">Cada ${kz} Kwanza dá 1 dia de VIP (só conta os dias em que há jogos).</p>
+      <input id="rc-amt" name="amt" type="number" min="${m0.kz}" step="${m0.kz}" value="${m0.kz}" required>
+      <p class="note" style="margin:4px 0 12px">Cada <b id="rc-unit">${m0.kz}</b> Kwanza dá 1 dia de VIP (só conta os dias em que há jogos).</p>
       <label class="fl" for="rc-file">Comprovativo (imagem ou PDF)</label>
       <input id="rc-file" name="file" type="file" accept="image/*,application/pdf" required>
       <p id="rc-err" class="note" style="color:var(--bad);display:none;margin:8px 0 0"></p>
@@ -957,7 +984,7 @@ function drawerHtml(){
   if (!S.drawer){ if (!S.search && !S.lg) $("ov").innerHTML = ""; return; }
   const dark = isDark(), u = cur(), B = "width:100%;font-size:18px;padding:14px;margin-bottom:8px";
   const top = u ? `<div class="mrow">${avatar(u, 44)}<b>${esc(u.name)}</b></div>
-    ${isAdm(u) ? `<button class="btn" style="${B};background:#d32f2f;color:#fff" data-s="admin">Painel</button>` : ""}<button class="btn" style="${B};background:#ffd600;color:#1b1500" data-s="vip">VIP</button>${u.admin ? `<button class="btn" style="${B};background:linear-gradient(135deg,#f7dc7e,#d4af37 50%,#a67c00);color:#2a1d00" data-s="svip">Super VIP</button>` : ""}` : "";
+    ${isAdm(u) ? `<button class="btn" style="${B};background:#d32f2f;color:#fff" data-s="admin">Painel</button>` : ""}<button class="btn" style="${B};background:#ffd600;color:#1b1500" data-s="vip">VIP</button>${isAdm(u) ? `<button class="btn" style="${B};background:linear-gradient(135deg,#f7dc7e,#d4af37 50%,#a67c00);color:#2a1d00" data-s="svip">Super VIP</button>` : ""}` : "";
   $("ov").innerHTML = `<div class="ov" data-act="close"><div class="drawer" role="dialog" aria-label="Menu">${top}
     <button class="btn" style="${B};${dark ? "background:#fff;color:#000;border:1px solid #999" : "background:#000;color:#fff;border:1px solid #777"}" data-act="toggle" aria-pressed="${dark}">${dark ? "☀️ Modo claro" : "🌙 Modo escuro"}</button>
     <button class="btn" style="${B};background:#0d9c5a;color:#fff" data-s="payvip">💳 Pagar VIP</button>
@@ -1302,7 +1329,7 @@ const expMsg = t => `O teu acesso terminou em ${fmtFull(new Date(t).toISOString(
 
 function clearF(){ S.soc.f = { id: "", email: "", name: "", pw: "", code: "", pw2: "" }; }
 S.soc = { mode: "login", err: "", info: "", mail: null, was: false, showSearch: false, q: "", pwForm: false, pmsg: null, banFor: null, receipts: [],
-  vset: { kz: VIP_KZ_DIA, iban: PAYAPAY_IBAN, promo: "" }, vsetEdit: false, vmsg: null, authBusy: false,
+  pm: store.get("pm", [{ id: "payapay", name: "PAYAPAY", kz: VIP_KZ_DIA, iban: PAYAPAY_IBAN, promo: "" }]), pmEdit: null, pmAdd: false, vmsg: null, authBusy: false,
   f: { id: "", email: "", name: "", pw: "", code: "", pw2: "" } };
 
 async function hashPw(pw, salt){
@@ -1443,10 +1470,23 @@ const tadmOf = u => { if (!u || u.admin) return { on: false, exp: 0 }; const exp
 const isAdm = u => !!u && (!!u.admin || tadmOf(u).on);
 const dword = n => n === 1 ? "dia" : "dias";
 // cada administrador temporário só pode convidar (para VIP ou para administrador) tantas pessoas quantos os dias pelos quais foi convidado; cada convite gasta 1, e o poder passa assim de convidado em convidado
+// nota: o servidor ainda não guarda "quota"/"usados" por admin temporário, por isso guardamos isso aqui no próprio telemóvel desse administrador (funciona desde que ele use sempre o mesmo telemóvel/navegador para convidar)
+const tqKey = e => "tq_" + e, tuKey = e => "tu_" + e;
+function localQuota(me, texp){
+  const k = tqKey(me.email); let c = store.get(k, null);
+  if (!c || c.texp !== texp){ c = { texp, q: Math.max(1, Math.ceil((texp - Date.now()) / DAYMS)) }; store.set(k, c); store.set(tuKey(me.email), 0); }
+  return c.q;
+}
+function bumpLocalUsed(email){ const k = tuKey(email); store.set(k, (store.get(k, 0) || 0) + 1); }
 function inviteInfo(me){
   if (!me) return { quota: 0, used: 0, left: 0 };
   if (me.admin) return { quota: Infinity, used: 0, left: Infinity };
-  if (API_URL){ const q = me.tquota ?? 0, us = me.tused ?? 0; return { quota: q, used: us, left: Math.max(0, q - us) }; }
+  if (API_URL){
+    const texp = me.texp || 0; if (!(texp > Date.now())) return { quota: 0, used: 0, left: 0 };
+    const q = Number.isFinite(me.tquota) && me.tquota > 0 ? me.tquota : localQuota(me, texp);
+    const us = Number.isFinite(me.tused) ? me.tused : (store.get(tuKey(me.email), 0) || 0);
+    return { quota: q, used: us, left: Math.max(0, q - us) };
+  }
   const r = tadmRec(me.email); if (!r || !(tadmOf(me).on)) return { quota: 0, used: 0, left: 0 };
   const quota = Number.isFinite(r.quota) ? r.quota : Math.max(1, Math.ceil((r.exp - (r.created || r.exp)) / DAYMS));
   const used = r.used || 0;
@@ -1520,7 +1560,7 @@ function adminRows(me){
     const vip = u.admin ? "VIP sempre" : on ? "VIP até " + dt(a.exp) : a ? "VIP terminou" : "sem VIP";
     const vipBtns = left > 0 ? `<select class="vsel" style="width:auto;padding:6px" aria-label="Dias de VIP">${vdayOpts(7, left)}</select><button class="mbtn" data-s="renew" data-e="${E}" data-on="${on ? 1 : 0}">${on ? "Adicionar dias" : "Dar VIP"}</button>` : "";
     const main = me.admin ? `${b ? `<button class="mbtn" data-s="unban" data-id="${u.id}">Remover ban</button>` : `<button class="mbtn" data-s="banopen" data-id="${u.id}">Banir</button>`}<button class="mbtn" style="background:var(--bad)" data-s="deluser" data-id="${u.id}">Excluir conta</button>` : "";
-    return `<div class="urow"><b>${esc(u.name)}</b>${u.admin ? `<span class="tag">ADMIN</span>` : ""}<br><small style="color:var(--mute)">${E} · ${b ? "Banido até " + esc(tm(u.banUntil)) : "Ativo"} · ${esc(vip)}</small>
+    return `<div class="urow"><b>${esc(u.name)}</b>${u.admin ? `<span class="tag">ADMIN</span>` : tadmOf(u).on ? `<span class="tag t2">ADM</span>` : ""}<br><small style="color:var(--mute)">${E} · ${b ? "Banido até " + esc(tm(u.banUntil)) : "Ativo"} · ${esc(vip)}</small>
       ${self ? "" : `<div class="row">${vipBtns}${a ? `<button class="mbtn" data-s="rmallow" data-e="${E}">Remover VIP</button>` : ""}${main}</div>`}</div>`;
   }).join("");
 }
@@ -1535,7 +1575,7 @@ const ACT = {
   admin: () => { if (!isAdm(cur())) return; go("admin"); refreshAdmin(); },
   tipq: d => askAssistant(d.q),
   vip: () => { reloadDB(); if (cur()){ S.vtab = "vip"; go("vip"); } },
-  svip: () => { reloadDB(); if (cur() && cur().admin){ S.vtab = "vip"; go("svip"); } },
+  svip: () => { reloadDB(); if (isAdm(cur())){ S.vtab = "vip"; go("svip"); } },
   payvip: () => go("payvip"),
   ctab: d => { S.ctab = d.v; render(); },
   cday: d => { S.cday = d.k; render(); },
@@ -1545,12 +1585,22 @@ const ACT = {
   upd: () => { if (S.upd === "busy") return; if (S.upd === "ok"){ checkUpdate().then(() => { if (S.upd === "new") doUpdate(); }); return; } doUpdate(); },
   wa: () => { if (WHATSAPP_URL) window.open(WHATSAPP_URL, "_blank", "noopener"); else if (window.alert) window.alert("O link do grupo ainda não foi configurado."); },
   copyiban: (d, el) => {
+    const m = pmList().find(x => x.id === d.id) || pmList()[0];
     const go = ok => { el.textContent = ok ? "Copiado!" : "Copiar"; if (ok) setTimeout(() => { el.textContent = "Copiar"; }, 1800); };
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(S.soc.vset.iban).then(() => go(true), () => go(false));
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(m.iban).then(() => go(true), () => go(false));
     else go(false);
   },
-  vseto: () => { S.soc.vsetEdit = true; S.soc.vmsg = null; render(); },
-  vsetx: () => { S.soc.vsetEdit = false; render(); },
+  pmaddo: () => { if (!(cur() && cur().admin)) return; S.soc.pmAdd = true; S.soc.pmEdit = null; S.soc.vmsg = null; render(); },
+  pmaddx: () => { S.soc.pmAdd = false; render(); },
+  pmedito: d => { if (!(cur() && cur().admin)) return; S.soc.pmEdit = d.id; S.soc.pmAdd = false; S.soc.vmsg = null; render(); },
+  pmeditx: () => { S.soc.pmEdit = null; render(); },
+  pmdel: d => {
+    const u = cur(); if (!(u && u.admin)) return;
+    if (pmList().length <= 1) return;
+    const pm = pmList().filter(x => x.id !== d.id);
+    const apply = () => { S.soc.pm = pm; store.set("pm", pm); S.soc.vmsg = "Forma de pagamento eliminada."; render(); };
+    if (API_URL) api("admin/vip-settings", { pm }).then(() => apply(), apply); else apply();
+  },
   recopen: () => { if (!cur()) return; const dlg = $("dlg"); dlg.innerHTML = receiptFormHtml(); if (!dlg.open) dlg.showModal(); },
   recclose: () => { const dlg = $("dlg"); if (dlg.open) dlg.close(); },
   recdecide: (d, el) => {
@@ -1601,7 +1651,10 @@ const ACT = {
 function allowSave(email, o, okMsg){
   const me = adminOnly(); if (!me) return;
   const msg = t => { S.soc.amsg = t; render(); };
-  if (API_URL){ api("admin/allow", { email, ...o }).then(r => { if (r.ok){ S.soc.amsg = okMsg || "Guardado."; refreshAdmin(); render(); } else msg("!" + (r.error || "Erro.")); }); return; }
+  if (API_URL){
+    if (!me.admin && inviteInfo(me).left <= 0) return msg("!Já não tens convites para dar.");
+    api("admin/allow", { email, ...o }).then(r => { if (r.ok){ if (!me.admin) bumpLocalUsed(me.email); S.soc.amsg = okMsg || "Guardado."; refreshAdmin(); render(); } else msg("!" + (r.error || "Erro.")); }); return;
+  }
   reloadDB(); const now = Date.now(), t = DBc.users.find(u => u.email === email);
   if (!t) return msg("!Este e-mail ainda não tem conta.");
   if (t.admin) return msg("!Esta conta é do administrador principal.");
@@ -1628,7 +1681,10 @@ function vipAll(days){ // só o principal; só quem ainda não tem VIP
 function tadmSave(email, days){
   const me = adminOnly(); if (!me) return;
   const msg = t => { S.soc.amsg = t; render(); }, ok = `${email} é administrador temporário por ${days} ${dword(days)}, com poder para convidar até ${days} ${dword(days)}.`;
-  if (API_URL){ api("admin/tadmin", { email, days, quota: days }).then(r => r.ok ? (S.soc.amsg = ok, refreshAdmin(), render()) : msg("!" + (r.error || "Erro."))); return; }
+  if (API_URL){
+    if (!me.admin && inviteInfo(me).left <= 0) return msg("!Já não tens convites para dar.");
+    api("admin/tadmin", { email, days, quota: days }).then(r => r.ok ? (!me.admin && bumpLocalUsed(me.email), S.soc.amsg = ok, refreshAdmin(), render()) : msg("!" + (r.error || "Erro."))); return;
+  }
   reloadDB(); const t = DBc.users.find(u => u.email === email);
   if (!t) return msg("!Este e-mail ainda não tem conta.");
   if (t.admin) return msg("!Esta conta já é a do administrador principal.");
@@ -1670,7 +1726,9 @@ const FORM = {
   },
   receipt: async f => {
     const err = f.querySelector("#rc-err"), show = m => { err.textContent = m; err.style.display = "block"; };
-    const unitKz = S.soc.vset.kz, amt = Math.max(unitKz, Math.floor(+f.elements.amt.value || 0));
+    const pmId = f.elements.pm ? f.elements.pm.value : "payapay";
+    const method = pmList().find(m => m.id === pmId) || pmList()[0];
+    const unitKz = method.kz, amt = Math.max(unitKz, Math.floor(+f.elements.amt.value || 0));
     const file = f.elements.file.files && f.elements.file.files[0];
     if (!file) return show("Escolhe o ficheiro do comprovativo.");
     if (!/^image\/|^application\/pdf$/.test(file.type)) return show("Tem de ser uma imagem ou um PDF.");
@@ -1678,24 +1736,34 @@ const FORM = {
     const btn = f.querySelector("#rc-send"); btn.disabled = true; btn.textContent = "A enviar…";
     try {
       const b64 = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1] || ""); r.onerror = rej; r.readAsDataURL(file); });
-      const r = await api("vip/receipt", { amount: amt, unitKz, mime: file.type, name: file.name, b64 });
+      const r = await api("vip/receipt", { amount: amt, unitKz, method: method.name, mime: file.type, name: file.name, b64 });
       if (!r.ok){ btn.disabled = false; btn.textContent = "Enviar"; return show(r.error || "Não foi possível enviar. Tenta outra vez."); }
       if (r.user){ S.soc.me = r.user; store.set(MEK, r.user); }
       const dlg = $("dlg"); if (dlg.open) dlg.close();
       render();
     } catch (e){ btn.disabled = false; btn.textContent = "Enviar"; show("Erro ao ler o ficheiro. Tenta outra vez."); }
   },
-  vset: f => {
+  pmadd: f => {
     const u = cur(); if (!(u && u.admin)) return;
-    const kz = Math.max(1, Math.floor(+f.elements.kz.value || 0)), iban = f.elements.iban.value.trim(), promo = f.elements.promo.value.trim();
-    if (!kz || !iban){ S.soc.vmsg = "!Preenche o preço e o IBAN."; return render(); }
-    const btn = f.querySelector("#vs-save"); if (btn){ btn.disabled = true; btn.textContent = "A guardar…"; }
-    const apply = () => { S.soc.vset = { kz, iban, promo }; S.soc.vsetEdit = false; S.soc.vmsg = "Valores da promoção atualizados."; render(); };
+    const name = f.elements.name.value.trim(), iban = f.elements.iban.value.trim(), kz = Math.max(1, Math.floor(+f.elements.kz.value || 0)), promo = f.elements.promo.value.trim();
+    if (!name || !iban || !kz){ S.soc.vmsg = "!Preenche o nome, o IBAN e o preço."; return render(); }
+    const btn = f.querySelector("#pm-save"); if (btn){ btn.disabled = true; btn.textContent = "A guardar…"; }
+    const id = (name.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "pm") + "-" + Date.now().toString(36);
+    const pm = [...pmList(), { id, name, iban, kz, promo }];
+    const apply = () => { S.soc.pm = pm; store.set("pm", pm); S.soc.pmAdd = false; S.soc.vmsg = "Forma de pagamento adicionada."; render(); };
     if (API_URL){
-      api("admin/vip-settings", { kz, iban, promo }).then(r => {
-        if (r.ok) return apply();
-        S.soc.vmsg = "!" + (r.error || "Não foi possível guardar no servidor."); if (btn){ btn.disabled = false; btn.textContent = "Guardar"; } render();
-      });
+      api("admin/vip-settings", { pm }).then(r => { if (r.ok) return apply(); S.soc.vmsg = "!" + (r.error || "Não foi possível guardar no servidor, mas foi aplicada aqui."); apply(); });
+    } else apply();
+  },
+  pmedit: f => {
+    const u = cur(); if (!(u && u.admin)) return;
+    const id = f.elements.id.value, name = f.elements.name.value.trim(), iban = f.elements.iban.value.trim(), kz = Math.max(1, Math.floor(+f.elements.kz.value || 0)), promo = f.elements.promo.value.trim();
+    if (!name || !iban || !kz){ S.soc.vmsg = "!Preenche o nome, o IBAN e o preço."; return render(); }
+    const btn = f.querySelector("#pm-e-save"); if (btn){ btn.disabled = true; btn.textContent = "A guardar…"; }
+    const pm = pmList().map(m => m.id === id ? { id, name, iban, kz, promo } : m);
+    const apply = () => { S.soc.pm = pm; store.set("pm", pm); S.soc.pmEdit = null; S.soc.vmsg = "Forma de pagamento atualizada."; render(); };
+    if (API_URL){
+      api("admin/vip-settings", { pm }).then(r => { if (r.ok) return apply(); S.soc.vmsg = "!" + (r.error || "Não foi possível guardar no servidor, mas foi aplicada aqui."); apply(); });
     } else apply();
   }
 };
@@ -1733,8 +1801,8 @@ if (API_URL){ setInterval(checkSession, 4000); setInterval(() => { if (isAdm(cur
 async function loadVipSettings(){
   if (!API_URL) return;
   const r = await api("vip/settings");
-  if (r && r.ok && r.kz){
-    S.soc.vset = { kz: r.kz, iban: r.iban || S.soc.vset.iban, promo: r.promo || "" };
+  if (r && r.ok && Array.isArray(r.pm) && r.pm.length){
+    S.soc.pm = r.pm; store.set("pm", r.pm);
     if (["vip", "svip", "payvip"].includes(S.view)) render();
   }
 }
@@ -1809,6 +1877,11 @@ document.addEventListener("click", e => {
 document.addEventListener("input", e => { const k = ({ "na-home": "home", "na-away": "away", "na-league": "league" })[e.target.id]; if (k) S.na[k] = e.target.value; });
 document.addEventListener("change", e => {
   if (e.target.id === "fcomp"){ S.comp = e.target.value; render(); }
+  if (e.target.id === "rc-pm"){
+    const opt = e.target.selectedOptions[0], kz = +(opt && opt.dataset.kz) || 1, amt = $("rc-amt"), unit = $("rc-unit");
+    if (amt){ amt.min = kz; amt.step = kz; amt.value = kz; }
+    if (unit) unit.textContent = kz;
+  }
 });
 
 
