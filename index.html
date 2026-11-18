@@ -787,8 +787,8 @@ function vipGrouped(list, hist, min = VIP_MIN){
   }
   return h;
 }
-/* ---------- Pagar VIP: pagamento (PAYAPAY/IBAN), envio de comprovativo e valores editáveis pelo admin ---------- */
-function pmList(){ return (S.soc.pm && S.soc.pm.length) ? S.soc.pm : [{ id: "payapay", name: "PAYAPAY", kz: VIP_KZ_DIA, iban: PAYAPAY_IBAN, promo: "" }]; }
+/* ---------- Pagar VIP: pagamento (PAYPAY/IBAN), envio de comprovativo e valores editáveis pelo admin ---------- */
+function pmList(){ return (S.soc.pm && S.soc.pm.length) ? S.soc.pm : [{ id: "paypay", name: "PAYPAY", kz: VIP_KZ_DIA, iban: PAYPAY_IBAN, promo: "" }]; }
 function pmCardHtml(m, admin){
   const s = S.soc, editing = admin && s.pmEdit === m.id, eid = esc(m.id);
   const body = editing ? `
@@ -1310,7 +1310,7 @@ const validName = n => n.length >= 3 && n.length <= 20 && /^[\p{L}\p{N}_. -]+$/u
 const tm = t => { const iso = new Date(t).toISOString(); return dayKey(iso) === dayKey(new Date().toISOString()) ? fmtHour(iso) : fmtFull(iso); };
 const userById = id => DBc.users.find(x => x.id === id);
 const WHATSAPP_URL = "https://chat.whatsapp.com/C8DfJGozZr90IlVDU8H1Kt?s=cl&p=a&mlu=4&ilr=4"; // link do grupo de WhatsApp (ex.: "https://chat.whatsapp.com/xxxxxxxx")
-const PAYAPAY_IBAN = "AO06042000000000073860793", VIP_KZ_DIA = 10; // IBAN de recebimento e preço por dia de VIP, em Kwanza
+const PAYPAY_IBAN = "AO06042000000000073860793", VIP_KZ_DIA = 10; // IBAN de recebimento e preço por dia de VIP, em Kwanza
 const DAYMS = 86400e3;
 const vHid = new Set(); store.set("hiddenVip", []); // jogos do VIP já não se apagam: os que tinham sido removidos voltam aos seus dias
 const saveVHid = () => {};
@@ -1329,7 +1329,7 @@ const expMsg = t => `O teu acesso terminou em ${fmtFull(new Date(t).toISOString(
 
 function clearF(){ S.soc.f = { id: "", email: "", name: "", pw: "", code: "", pw2: "" }; }
 S.soc = { mode: "login", err: "", info: "", mail: null, was: false, showSearch: false, q: "", pwForm: false, pmsg: null, banFor: null, receipts: [],
-  pm: store.get("pm", [{ id: "payapay", name: "PAYAPAY", kz: VIP_KZ_DIA, iban: PAYAPAY_IBAN, promo: "" }]), pmEdit: null, pmAdd: false, vmsg: null, authBusy: false,
+  pm: store.get("pm", [{ id: "paypay", name: "PAYPAY", kz: VIP_KZ_DIA, iban: PAYPAY_IBAN, promo: "" }]), pmEdit: null, pmAdd: false, vmsg: null, authBusy: false,
   f: { id: "", email: "", name: "", pw: "", code: "", pw2: "" } };
 
 async function hashPw(pw, salt){
@@ -1726,7 +1726,7 @@ const FORM = {
   },
   receipt: async f => {
     const err = f.querySelector("#rc-err"), show = m => { err.textContent = m; err.style.display = "block"; };
-    const pmId = f.elements.pm ? f.elements.pm.value : "payapay";
+    const pmId = f.elements.pm ? f.elements.pm.value : "paypay";
     const method = pmList().find(m => m.id === pmId) || pmList()[0];
     const unitKz = method.kz, amt = Math.max(unitKz, Math.floor(+f.elements.amt.value || 0));
     const file = f.elements.file.files && f.elements.file.files[0];
