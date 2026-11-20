@@ -556,17 +556,16 @@ function matchCard(f, mode){
   const score = has ? `${f.home_goals} - ${f.away_goals}` : (done ? "– –" : "vs");
   const top = f.time_confirmed ? `${dayKey(f.kickoff_utc)} ${fmtHour(f.kickoff_utc)}` : `${dayKey(f.kickoff_utc)} · hora por confirmar`;
   let action;
-  const gated = S.view !== "vip" && S.view !== "svip" && !!vipPick(f) && !(mode === "hist" && done && vipLost(f)); // jogo do VIP fora das áreas VIP: mesma % da área VIP, mas continua bloqueado
+  const gated = S.view !== "vip" && S.view !== "svip" && mode !== "hist" && !!vipPick(f); // jogo do VIP fora das áreas VIP: mesma % da área VIP, mas continua bloqueado; no histórico aparece sempre como um jogo normal
   const gp = gated ? vipPick(f) : null;
   if (gated) action = `<button class="btn" style="background:#b8860b;color:#fff" data-an="${esc(f.id)}">VIP</button>`;
-  else if (done && mode === "hist" && vipPick(f) && vipLost(f) && S.view !== "vip" && S.view !== "svip") action = `<button class="btn amber" data-an="${esc(f.id)}">Analisar com IA</button>`;
   else if (done) action = `<button class="btn" data-an="${esc(f.id)}">Ver estatísticas</button>`;
   else action = `<button class="btn amber" data-an="${esc(f.id)}" ${["NS","TBD"].includes(f.status) || isLive(f.status) ? "" : "disabled"}>Analisar com IA</button>`;
   // mesma regra de percentagem da área VIP: quando o jogo é bloqueado fora do VIP, mostra "<equipa> vitória: NN%" em vez do estado
   const statusBadge = `<span><span class="st ${isLive(f.status) ? "live" : ""}">${esc(STATUS[f.status] ?? f.status)}</span></span>`;
   const metaLead = gp ? `<span style="font-weight:700;color:var(--ink)">${isLive(f.status) ? `<span class="st live">${esc(STATUS[f.status] ?? f.status)}</span> ` : ""}${esc(gp.team)} vitória: ${gp.pct}%</span>` : statusBadge;
-  let mk = ""; // histórico normal: ✓ ou ✗ por baixo do placar (a escolha do modelo no "Resultado final" acertou?)
-  if (mode === "hist" && has && f.analysis && (!vipPick(f) || vipOpen(f) || vipLost(f))){
+  let mk = ""; // histórico normal: ✓ ou ✗ por baixo do placar (a escolha do modelo no "Resultado final" acertou?) — vale também para jogos do VIP
+  if (mode === "hist" && has && f.analysis){
     try { const fin = finalOf(f), sec = sections(f.analysis.result, { h: f.home_team, a: f.away_team })[0], ok = sec && fin ? groupHit(sec.groups[0], fin) : null;
       if (ok !== null) mk = `<div class="mk" style="color:var(${ok ? "--ok" : "--bad"})" aria-label="${ok ? "Acertou" : "Falhou"}">${ok ? "✓" : "✗"}</div>`; } catch (e) {}
   }
@@ -664,8 +663,8 @@ function finalOf(f){
 }
 function histList(){ return S.history; }
 const createdKey = u => dayKey(new Date((u && u.created) || 0).toISOString());
-function histOk(f){ // true = acertou, false = falhou, null = sem análise ou jogo do VIP (igual ao ✓/✗ do cartão)
-  if (!(f.home_goals != null && f.away_goals != null && isDone(f.status) && f.analysis && (!vipPick(f) || vipOpen(f) || vipLost(f)))) return null;
+function histOk(f){ // true = acertou, false = falhou, null = sem análise (igual ao ✓/✗ do cartão; no histórico os jogos do VIP contam como qualquer outro)
+  if (!(f.home_goals != null && f.away_goals != null && isDone(f.status) && f.analysis)) return null;
   try { const fin = finalOf(f), sec = sections(f.analysis.result, { h: f.home_team, a: f.away_team })[0]; return sec && fin ? groupHit(sec.groups[0], fin) : null; } catch (e) { return null; }
 }
 function histStat(arr){ let w = 0, l = 0; arr.forEach(f => { const o = histOk(f); if (o === true) w++; else if (o === false) l++; }); const n = w + l; return { w, l, n, pw: n ? Math.round(w / n * 100) : 0, pl: n ? 100 - Math.round(w / n * 100) : 0 }; }
@@ -1525,14 +1524,10 @@ function adminView(){
     <label class="fl" for="al-e">E-mail do utilizador</label><input id="al-e" name="e" type="email" autocomplete="off">
     <label class="fl" for="al-d">Dias de VIP</label><select id="al-d" name="d">${vdayOpts(7)}</select>
     <button class="btn" style="width:100%;margin-top:12px;padding:12px">Convidar</button></form>` : (main ? "" : `<div class="card"><b>Já não tens convites para dar.</b></div>`);
-  const dias = main ? "" : `<div class="card"><b>Os teus convites: usaste ${ii.used} de ${ii.quota}</b><p class="note" style="margin:4px 0 0">Cada convite — para VIP ou para administrador — gasta 1, até ao número de dias pelos quais foste convidado como administrador.</p></div>`;
+  const dias = main ? "" : `<div class="card"><b>Os teus convites: usaste ${ii.used} de ${ii.quota}</b><p class="note" style="margin:4px 0 0">Cada convite para VIP gasta 1, até ao número de dias pelos quais foste convidado como administrador.</p></div>`;
   const bulk = main ? `<form class="card" data-sf="vipall"><b>Convidar todos ao VIP</b><p class="note" style="margin:4px 0 8px">Só quem ainda não tem VIP.</p><div class="row"><select name="d" aria-label="Dias">${vdayOpts(1, 3)}</select><button class="btn">Convidar todos</button></div></form>` : "";
-  const tad = left > 0 ? `<form class="card" data-sf="tadm" novalidate><b>Administrador temporário</b>
-    <label class="fl" for="ta-e">E-mail do utilizador</label><input id="ta-e" name="e" type="email" autocomplete="off">
-    <label class="fl" for="ta-d">Dias como administrador</label><select id="ta-d" name="d">${vdayOpts(7)}</select>
-    <p class="note" style="margin:4px 0 0">O administrador convidado só poderá convidar, por sua vez, tantas pessoas quantos os dias que lhe deres aqui.</p>
-    <button class="btn" style="width:100%;margin-top:12px;padding:12px">Convidar administrador</button><div id="adtl" style="margin-top:8px">${tadmRows(me)}</div></form>` : (main ? "" : "");
-  const recs = main ? `<section class="card" id="reccard"><h3 style="margin-top:0">Comprovativos pendentes</h3><div id="reclist">${receiptsHtml()}</div></section>` : "";
+  const tad = main ? `<section class="card"><h3 style="margin-top:0">Administradores temporários</h3><div id="adtl">${tadmRows(me)}</div></section>` : "";
+  const recs = isAdm(me) ? `<section class="card" id="reccard"><h3 style="margin-top:0">Comprovativos pendentes</h3><div id="reclist">${receiptsHtml()}</div></section>` : "";
   return `<div class="stat" id="adstat">${statHtml(me)}</div>
     ${s.amsg ? `<div class="msg ${s.amsg[0] === "!" ? "" : "ok"}" role="status">${esc(s.amsg.replace(/^!/, ""))}</div>` : ""}${dias}${recs}${addForm}${bulk}${tad}${banForm}<section class="card"><h3 style="margin-top:0">Utilizadores</h3>
     <div class="sbar"><input id="adq" type="search" placeholder="Pesquisar utilizador…" autocomplete="off" value="${esc(s.aq || "")}" aria-label="Pesquisar utilizador"><span class="lupa">${ICON.search}</span></div>
@@ -1779,7 +1774,7 @@ async function refreshAdmin(){
   if (!API_URL) return; const me = cur(); if (!isAdm(me)) return;
   const r = await api("admin/list"); if (!r.ok) return;
   DBc.users = r.users; DBc.allow = r.allow || []; DBc.tadmins = r.tadmins || [];
-  if (me.admin){ const rr = await api("admin/receipts"); S.soc.receipts = rr.ok ? (rr.receipts || []) : []; }
+  if (isAdm(me)){ const rr = await api("admin/receipts"); S.soc.receipts = rr.ok ? (rr.receipts || []) : []; }
   if (S.view !== "admin") return;
   const el = $("adstat"), ls = $("adlist"), tl = $("adtl"), rc = $("reclist"); if (el) el.innerHTML = statHtml(me);
   if (ls && !S.soc.banFor) ls.innerHTML = adminRows(me);
