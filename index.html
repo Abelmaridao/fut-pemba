@@ -744,15 +744,19 @@ function vipDays(u){
   return Math.max(1, Math.min(7, Math.ceil((ax.exp - Date.now()) / DAYMS))); // até 7 dias; vai diminuindo com os dias que restam
 }
 function vipTabs(sup){
-  const t = sup ? (S.vtab === "res" ? "res" : S.vtab === "comb" ? "comb" : "vip") : (S.vtab === "res" ? "res" : "vip");
+  const t = sup ? (S.vtab === "res" ? "res" : S.vtab === "comb" ? "comb" : S.vtab === "pesq" ? "pesq" : "vip") : (S.vtab === "res" ? "res" : "vip");
   const b = (v, l) => `<button type="button" class="vtb" data-s="vtab" data-v="${v}" aria-pressed="${t === v}">${l}</button>`;
-  return `<div class="vtabs">${b("vip", sup ? "Super VIP" : "VIP")}${sup ? b("comb", "Combinações") : ""}${b("res", "Resultados")}</div>`;
+  return `<div class="vtabs">${b("vip", sup ? "S.V" : "VIP")}${sup ? b("comb", "Combin") : ""}${sup ? b("pesq", "Pesq") : ""}${b("res", "Resultados")}</div>`;
+}
+function pesqBody(){
+  return `<div class="empty">Pesquisa de jogos por percentagem — em breve.</div>`;
 }
 function vipView(kind){
   const sup = kind === "svip", pk = f => vipPick(f, sup ? SUP_MIN : VIP_MIN), tabs = () => vipTabs(sup), grp = (l, h) => vipGrouped(l, h, sup ? SUP_MIN : VIP_MIN);
   const u = cur(); if (kind === "svip" && !isAdm(u)){ S.view = "home"; return homeView(); }
   if (!u || !canVip(u)) return vipLockedHtml(u);
   if (sup && S.vtab === "comb") return tabs() + combBody();
+  if (sup && S.vtab === "pesq") return tabs() + pesqBody();
   if (S.vtab === "res"){
     const won = f => { const fin = finalOf(f), p = pk(f); return fin ? (p.side === "h" ? fin.h > fin.a : fin.a > fin.h) : null; };
     const fin = S.history.filter(f => pk(f) && won(f) !== null); // análises VIP já terminadas (todos os 7 dias, sem depender do dia de criação da conta)
@@ -797,6 +801,7 @@ function pmCardHtml(m, admin){
       <label class="fl" for="pm-e-iban-${eid}">IBAN / conta de receção</label><input id="pm-e-iban-${eid}" name="iban" type="text" value="${esc(m.iban)}" required>
       <label class="fl" for="pm-e-kz-${eid}">Preço por dia (Kwanza)</label><input id="pm-e-kz-${eid}" name="kz" type="number" min="1" step="1" value="${esc(m.kz)}" required>
       <label class="fl" for="pm-e-promo-${eid}">Mensagem da promoção (opcional)</label><input id="pm-e-promo-${eid}" name="promo" type="text" maxlength="140" value="${esc(m.promo || "")}">
+      <label class="fl" for="pm-e-desc-${eid}">Descrição da conta (uso interno — só o ADM vê)</label><input id="pm-e-desc-${eid}" name="desc" type="text" maxlength="140" value="${esc(m.desc || "")}">
       <div class="row" style="margin-top:8px"><button type="button" class="btn alt" data-s="pmeditx">Cancelar</button><button class="btn" id="pm-e-save">Guardar</button></div>
     </form>` : `
     <div style="text-align:center;font-weight:800;font-size:20px;color:var(--ink)">💰 ${esc(m.kz)} Kwanza por dia</div>
@@ -822,6 +827,7 @@ function pagarVipBody(u){
         <label class="fl" for="pm-iban">IBAN / conta de receção</label><input id="pm-iban" name="iban" type="text" required>
         <label class="fl" for="pm-kz">Preço por dia (Kwanza)</label><input id="pm-kz" name="kz" type="number" min="1" step="1" value="${VIP_KZ_DIA}" required>
         <label class="fl" for="pm-promo">Mensagem da promoção (opcional)</label><input id="pm-promo" name="promo" type="text" maxlength="140">
+        <label class="fl" for="pm-desc">Descrição da conta (uso interno — só o ADM vê)</label><input id="pm-desc" name="desc" type="text" maxlength="140">
         <div class="row" style="margin-top:10px"><button type="button" class="btn alt" data-s="pmaddx">Cancelar</button><button class="btn" id="pm-save">Guardar</button></div>
       </form>` : `<button type="button" class="mbtn" style="margin:4px 0 12px" data-s="pmaddo">➕ Adicionar forma de pagamento</button>`;
   return `${cards}
@@ -1554,7 +1560,7 @@ function adminRows(me){
     const a = al.find(x => x.email === u.email), on = !!(a && a.exp > now), b = u.banUntil > now, self = u.id === me.id, E = esc(u.email);
     const vip = u.admin ? "VIP sempre" : on ? "VIP até " + dt(a.exp) : a ? "VIP terminou" : "sem VIP";
     const vipBtns = left > 0 ? `<select class="vsel" style="width:auto;padding:6px" aria-label="Dias de VIP">${vdayOpts(7, left)}</select><button class="mbtn" data-s="renew" data-e="${E}" data-on="${on ? 1 : 0}">${on ? "Adicionar dias" : "Dar VIP"}</button>` : "";
-    const main = me.admin ? `${b ? `<button class="mbtn" data-s="unban" data-id="${u.id}">Remover ban</button>` : `<button class="mbtn" data-s="banopen" data-id="${u.id}">Banir</button>`}<button class="mbtn" style="background:var(--bad)" data-s="deluser" data-id="${u.id}">Excluir conta</button>` : "";
+    const main = me.admin ? `${(u.receiptPending || u.receiptRejected) ? `<button class="mbtn" data-s="clearrec" data-e="${E}">Limpar comprovativo</button>` : ""}${b ? `<button class="mbtn" data-s="unban" data-id="${u.id}">Remover ban</button>` : `<button class="mbtn" data-s="banopen" data-id="${u.id}">Banir</button>`}<button class="mbtn" style="background:var(--bad)" data-s="deluser" data-id="${u.id}">Excluir conta</button>` : "";
     return `<div class="urow"><b>${esc(u.name)}</b>${u.admin ? `<span class="tag">ADMIN</span>` : tadmOf(u).on ? `<span class="tag t2">ADM</span>` : ""}<br><small style="color:var(--mute)">${E} · ${b ? "Banido até " + esc(tm(u.banUntil)) : "Ativo"} · ${esc(vip)}</small>
       ${self ? "" : `<div class="row">${vipBtns}${a ? `<button class="mbtn" data-s="rmallow" data-e="${E}">Remover VIP</button>` : ""}${main}</div>`}</div>`;
   }).join("");
@@ -1626,6 +1632,13 @@ const ACT = {
     if (API_URL){ api("admin/untadmin", { email: d.e }).then(r => { S.soc.amsg = r.ok ? "Administrador temporário removido." : "!" + (r.error || "Erro."); refreshAdmin(); render(); }); return; }
     reloadDB(); const rec = tadmRec(d.e); if (!me.admin && (!rec || rec.by !== me.email)) return; // só pode remover quem ele próprio convidou
     DBc.tadmins = DBc.tadmins.filter(x => x.email !== d.e); S.soc.amsg = "Administrador temporário removido."; saveDB(); render();
+  },
+  clearrec: d => {
+    if (!mainOnly()) return;
+    if (API_URL){ api("admin/receipt-reset", { email: d.e }).then(r => { S.soc.amsg = r.ok ? "Estado do comprovativo limpo." : "!" + (r.error || "Erro."); refreshAdmin(); render(); }); return; }
+    reloadDB(); const t = DBc.users.find(x => x.email === d.e);
+    if (t){ t.receiptPending = false; t.receiptRejected = false; saveDB(); }
+    S.soc.amsg = "Estado do comprovativo limpo."; render();
   },
   banopen: d => { if (!mainOnly()) return; S.soc.banFor = d.id; render(); },
   banx: () => { S.soc.banFor = null; render(); },
@@ -1740,11 +1753,11 @@ const FORM = {
   },
   pmadd: f => {
     const u = cur(); if (!(u && u.admin)) return;
-    const name = f.elements.name.value.trim(), iban = f.elements.iban.value.trim(), kz = Math.max(1, Math.floor(+f.elements.kz.value || 0)), promo = f.elements.promo.value.trim();
+    const name = f.elements.name.value.trim(), iban = f.elements.iban.value.trim(), kz = Math.max(1, Math.floor(+f.elements.kz.value || 0)), promo = f.elements.promo.value.trim(), desc = f.elements.desc.value.trim();
     if (!name || !iban || !kz){ S.soc.vmsg = "!Preenche o nome, o IBAN e o preço."; return render(); }
     const btn = f.querySelector("#pm-save"); if (btn){ btn.disabled = true; btn.textContent = "A guardar…"; }
     const id = (name.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "pm") + "-" + Date.now().toString(36);
-    const pm = [...pmList(), { id, name, iban, kz, promo }];
+    const pm = [...pmList(), { id, name, iban, kz, promo, desc }];
     const apply = () => { S.soc.pm = pm; store.set("pm", pm); S.soc.pmAdd = false; S.soc.vmsg = "Forma de pagamento adicionada."; render(); };
     if (API_URL){
       api("admin/vip-settings", { pm }).then(r => { if (r.ok) return apply(); S.soc.vmsg = "!" + (r.error || "Não foi possível guardar no servidor, mas foi aplicada aqui."); apply(); });
@@ -1752,10 +1765,10 @@ const FORM = {
   },
   pmedit: f => {
     const u = cur(); if (!(u && u.admin)) return;
-    const id = f.elements.id.value, name = f.elements.name.value.trim(), iban = f.elements.iban.value.trim(), kz = Math.max(1, Math.floor(+f.elements.kz.value || 0)), promo = f.elements.promo.value.trim();
+    const id = f.elements.id.value, name = f.elements.name.value.trim(), iban = f.elements.iban.value.trim(), kz = Math.max(1, Math.floor(+f.elements.kz.value || 0)), promo = f.elements.promo.value.trim(), desc = f.elements.desc.value.trim();
     if (!name || !iban || !kz){ S.soc.vmsg = "!Preenche o nome, o IBAN e o preço."; return render(); }
     const btn = f.querySelector("#pm-e-save"); if (btn){ btn.disabled = true; btn.textContent = "A guardar…"; }
-    const pm = pmList().map(m => m.id === id ? { id, name, iban, kz, promo } : m);
+    const pm = pmList().map(m => m.id === id ? { id, name, iban, kz, promo, desc } : m);
     const apply = () => { S.soc.pm = pm; store.set("pm", pm); S.soc.pmEdit = null; S.soc.vmsg = "Forma de pagamento atualizada."; render(); };
     if (API_URL){
       api("admin/vip-settings", { pm }).then(r => { if (r.ok) return apply(); S.soc.vmsg = "!" + (r.error || "Não foi possível guardar no servidor, mas foi aplicada aqui."); apply(); });
