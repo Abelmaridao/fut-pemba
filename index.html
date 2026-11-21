@@ -790,6 +790,83 @@ function vipGrouped(list, hist, min = VIP_MIN){
   }
   return h;
 }
+/* ---------- Pagar VIP: pagamento (PAYPAY/IBAN), envio de comprovativo e valores editáveis pelo admin ---------- */
+function pmList(){ return (S.soc.pm && S.soc.pm.length) ? S.soc.pm : [{ id: "paypay", name: "PAYPAY", kz: VIP_KZ_DIA, iban: PAYPAY_IBAN, promo: "" }]; }
+function pmCardHtml(m, admin){
+  const s = S.soc, editing = admin && s.pmEdit === m.id, eid = esc(m.id);
+  const body = editing ? `
+    <form data-sf="pmedit" novalidate style="margin-top:8px">
+      <input type="hidden" name="id" value="${eid}">
+      <label class="fl" for="pm-e-name-${eid}">Nome</label><input id="pm-e-name-${eid}" name="name" type="text" maxlength="30" value="${esc(m.name)}" required>
+      <label class="fl" for="pm-e-iban-${eid}">IBAN / conta de receção</label><input id="pm-e-iban-${eid}" name="iban" type="text" value="${esc(m.iban)}" required>
+      <label class="fl" for="pm-e-kz-${eid}">Preço por dia (Kwanza)</label><input id="pm-e-kz-${eid}" name="kz" type="number" min="1" step="1" value="${esc(m.kz)}" required>
+      <label class="fl" for="pm-e-promo-${eid}">Mensagem da promoção (opcional)</label><input id="pm-e-promo-${eid}" name="promo" type="text" maxlength="140" value="${esc(m.promo || "")}">
+      <label class="fl" for="pm-e-desc-${eid}">Descrição da conta (uso interno — só o ADM vê)</label><input id="pm-e-desc-${eid}" name="desc" type="text" maxlength="140" value="${esc(m.desc || "")}">
+      <div class="row" style="margin-top:8px"><button type="button" class="btn alt" data-s="pmeditx">Cancelar</button><button class="btn" id="pm-e-save">Guardar</button></div>
+    </form>` : `
+    <div style="text-align:center;font-weight:800;font-size:20px;color:var(--ink)">💰 ${esc(m.kz)} Kwanza por dia</div>
+    ${m.promo ? `<p class="note" style="text-align:center;margin:4px 0 0;color:var(--blue);font-weight:700">${esc(m.promo)}</p>` : ""}
+    <div class="row" style="align-items:center;gap:8px;margin-top:8px">
+      <code style="flex:1;font-size:15px;letter-spacing:.5px;word-break:break-all">${esc(m.iban)}</code>
+      <button type="button" class="mbtn" data-s="copyiban" data-id="${eid}">Copiar</button>
+    </div>
+    ${admin ? `<div class="row" style="margin-top:8px">
+      <button type="button" class="mbtn" data-s="pmedito" data-id="${eid}">✎ Editar</button>
+      ${pmList().length > 1 ? `<button type="button" class="mbtn" style="background:var(--bad)" data-s="pmdel" data-id="${eid}">Eliminar</button>` : ""}
+    </div>` : ""}`;
+  return `<div style="background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px">
+    <div style="font-weight:800;color:var(--blue)">${esc(m.name)}</div>${body}
+  </div>`;
+}
+function pagarVipBody(u){
+  const s = S.soc, pend = u && u.receiptPending, rej = u && !pend && u.receiptRejected, admin = !!(u && u.admin);
+  const cards = pmList().map(m => pmCardHtml(m, admin)).join("");
+  const addForm = !admin ? "" : s.pmAdd ? `
+      <form data-sf="pmadd" novalidate style="margin-top:4px;border-top:1px dashed var(--line);padding-top:12px">
+        <label class="fl" for="pm-name">Nome da nova forma de pagamento</label><input id="pm-name" name="name" type="text" maxlength="30" required>
+        <label class="fl" for="pm-iban">IBAN / conta de receção</label><input id="pm-iban" name="iban" type="text" required>
+        <label class="fl" for="pm-kz">Preço por dia (Kwanza)</label><input id="pm-kz" name="kz" type="number" min="1" step="1" value="${VIP_KZ_DIA}" required>
+        <label class="fl" for="pm-promo">Mensagem da promoção (opcional)</label><input id="pm-promo" name="promo" type="text" maxlength="140">
+        <label class="fl" for="pm-desc">Descrição da conta (uso interno — só o ADM vê)</label><input id="pm-desc" name="desc" type="text" maxlength="140">
+        <div class="row" style="margin-top:10px"><button type="button" class="btn alt" data-s="pmaddx">Cancelar</button><button class="btn" id="pm-save">Guardar</button></div>
+      </form>` : `<button type="button" class="mbtn" style="margin:4px 0 12px" data-s="pmaddo">➕ Adicionar forma de pagamento</button>`;
+  return `${cards}
+    ${s.vmsg ? `<div class="msg ${s.vmsg[0] === "!" ? "" : "ok"}" role="status">${esc(s.vmsg.replace(/^!/, ""))}</div>` : ""}
+    <p class="note" style="text-align:center;margin:6px 0 14px">Paga por transferência e envia o comprovativo. O VIP ativa-se sozinho assim que for aprovado.</p>
+    ${!u ? `<p class="note" style="text-align:center">Inicia sessão para enviares o comprovativo.</p>`
+      : pend ? `<div class="msg ok" role="status">O teu comprovativo está em análise. Assim que for aprovado o VIP ativa-se sozinho — não precisas de fazer mais nada.</div>
+         <button type="button" class="btn alt" style="width:100%;margin-top:10px" data-s="recopen">Enviar novamente</button>`
+      : `${rej ? `<div class="msg" role="status">!${esc(typeof u.receiptRejected === "string" ? u.receiptRejected : "O comprovativo anterior não foi aceite.")}</div>` : ""}
+         <button type="button" class="btn" style="width:100%" data-s="recopen">Enviar comprovativo</button>`}
+    ${addForm}`;
+}
+const payOtherHtml = () => `<p class="note" style="text-align:center;margin:16px 0 6px">Outras formas de pagamento, contacte o ADM do grupo</p>
+  <button type="button" class="btn alt" style="width:100%" data-s="wa">💬 Falar no WhatsApp</button>`;
+function vipLockedHtml(u){
+  const s = S.soc;
+  return `<div class="empty" style="font-weight:800;color:var(--ink);font-size:18px">NÃO TENS ACESSO AO VIP</div>
+    <div class="card" style="margin-top:14px">${pagarVipBody(u)}${payOtherHtml()}</div>`;
+}
+function payVipView(){
+  const u = cur(), s = S.soc;
+  return `<h1 class="ttl">Pagar VIP</h1><p class="sub">${u && u.admin ? "Aqui estão os processos de pagamento do VIP. Como administrador, podes editar o preço, o IBAN e a promoção de cada forma de pagamento, e adicionar ou eliminar formas de pagamento." : "Paga e envia o comprovativo para ativares o VIP."}</p>
+    <div class="card">${pagarVipBody(u)}${payOtherHtml()}</div>`;
+}
+function receiptFormHtml(){
+  const methods = pmList(), m0 = methods[0];
+  const opts = methods.map(m => `<option value="${esc(m.id)}" data-kz="${esc(m.kz)}">${esc(m.name)} — ${esc(m.kz)} Kz/dia</option>`).join("");
+  return `<div style="padding:16px"><h3 style="margin-top:0">Enviar comprovativo</h3>
+    <form data-sf="receipt" novalidate>
+      ${methods.length > 1 ? `<label class="fl" for="rc-pm">Forma de pagamento usada</label><select id="rc-pm" name="pm">${opts}</select>` : `<input type="hidden" name="pm" value="${esc(m0.id)}">`}
+      <label class="fl" for="rc-amt">Quanto pagaste (Kwanza)</label>
+      <input id="rc-amt" name="amt" type="number" min="${m0.kz}" step="${m0.kz}" value="${m0.kz}" required>
+      <p class="note" style="margin:4px 0 12px">Cada <b id="rc-unit">${m0.kz}</b> Kwanza dá 1 dia de VIP (só conta os dias em que há jogos).</p>
+      <label class="fl" for="rc-file">Comprovativo (imagem ou PDF)</label>
+      <input id="rc-file" name="file" type="file" accept="image/*,application/pdf" required>
+      <p id="rc-err" class="note" style="color:var(--bad);display:none;margin:8px 0 0"></p>
+      <div class="row" style="margin-top:14px"><button type="button" class="btn alt" data-s="recclose">Cancelar</button><button class="btn" id="rc-send">Enviar</button></div>
+    </form></div>`;
+}
 const backBar = () => `<div class="row" style="margin-bottom:4px;justify-content:flex-end"><button class="dbk" data-act="back" aria-label="Fechar">✕</button></div>`;
 function goBack(){
   S.drawer = false; S.search = false; S.lg = false; $("ov").innerHTML = "";
