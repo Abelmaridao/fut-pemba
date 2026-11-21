@@ -261,7 +261,7 @@ const store = {
 let S = { hday: "all", view: "home", compId: null, raw: [], rawHist: [], fixtures: [], history: [], hidden: new Set(store.get("hiddenHist", [])), leagues: [], lastSync: null, lastFinal: null, msg: null, loading: true, tab: "all", comp: "", day: "",
   tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
   theme: store.get("theme", "auto"), drawer: false, search: false, q: "",
-  na: { home: "", away: "", league: "" }, favs: store.get("favSearch", []), ext: null };
+  na: { home: "", away: "", league: "" }, favs: store.get("favSearch", []), ext: null, pesqQ: "", pesqPct: null };
 
 /* MODEL:BEGIN (gerado a partir de model.ts) */
 const MODEL = (() => {
@@ -749,12 +749,22 @@ function vipTabs(sup){
   return `<div class="vtabs">${b("vip", sup ? "S.V" : "VIP")}${sup ? b("comb", "Combin") : ""}${sup ? b("pesq", "Pesq") : ""}${b("res", "Resultados")}</div>`;
 }
 function pesqBody(){
-  return `<div class="empty">Pesquisa de jogos por percentagem — em breve.</div>`;
+  const form = `<form class="card" data-sf="pesq" novalidate><b>Pesquisar por percentagem</b>
+    <p class="note" style="margin:4px 0 8px">Mostra os jogos (por acontecer e já terminados) cuja análise atinge, no mínimo, a percentagem escolhida.</p>
+    <div class="sbar"><input id="pq-pct" name="pct" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="Percentagem mínima (ex.: 75)" autocomplete="off" value="${S.pesqPct != null ? esc(String(S.pesqPct)) : ""}" aria-label="Percentagem mínima"><button class="lupa" type="submit" style="background:none;border:0;padding:0;cursor:pointer" aria-label="Pesquisar">${ICON.search}</button></div></form>`;
+  if (S.pesqPct == null) return form + `<div class="empty">Escreve uma percentagem e toca na lupa para pesquisar.</div>`;
+  const min = S.pesqPct / 100;
+  const all = [...S.fixtures, ...S.history].filter(f => !["PST", "CANC"].includes(f.status) && vipPick(f, min));
+  const upcomingL = all.filter(f => !isDone(f.status)).sort((a, b) => a.kickoff_utc.localeCompare(b.kickoff_utc));
+  const doneL = all.filter(f => isDone(f.status)).sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc));
+  const list = [...upcomingL, ...doneL];
+  const res = `<div class="stat" style="grid-template-columns:repeat(1,1fr)"><div><b>${list.length}</b>jogo${list.length === 1 ? "" : "s"} com ${S.pesqPct}% ou mais</div></div>`;
+  return form + res + (list.length ? vipGrouped(list, true, min) : `<div class="empty">Nenhuma análise encontrada com ${S.pesqPct}% ou mais.</div>`);
 }
 function vipView(kind){
   const sup = kind === "svip", pk = f => vipPick(f, sup ? SUP_MIN : VIP_MIN), tabs = () => vipTabs(sup), grp = (l, h) => vipGrouped(l, h, sup ? SUP_MIN : VIP_MIN);
   const u = cur(); if (kind === "svip" && !isAdm(u)){ S.view = "home"; return homeView(); }
-  if (!u || !canVip(u)) return vipLockedHtml(u);
+  if (!u || !canVip(u)) return `<div class="empty" style="font-weight:800;color:var(--ink);font-size:18px">NÃO TENS ACESSO AO VIP</div><p class="note" style="text-align:center;margin-top:10px">Fala com o administrador para teres acesso.</p>`;
   if (sup && S.vtab === "comb") return tabs() + combBody();
   if (sup && S.vtab === "pesq") return tabs() + pesqBody();
   if (S.vtab === "res"){
@@ -789,83 +799,6 @@ function vipGrouped(list, hist, min = VIP_MIN){
     h += matchCard(f).replace(/<div class="meta"><span>(<span class="st[^>]*>[^<]*<\/span>)<\/span>/, (m, badge) => `<div class="meta"><span style="font-weight:700;color:var(--ink)">${isLive(f.status) ? badge + " " : ""}${esc(p.team)} vitória: ${p.pct}%${mark}</span>`);
   }
   return h;
-}
-/* ---------- Pagar VIP: pagamento (PAYPAY/IBAN), envio de comprovativo e valores editáveis pelo admin ---------- */
-function pmList(){ return (S.soc.pm && S.soc.pm.length) ? S.soc.pm : [{ id: "paypay", name: "PAYPAY", kz: VIP_KZ_DIA, iban: PAYPAY_IBAN, promo: "" }]; }
-function pmCardHtml(m, admin){
-  const s = S.soc, editing = admin && s.pmEdit === m.id, eid = esc(m.id);
-  const body = editing ? `
-    <form data-sf="pmedit" novalidate style="margin-top:8px">
-      <input type="hidden" name="id" value="${eid}">
-      <label class="fl" for="pm-e-name-${eid}">Nome</label><input id="pm-e-name-${eid}" name="name" type="text" maxlength="30" value="${esc(m.name)}" required>
-      <label class="fl" for="pm-e-iban-${eid}">IBAN / conta de receção</label><input id="pm-e-iban-${eid}" name="iban" type="text" value="${esc(m.iban)}" required>
-      <label class="fl" for="pm-e-kz-${eid}">Preço por dia (Kwanza)</label><input id="pm-e-kz-${eid}" name="kz" type="number" min="1" step="1" value="${esc(m.kz)}" required>
-      <label class="fl" for="pm-e-promo-${eid}">Mensagem da promoção (opcional)</label><input id="pm-e-promo-${eid}" name="promo" type="text" maxlength="140" value="${esc(m.promo || "")}">
-      <label class="fl" for="pm-e-desc-${eid}">Descrição da conta (uso interno — só o ADM vê)</label><input id="pm-e-desc-${eid}" name="desc" type="text" maxlength="140" value="${esc(m.desc || "")}">
-      <div class="row" style="margin-top:8px"><button type="button" class="btn alt" data-s="pmeditx">Cancelar</button><button class="btn" id="pm-e-save">Guardar</button></div>
-    </form>` : `
-    <div style="text-align:center;font-weight:800;font-size:20px;color:var(--ink)">💰 ${esc(m.kz)} Kwanza por dia</div>
-    ${m.promo ? `<p class="note" style="text-align:center;margin:4px 0 0;color:var(--blue);font-weight:700">${esc(m.promo)}</p>` : ""}
-    <div class="row" style="align-items:center;gap:8px;margin-top:8px">
-      <code style="flex:1;font-size:15px;letter-spacing:.5px;word-break:break-all">${esc(m.iban)}</code>
-      <button type="button" class="mbtn" data-s="copyiban" data-id="${eid}">Copiar</button>
-    </div>
-    ${admin ? `<div class="row" style="margin-top:8px">
-      <button type="button" class="mbtn" data-s="pmedito" data-id="${eid}">✎ Editar</button>
-      ${pmList().length > 1 ? `<button type="button" class="mbtn" style="background:var(--bad)" data-s="pmdel" data-id="${eid}">Eliminar</button>` : ""}
-    </div>` : ""}`;
-  return `<div style="background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px">
-    <div style="font-weight:800;color:var(--blue)">${esc(m.name)}</div>${body}
-  </div>`;
-}
-function pagarVipBody(u){
-  const s = S.soc, pend = u && u.receiptPending, rej = u && !pend && u.receiptRejected, admin = !!(u && u.admin);
-  const cards = pmList().map(m => pmCardHtml(m, admin)).join("");
-  const addForm = !admin ? "" : s.pmAdd ? `
-      <form data-sf="pmadd" novalidate style="margin-top:4px;border-top:1px dashed var(--line);padding-top:12px">
-        <label class="fl" for="pm-name">Nome da nova forma de pagamento</label><input id="pm-name" name="name" type="text" maxlength="30" required>
-        <label class="fl" for="pm-iban">IBAN / conta de receção</label><input id="pm-iban" name="iban" type="text" required>
-        <label class="fl" for="pm-kz">Preço por dia (Kwanza)</label><input id="pm-kz" name="kz" type="number" min="1" step="1" value="${VIP_KZ_DIA}" required>
-        <label class="fl" for="pm-promo">Mensagem da promoção (opcional)</label><input id="pm-promo" name="promo" type="text" maxlength="140">
-        <label class="fl" for="pm-desc">Descrição da conta (uso interno — só o ADM vê)</label><input id="pm-desc" name="desc" type="text" maxlength="140">
-        <div class="row" style="margin-top:10px"><button type="button" class="btn alt" data-s="pmaddx">Cancelar</button><button class="btn" id="pm-save">Guardar</button></div>
-      </form>` : `<button type="button" class="mbtn" style="margin:4px 0 12px" data-s="pmaddo">➕ Adicionar forma de pagamento</button>`;
-  return `${cards}
-    ${s.vmsg ? `<div class="msg ${s.vmsg[0] === "!" ? "" : "ok"}" role="status">${esc(s.vmsg.replace(/^!/, ""))}</div>` : ""}
-    <p class="note" style="text-align:center;margin:6px 0 14px">Paga por transferência e envia o comprovativo. O VIP ativa-se sozinho assim que for aprovado.</p>
-    ${!u ? `<p class="note" style="text-align:center">Inicia sessão para enviares o comprovativo.</p>`
-      : pend ? `<div class="msg ok" role="status">O teu comprovativo está em análise. Assim que for aprovado o VIP ativa-se sozinho — não precisas de fazer mais nada.</div>
-         <button type="button" class="btn alt" style="width:100%;margin-top:10px" data-s="recopen">Enviar novamente</button>`
-      : `${rej ? `<div class="msg" role="status">!${esc(typeof u.receiptRejected === "string" ? u.receiptRejected : "O comprovativo anterior não foi aceite.")}</div>` : ""}
-         <button type="button" class="btn" style="width:100%" data-s="recopen">Enviar comprovativo</button>`}
-    ${addForm}`;
-}
-const payOtherHtml = () => `<p class="note" style="text-align:center;margin:16px 0 6px">Outras formas de pagamento, contacte o ADM do grupo</p>
-  <button type="button" class="btn alt" style="width:100%" data-s="wa">💬 Falar no WhatsApp</button>`;
-function vipLockedHtml(u){
-  const s = S.soc;
-  return `<div class="empty" style="font-weight:800;color:var(--ink);font-size:18px">NÃO TENS ACESSO AO VIP</div>
-    <div class="card" style="margin-top:14px">${pagarVipBody(u)}${payOtherHtml()}</div>`;
-}
-function payVipView(){
-  const u = cur(), s = S.soc;
-  return `<h1 class="ttl">Pagar VIP</h1><p class="sub">${u && u.admin ? "Aqui estão os processos de pagamento do VIP. Como administrador, podes editar o preço, o IBAN e a promoção de cada forma de pagamento, e adicionar ou eliminar formas de pagamento." : "Paga e envia o comprovativo para ativares o VIP."}</p>
-    <div class="card">${pagarVipBody(u)}${payOtherHtml()}</div>`;
-}
-function receiptFormHtml(){
-  const methods = pmList(), m0 = methods[0];
-  const opts = methods.map(m => `<option value="${esc(m.id)}" data-kz="${esc(m.kz)}">${esc(m.name)} — ${esc(m.kz)} Kz/dia</option>`).join("");
-  return `<div style="padding:16px"><h3 style="margin-top:0">Enviar comprovativo</h3>
-    <form data-sf="receipt" novalidate>
-      ${methods.length > 1 ? `<label class="fl" for="rc-pm">Forma de pagamento usada</label><select id="rc-pm" name="pm">${opts}</select>` : `<input type="hidden" name="pm" value="${esc(m0.id)}">`}
-      <label class="fl" for="rc-amt">Quanto pagaste (Kwanza)</label>
-      <input id="rc-amt" name="amt" type="number" min="${m0.kz}" step="${m0.kz}" value="${m0.kz}" required>
-      <p class="note" style="margin:4px 0 12px">Cada <b id="rc-unit">${m0.kz}</b> Kwanza dá 1 dia de VIP (só conta os dias em que há jogos).</p>
-      <label class="fl" for="rc-file">Comprovativo (imagem ou PDF)</label>
-      <input id="rc-file" name="file" type="file" accept="image/*,application/pdf" required>
-      <p id="rc-err" class="note" style="color:var(--bad);display:none;margin:8px 0 0"></p>
-      <div class="row" style="margin-top:14px"><button type="button" class="btn alt" data-s="recclose">Cancelar</button><button class="btn" id="rc-send">Enviar</button></div>
-    </form></div>`;
 }
 const backBar = () => `<div class="row" style="margin-bottom:4px;justify-content:flex-end"><button class="dbk" data-act="back" aria-label="Fechar">✕</button></div>`;
 function goBack(){
@@ -946,7 +879,7 @@ function combBody(){
   const head = list.length ? `<div class="card" style="text-align:center;font-weight:800">Ficha do dia · ${list.length} ${list.length === 1 ? "jogo" : "jogos"} · ${list.length * 2} análises</div>` : "";
   return tabs + `<div class="stripw"><div class="strip">${strip}</div></div>` + msgHtml() + head + (list.length ? cbGrouped(list, false) : `<div class="empty">Nenhum jogo cumpre as duas regras neste dia.</div>`);
 }
-function view(){ return ({ vip: () => vipView("vip"), svip: () => vipView("svip"), payvip: payVipView, aviso: avisoView, home: homeView, comp: compView, tips: tipsView, cal: calView, fav: favView, hist: histView,
+function view(){ return ({ vip: () => vipView("vip"), svip: () => vipView("svip"), aviso: avisoView, home: homeView, comp: compView, tips: tipsView, cal: calView, fav: favView, hist: histView,
   admin: adminView })[S.view](); }
 function pruneFavs(){
   const keep = S.favs.filter(f => f.gid || Date.parse(f.kickoff_utc) >= Date.now() - 86400e3); // favoritos de jogos do app ficam até os removeres
@@ -993,7 +926,6 @@ function drawerHtml(){
     ${isAdm(u) ? `<button class="btn" style="${B};background:#d32f2f;color:#fff" data-s="admin">Painel</button>` : ""}<button class="btn" style="${B};background:#ffd600;color:#1b1500" data-s="vip">VIP</button>${isAdm(u) ? `<button class="btn" style="${B};background:linear-gradient(135deg,#f7dc7e,#d4af37 50%,#a67c00);color:#2a1d00" data-s="svip">Super VIP</button>` : ""}` : "";
   $("ov").innerHTML = `<div class="ov" data-act="close"><div class="drawer" role="dialog" aria-label="Menu">${top}
     <button class="btn" style="${B};${dark ? "background:#fff;color:#000;border:1px solid #999" : "background:#000;color:#fff;border:1px solid #777"}" data-act="toggle" aria-pressed="${dark}">${dark ? "☀️ Modo claro" : "🌙 Modo escuro"}</button>
-    <button class="btn" style="${B};background:#0d9c5a;color:#fff" data-s="payvip">💳 Pagar VIP</button>
     <button class="btn" style="${B};background:#1fa463" data-s="wa">WhatsApp</button>
     ${u ? `<button class="btn alt" style="width:100%;margin-top:8px" data-s="logout">Terminar sessão</button>` : ""}</div></div>`;
 }
@@ -1271,13 +1203,13 @@ async function openAnalysis(id){
     if (sc) dlg.scrollTop = sc;
   };
   const f0 = find();
-  if (f0 && vipLocked(f0)){ if (dlg.open) dlg.close(); go("payvip"); return; } // jogo do VIP: sem acesso -> manda pagar o VIP
+  if (f0 && vipLocked(f0)){ if (dlg.open) dlg.close(); go("vip"); return; } // jogo do VIP: sem acesso -> manda para a área VIP
   if (f0) paint(f0); else { dlg.dataset.gid = id; dlg.innerHTML = `<p class="note">A obter a análise mais recente…</p>`; }
   if (!dlg.open) dlg.showModal();
   const ok = await fetchData(); render(); // atualiza em segundo plano: as análises podem ter sido acrescentadas ou atualizadas
   if (!dlg.open || dlg.dataset.gid !== id) return;
   const f = find();
-  if (f && vipLocked(f)){ if (dlg.open) dlg.close(); go("payvip"); return; }
+  if (f && vipLocked(f)){ if (dlg.open) dlg.close(); go("vip"); return; }
   if (!f){ if (!f0) dlg.innerHTML = `<div class="msg">${ok ? "Este jogo já não está na lista atual." : "Sem ligação à internet. O app precisa de estar online para mostrar as análises."}</div>${close}`; return; }
   if (!f0 || dlg.dataset.sig !== JSON.stringify(f.analysis || 0).length + ":" + f.status) paint(f);
 }
@@ -1316,8 +1248,8 @@ const validName = n => n.length >= 3 && n.length <= 20 && /^[\p{L}\p{N}_. -]+$/u
 const tm = t => { const iso = new Date(t).toISOString(); return dayKey(iso) === dayKey(new Date().toISOString()) ? fmtHour(iso) : fmtFull(iso); };
 const userById = id => DBc.users.find(x => x.id === id);
 const WHATSAPP_URL = "https://chat.whatsapp.com/C8DfJGozZr90IlVDU8H1Kt?s=cl&p=a&mlu=4&ilr=4"; // link do grupo de WhatsApp (ex.: "https://chat.whatsapp.com/xxxxxxxx")
-const PAYPAY_IBAN = "AO06042000000000073860793", VIP_KZ_DIA = 10; // IBAN de recebimento e preço por dia de VIP, em Kwanza
 const DAYMS = 86400e3;
+const dword = n => n === 1 ? "dia" : "dias";
 const vHid = new Set(); store.set("hiddenVip", []); // jogos do VIP já não se apagam: os que tinham sido removidos voltam aos seus dias
 const saveVHid = () => {};
 const VDAYS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30];
@@ -1334,8 +1266,7 @@ const canVip = u => !!u && access(u).vip;
 const expMsg = t => `O teu acesso terminou em ${fmtFull(new Date(t).toISOString())}. Fala com o administrador.`;
 
 function clearF(){ S.soc.f = { id: "", email: "", name: "", pw: "", code: "", pw2: "" }; }
-S.soc = { mode: "login", err: "", info: "", mail: null, was: false, showSearch: false, q: "", pwForm: false, pmsg: null, banFor: null, receipts: [],
-  pm: store.get("pm", [{ id: "paypay", name: "PAYPAY", kz: VIP_KZ_DIA, iban: PAYPAY_IBAN, promo: "" }]), pmEdit: null, pmAdd: false, vmsg: null, authBusy: false,
+S.soc = { mode: "login", err: "", info: "", mail: null, was: false, showSearch: false, q: "", pwForm: false, pmsg: null, banFor: null, authBusy: false,
   f: { id: "", email: "", name: "", pw: "", code: "", pw2: "" } };
 
 async function hashPw(pw, salt){
@@ -1470,99 +1401,41 @@ async function doForgot2(){
 }
 
 /* ----- painel do administrador ----- */
-// papéis: administrador principal (u.admin) e administrador temporário (convidado, com dias)
-const tadmRec = email => (DBc.tadmins || []).find(t => t.email === email);
-const tadmOf = u => { if (!u || u.admin) return { on: false, exp: 0 }; const exp = API_URL ? (u.texp || 0) : ((tadmRec(u.email) || {}).exp || 0); return { on: exp > Date.now(), exp }; };
-const isAdm = u => !!u && (!!u.admin || tadmOf(u).on);
-const dword = n => n === 1 ? "dia" : "dias";
-// cada administrador temporário só pode convidar (para VIP ou para administrador) tantas pessoas quantos os dias pelos quais foi convidado; cada convite gasta 1, e o poder passa assim de convidado em convidado
-// nota: o servidor ainda não guarda "quota"/"usados" por admin temporário, por isso guardamos isso aqui no próprio telemóvel desse administrador (funciona desde que ele use sempre o mesmo telemóvel/navegador para convidar)
-const tqKey = e => "tq_" + e, tuKey = e => "tu_" + e;
-function localQuota(me, texp){
-  const k = tqKey(me.email); let c = store.get(k, null);
-  if (!c || c.texp !== texp){ c = { texp, q: Math.max(1, Math.ceil((texp - Date.now()) / DAYMS)) }; store.set(k, c); store.set(tuKey(me.email), 0); }
-  return c.q;
-}
-function bumpLocalUsed(email){ const k = tuKey(email); store.set(k, (store.get(k, 0) || 0) + 1); }
-function inviteInfo(me){
-  if (!me) return { quota: 0, used: 0, left: 0 };
-  if (me.admin) return { quota: Infinity, used: 0, left: Infinity };
-  if (API_URL){
-    const texp = me.texp || 0; if (!(texp > Date.now())) return { quota: 0, used: 0, left: 0 };
-    const q = Number.isFinite(me.tquota) && me.tquota > 0 ? me.tquota : localQuota(me, texp);
-    const us = Number.isFinite(me.tused) ? me.tused : (store.get(tuKey(me.email), 0) || 0);
-    return { quota: q, used: us, left: Math.max(0, q - us) };
-  }
-  const r = tadmRec(me.email); if (!r || !(tadmOf(me).on)) return { quota: 0, used: 0, left: 0 };
-  const quota = Number.isFinite(r.quota) ? r.quota : Math.max(1, Math.ceil((r.exp - (r.created || r.exp)) / DAYMS));
-  const used = r.used || 0;
-  return { quota, used, left: Math.max(0, quota - used) };
-}
-const tadmLeft = u => inviteInfo(u).left; // mantido por compatibilidade: convites (não dias) que ainda pode usar
-function scopeUsers(me){ // principal vê todos; temporário só os que convidou
-  if (me.admin) return DBc.users;
-  const mine = new Set((DBc.allow || []).filter(a => a.by === me.email).map(a => a.email));
-  return DBc.users.filter(u => mine.has(u.email));
-}
+// único papel de administrador: o administrador principal (u.admin)
+const isAdm = u => !!u && !!u.admin;
+const scopeUsers = me => DBc.users;
 function statHtml(me){
   const now = Date.now(), us = scopeUsers(me), al = DBc.allow || [];
   const vips = us.filter(u => { const a = al.find(x => x.email === u.email); return a && a.exp > now; }).length;
-  const admins = me.admin ? `<div><b>${1 + (DBc.tadmins || []).filter(t => t.exp > now).length}</b>administradores</div>` : "";
-  return `<div><b>${us.length}</b>${me.admin ? "utilizadores" : "convidados"}</div><div><b>${vips}</b>com VIP</div><div><b>${us.filter(x => x.banUntil > now).length}</b>banidos</div>${admins}`;
-}
-function tadmRows(me){
-  const now = Date.now();
-  let l = (DBc.tadmins || []).filter(t => t.exp > now);
-  if (me && !me.admin) l = l.filter(t => t.by === me.email); // temporário só vê quem ele próprio convidou
-  if (!l.length) return `<p class="note" style="margin:6px 0 0">Nenhum administrador temporário.</p>`;
-  return l.map(t => {
-    const d = Math.max(1, Math.ceil((t.exp - now) / DAYMS)), q = Number.isFinite(t.quota) ? t.quota : d, used = t.used || 0;
-    return `<div class="urow"><b>${esc(t.email)}</b><br><small style="color:var(--mute)">restam ${d} ${dword(d)} · convites usados: ${used} de ${q}</small><div class="row"><button class="mbtn" style="background:var(--bad)" data-s="untadm" data-e="${esc(t.email)}">Remover</button></div></div>`;
-  }).join("");
+  return `<div><b>${us.length}</b>utilizadores</div><div><b>${vips}</b>com VIP</div><div><b>${us.filter(x => x.banUntil > now).length}</b>banidos</div>`;
 }
 function adminView(){
   const me = cur(), s = S.soc;
   if (!isAdm(me)) return `<div class="empty">Sem permissão.</div>`;
-  const ii = inviteInfo(me), left = ii.left, main = !!me.admin;
-  const target = main && s.banFor && userById(s.banFor);
+  const target = s.banFor && userById(s.banFor);
   const banForm = target ? `<form class="card" data-sf="ban"><b>Banir ${esc(target.name)}</b><div class="row" style="margin-top:8px"><input name="n" type="number" min="1" max="3650" value="1" aria-label="Duração"><select name="u" aria-label="Unidade"><option value="60000">minutos</option><option value="3600000" selected>horas</option><option value="86400000">dias</option></select></div>
     <div class="row" style="margin-top:10px"><button class="btn">Confirmar ban</button><button type="button" class="btn alt" data-s="banx">Cancelar</button></div></form>` : "";
-  const addForm = left > 0 ? `<form class="card" data-sf="allow" novalidate><b>Convidar para o VIP</b>
+  const addForm = `<form class="card" data-sf="allow" novalidate><b>Convidar para o VIP</b>
     <label class="fl" for="al-e">E-mail do utilizador</label><input id="al-e" name="e" type="email" autocomplete="off">
     <label class="fl" for="al-d">Dias de VIP</label><select id="al-d" name="d">${vdayOpts(7)}</select>
-    <button class="btn" style="width:100%;margin-top:12px;padding:12px">Convidar</button></form>` : (main ? "" : `<div class="card"><b>Já não tens convites para dar.</b></div>`);
-  const dias = main ? "" : `<div class="card"><b>Os teus convites: usaste ${ii.used} de ${ii.quota}</b><p class="note" style="margin:4px 0 0">Cada convite para VIP gasta 1, até ao número de dias pelos quais foste convidado como administrador.</p></div>`;
-  const bulk = main ? `<form class="card" data-sf="vipall"><b>Convidar todos ao VIP</b><p class="note" style="margin:4px 0 8px">Só quem ainda não tem VIP.</p><div class="row"><select name="d" aria-label="Dias">${vdayOpts(1, 3)}</select><button class="btn">Convidar todos</button></div></form>` : "";
-  const tad = main ? `<section class="card"><h3 style="margin-top:0">Administradores temporários</h3><div id="adtl">${tadmRows(me)}</div></section>` : "";
-  const recs = isAdm(me) ? `<section class="card" id="reccard"><h3 style="margin-top:0">Comprovativos pendentes</h3><div id="reclist">${receiptsHtml()}</div></section>` : "";
+    <button class="btn" style="width:100%;margin-top:12px;padding:12px">Convidar</button></form>`;
+  const bulk = `<form class="card" data-sf="vipall"><b>Convidar todos ao VIP</b><p class="note" style="margin:4px 0 8px">Só quem ainda não tem VIP.</p><div class="row"><select name="d" aria-label="Dias">${vdayOpts(1, 3)}</select><button class="btn">Convidar todos</button></div></form>`;
   return `<div class="stat" id="adstat">${statHtml(me)}</div>
-    ${s.amsg ? `<div class="msg ${s.amsg[0] === "!" ? "" : "ok"}" role="status">${esc(s.amsg.replace(/^!/, ""))}</div>` : ""}${dias}${recs}${addForm}${bulk}${tad}${banForm}<section class="card"><h3 style="margin-top:0">Utilizadores</h3>
+    ${s.amsg ? `<div class="msg ${s.amsg[0] === "!" ? "" : "ok"}" role="status">${esc(s.amsg.replace(/^!/, ""))}</div>` : ""}${addForm}${bulk}${banForm}<section class="card"><h3 style="margin-top:0">Utilizadores</h3>
     <div class="sbar"><input id="adq" type="search" placeholder="Pesquisar utilizador…" autocomplete="off" value="${esc(s.aq || "")}" aria-label="Pesquisar utilizador"><span class="lupa">${ICON.search}</span></div>
     <div id="adlist">${adminRows(me)}</div></section>`;
 }
-function receiptsHtml(){
-  const list = S.soc.receipts || [];
-  if (!list.length) return `<p class="note">Nenhum comprovativo à espera de revisão.</p>`;
-  return list.map(r => {
-    const flags = (r.flags || []).map(esc).join(", ");
-    return `<div class="urow"><b>${esc(r.email)}</b> · ${r.amount} Kz<br>
-      <small style="color:var(--mute)">${esc(tm(r.created))}${flags ? " · ⚠ " + flags : ""}</small><br>
-      <a href="${r.url || ("data:" + r.mime + ";base64," + r.b64)}" target="_blank" rel="noopener">Ver comprovativo</a>
-      <div class="row" style="margin-top:6px"><button class="mbtn" data-s="recdecide" data-id="${esc(r.id)}" data-ok="1">Aprovar</button><button class="mbtn" style="background:var(--bad)" data-s="recdecide" data-id="${esc(r.id)}" data-ok="0">Rejeitar</button></div>
-    </div>`;
-  }).join("");
-}
 function adminRows(me){
-  const now = Date.now(), q = norm(S.soc.aq || "").trim(), al = DBc.allow || [], left = tadmLeft(me);
+  const now = Date.now(), q = norm(S.soc.aq || "").trim(), al = DBc.allow || [];
   const list = scopeUsers(me).filter(u => !q || norm(u.name).includes(q) || norm(u.email).includes(q));
   if (!list.length) return `<p class="note">Nenhum utilizador encontrado.</p>`;
   const dt = t => fmtFull(new Date(t).toISOString());
   return list.map(u => {
     const a = al.find(x => x.email === u.email), on = !!(a && a.exp > now), b = u.banUntil > now, self = u.id === me.id, E = esc(u.email);
     const vip = u.admin ? "VIP sempre" : on ? "VIP até " + dt(a.exp) : a ? "VIP terminou" : "sem VIP";
-    const vipBtns = left > 0 ? `<select class="vsel" style="width:auto;padding:6px" aria-label="Dias de VIP">${vdayOpts(7, left)}</select><button class="mbtn" data-s="renew" data-e="${E}" data-on="${on ? 1 : 0}">${on ? "Adicionar dias" : "Dar VIP"}</button>` : "";
-    const main = me.admin ? `${(u.receiptPending || u.receiptRejected) ? `<button class="mbtn" data-s="clearrec" data-e="${E}">Limpar comprovativo</button>` : ""}${b ? `<button class="mbtn" data-s="unban" data-id="${u.id}">Remover ban</button>` : `<button class="mbtn" data-s="banopen" data-id="${u.id}">Banir</button>`}<button class="mbtn" style="background:var(--bad)" data-s="deluser" data-id="${u.id}">Excluir conta</button>` : "";
-    return `<div class="urow"><b>${esc(u.name)}</b>${u.admin ? `<span class="tag">ADMIN</span>` : tadmOf(u).on ? `<span class="tag t2">ADM</span>` : ""}<br><small style="color:var(--mute)">${E} · ${b ? "Banido até " + esc(tm(u.banUntil)) : "Ativo"} · ${esc(vip)}</small>
+    const vipBtns = `<select class="vsel" style="width:auto;padding:6px" aria-label="Dias de VIP">${vdayOpts(7)}</select><button class="mbtn" data-s="renew" data-e="${E}" data-on="${on ? 1 : 0}">${on ? "Adicionar dias" : "Dar VIP"}</button>`;
+    const main = `${b ? `<button class="mbtn" data-s="unban" data-id="${u.id}">Remover ban</button>` : `<button class="mbtn" data-s="banopen" data-id="${u.id}">Banir</button>`}<button class="mbtn" style="background:var(--bad)" data-s="deluser" data-id="${u.id}">Excluir conta</button>`;
+    return `<div class="urow"><b>${esc(u.name)}</b>${u.admin ? `<span class="tag">ADMIN</span>` : ""}<br><small style="color:var(--mute)">${E} · ${b ? "Banido até " + esc(tm(u.banUntil)) : "Ativo"} · ${esc(vip)}</small>
       ${self ? "" : `<div class="row">${vipBtns}${a ? `<button class="mbtn" data-s="rmallow" data-e="${E}">Remover VIP</button>` : ""}${main}</div>`}</div>`;
   }).join("");
 }
@@ -1578,7 +1451,6 @@ const ACT = {
   tipq: d => askAssistant(d.q),
   vip: () => { reloadDB(); if (cur()){ S.vtab = "vip"; go("vip"); } },
   svip: () => { reloadDB(); if (isAdm(cur())){ S.vtab = "vip"; go("svip"); } },
-  payvip: () => go("payvip"),
   ctab: d => { S.ctab = d.v; render(); },
   cday: d => { S.cday = d.k; render(); },
   cwday: d => { S.cwday = d.k; render(); },
@@ -1586,35 +1458,6 @@ const ACT = {
   vwday: d => { S.vwday = d.k; render(); },
   upd: () => { if (S.upd === "busy") return; if (S.upd === "ok"){ checkUpdate().then(() => { if (S.upd === "new") doUpdate(); }); return; } doUpdate(); },
   wa: () => { if (WHATSAPP_URL) window.open(WHATSAPP_URL, "_blank", "noopener"); else if (window.alert) window.alert("O link do grupo ainda não foi configurado."); },
-  copyiban: (d, el) => {
-    const m = pmList().find(x => x.id === d.id) || pmList()[0];
-    const go = ok => { el.textContent = ok ? "Copiado!" : "Copiar"; if (ok) setTimeout(() => { el.textContent = "Copiar"; }, 1800); };
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(m.iban).then(() => go(true), () => go(false));
-    else go(false);
-  },
-  pmaddo: () => { if (!(cur() && cur().admin)) return; S.soc.pmAdd = true; S.soc.pmEdit = null; S.soc.vmsg = null; render(); },
-  pmaddx: () => { S.soc.pmAdd = false; render(); },
-  pmedito: d => { if (!(cur() && cur().admin)) return; S.soc.pmEdit = d.id; S.soc.pmAdd = false; S.soc.vmsg = null; render(); },
-  pmeditx: () => { S.soc.pmEdit = null; render(); },
-  pmdel: d => {
-    const u = cur(); if (!(u && u.admin)) return;
-    if (pmList().length <= 1) return;
-    const pm = pmList().filter(x => x.id !== d.id);
-    const apply = () => { S.soc.pm = pm; store.set("pm", pm); S.soc.vmsg = "Forma de pagamento eliminada."; render(); };
-    if (API_URL) api("admin/vip-settings", { pm }).then(() => apply(), apply); else apply();
-  },
-  recopen: () => { if (!cur()) return; const dlg = $("dlg"); dlg.innerHTML = receiptFormHtml(); if (!dlg.open) dlg.showModal(); },
-  recclose: () => { const dlg = $("dlg"); if (dlg.open) dlg.close(); },
-  recdecide: (d, el) => {
-    if (!mainOnly()) return;
-    const approve = d.ok === "1";
-    if (!approve && window.confirm && !window.confirm("Rejeitar este comprovativo?")) return;
-    el.disabled = true;
-    api("admin/receipt-decide", { id: d.id, approve }).then(r => {
-      S.soc.amsg = r.ok ? (approve ? "Comprovativo aprovado — VIP atribuído." : "Comprovativo rejeitado.") : "!" + (r.error || "Erro.");
-      refreshAdmin(); render();
-    });
-  },
   vdel: d => { if (window.confirm && !window.confirm("Remover este jogo do histórico VIP para sempre?")) return; vHid.add(d.id); saveVHid(); render(); },
   vclear: () => {
     if (window.confirm && !window.confirm("Limpar esta lista? Não dá para desfazer.")) return;
@@ -1627,19 +1470,6 @@ const ACT = {
     if (API_URL){ api("admin/unallow", { email: d.e }).then(r => { S.soc.amsg = r.ok ? "VIP removido." : "!" + (r.error || "Erro."); refreshAdmin(); render(); }); return; }
     const a = allowOf(d.e); if (!a || (!me.admin && a.by !== me.email)) return;
     DBc.allow = DBc.allow.filter(x => x.email !== d.e); S.soc.amsg = "VIP removido."; saveDB(); render();
-  },
-  untadm: d => {
-    const me = adminOnly(); if (!me) return;
-    if (API_URL){ api("admin/untadmin", { email: d.e }).then(r => { S.soc.amsg = r.ok ? "Administrador temporário removido." : "!" + (r.error || "Erro."); refreshAdmin(); render(); }); return; }
-    reloadDB(); const rec = tadmRec(d.e); if (!me.admin && (!rec || rec.by !== me.email)) return; // só pode remover quem ele próprio convidou
-    DBc.tadmins = DBc.tadmins.filter(x => x.email !== d.e); S.soc.amsg = "Administrador temporário removido."; saveDB(); render();
-  },
-  clearrec: d => {
-    if (!mainOnly()) return;
-    if (API_URL){ api("admin/receipt-reset", { email: d.e }).then(r => { S.soc.amsg = r.ok ? "Estado do comprovativo limpo." : "!" + (r.error || "Erro."); refreshAdmin(); render(); }); return; }
-    reloadDB(); const t = DBc.users.find(x => x.email === d.e);
-    if (t){ t.receiptPending = false; t.receiptRejected = false; saveDB(); }
-    S.soc.amsg = "Estado do comprovativo limpo."; render();
   },
   banopen: d => { if (!mainOnly()) return; S.soc.banFor = d.id; render(); },
   banx: () => { S.soc.banFor = null; render(); },
@@ -1656,26 +1486,18 @@ const ACT = {
     delete DBc.resets[t.email]; saveDB(); render();
   }
 };
-// dá VIP a um utilizador que já tem conta. Cada convite (de VIP ou de administrador) gasta 1 dos convites do administrador temporário
+// dá VIP a um utilizador que já tem conta
 function allowSave(email, o, okMsg){
   const me = adminOnly(); if (!me) return;
   const msg = t => { S.soc.amsg = t; render(); };
   if (API_URL){
-    if (!me.admin && inviteInfo(me).left <= 0) return msg("!Já não tens convites para dar.");
-    api("admin/allow", { email, ...o }).then(r => { if (r.ok){ if (!me.admin) bumpLocalUsed(me.email); S.soc.amsg = okMsg || "Guardado."; refreshAdmin(); render(); } else msg("!" + (r.error || "Erro.")); }); return;
+    api("admin/allow", { email, ...o }).then(r => { if (r.ok){ S.soc.amsg = okMsg || "Guardado."; refreshAdmin(); render(); } else msg("!" + (r.error || "Erro.")); }); return;
   }
   reloadDB(); const now = Date.now(), t = DBc.users.find(u => u.email === email);
   if (!t) return msg("!Este e-mail ainda não tem conta.");
   if (t.admin) return msg("!Esta conta é do administrador principal.");
-  let rec = null;
-  if (!me.admin){
-    const ii = inviteInfo(me); if (ii.left <= 0) return msg("!Já não tens convites para dar.");
-    const a0 = allowOf(email); if (a0 && a0.exp > now && a0.by !== me.email) return msg("!Este utilizador já tem VIP.");
-    rec = tadmRec(me.email);
-  }
   let a = allowOf(email); if (!a){ a = { email, exp: 0, by: "", created: now }; DBc.allow.push(a); }
-  a.exp = Math.max(a.exp || 0, now) + o.days * DAYMS; a.by = me.admin ? "" : me.email;
-  if (rec) rec.used = (rec.used || 0) + 1;
+  a.exp = Math.max(a.exp || 0, now) + o.days * DAYMS; a.by = "";
   saveDB(); msg(okMsg || "Guardado.");
 }
 function vipAll(days){ // só o principal; só quem ainda não tem VIP
@@ -1686,28 +1508,6 @@ function vipAll(days){ // só o principal; só quem ainda não tem VIP
   DBc.users.forEach(u => { if (u.admin || u.banUntil > now) return; const a = allowOf(u.email); if (a && a.exp > now) return; if (a){ a.exp = now + days * DAYMS; a.by = ""; } else DBc.allow.push({ email: u.email, exp: now + days * DAYMS, by: "", created: now }); n++; });
   saveDB(); done(n);
 }
-// convida um administrador temporário por N dias; esse convidado só poderá, por sua vez, convidar N pessoas (VIP ou administradores) — o poder cascateia assim de convidado em convidado
-function tadmSave(email, days){
-  const me = adminOnly(); if (!me) return;
-  const msg = t => { S.soc.amsg = t; render(); }, ok = `${email} é administrador temporário por ${days} ${dword(days)}, com poder para convidar até ${days} ${dword(days)}.`;
-  if (API_URL){
-    if (!me.admin && inviteInfo(me).left <= 0) return msg("!Já não tens convites para dar.");
-    api("admin/tadmin", { email, days, quota: days }).then(r => r.ok ? (!me.admin && bumpLocalUsed(me.email), S.soc.amsg = ok, refreshAdmin(), render()) : msg("!" + (r.error || "Erro."))); return;
-  }
-  reloadDB(); const t = DBc.users.find(u => u.email === email);
-  if (!t) return msg("!Este e-mail ainda não tem conta.");
-  if (t.admin) return msg("!Esta conta já é a do administrador principal.");
-  let rec = null;
-  if (!me.admin){
-    const ii = inviteInfo(me); if (ii.left <= 0) return msg("!Já não tens convites para dar.");
-    rec = tadmRec(me.email);
-  }
-  if (t.email === me.email) return msg("!Não podes convidar-te a ti mesmo.");
-  let a = DBc.tadmins.find(x => x.email === email); if (!a){ a = { email, exp: 0, created: Date.now(), by: me.admin ? "" : me.email }; DBc.tadmins.push(a); }
-  a.exp = Date.now() + days * DAYMS; a.quota = days; a.used = a.used || 0; a.by = me.admin ? "" : me.email;
-  if (rec) rec.used = (rec.used || 0) + 1;
-  saveDB(); msg(ok);
-}
 const FORM = {
   allow: f => {
     if (!adminOnly()) return;
@@ -1717,11 +1517,6 @@ const FORM = {
     allowSave(e, { days: d }, `${e} convidado para o VIP por ${d} ${dword(d)}.`);
   },
   vipall: f => vipAll(+f.elements.d.value),
-  tadm: f => {
-    const e = f.elements.e.value.trim().toLowerCase(), d = +f.elements.d.value;
-    if (!validEmail(e)){ S.soc.amsg = "!Escreve um e-mail válido."; return render(); }
-    if (VDAYS.includes(d)) tadmSave(e, d);
-  },
   ask: f => { const v = f.elements.tq.value; f.elements.tq.value = ""; askAssistant(v); },
   login: () => { if (S.soc.authBusy) return; S.soc.authBusy = true; S.soc.err = ""; render(); doLogin(); },
   register: () => { if (S.soc.authBusy) return; S.soc.authBusy = true; S.soc.err = ""; render(); doRegister(); },
@@ -1733,48 +1528,11 @@ const FORM = {
     if (API_URL){ api("admin/ban", { id: t.id, until: Date.now() + ms }).then(() => { S.soc.banFor = null; render(); refreshAdmin(); }); return; }
     t.banUntil = Date.now() + ms; saveDB(); S.soc.banFor = null; render();
   },
-  receipt: async f => {
-    const err = f.querySelector("#rc-err"), show = m => { err.textContent = m; err.style.display = "block"; };
-    const pmId = f.elements.pm ? f.elements.pm.value : "paypay";
-    const method = pmList().find(m => m.id === pmId) || pmList()[0];
-    const unitKz = method.kz, amt = Math.max(unitKz, Math.floor(+f.elements.amt.value || 0));
-    const file = f.elements.file.files && f.elements.file.files[0];
-    if (!file) return show("Escolhe o ficheiro do comprovativo.");
-    if (!/^image\/|^application\/pdf$/.test(file.type)) return show("Tem de ser uma imagem ou um PDF.");
-    if (file.size > 8 * 1024 * 1024) return show("O ficheiro é grande demais (máx. 8MB).");
-    const btn = f.querySelector("#rc-send"); btn.disabled = true; btn.textContent = "A enviar…";
-    try {
-      const b64 = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1] || ""); r.onerror = rej; r.readAsDataURL(file); });
-      const r = await api("vip/receipt", { amount: amt, unitKz, method: method.name, mime: file.type, name: file.name, b64 });
-      if (!r.ok){ btn.disabled = false; btn.textContent = "Enviar"; return show(r.error || "Não foi possível enviar. Tenta outra vez."); }
-      if (r.user){ S.soc.me = r.user; store.set(MEK, r.user); }
-      const dlg = $("dlg"); if (dlg.open) dlg.close();
-      render();
-    } catch (e){ btn.disabled = false; btn.textContent = "Enviar"; show("Erro ao ler o ficheiro. Tenta outra vez."); }
+  pesq: f => {
+    const n = Math.round(+f.elements.pct.value || 0);
+    if (n < 1 || n > 100){ S.pesqPct = null; return render(); }
+    S.pesqPct = n; render();
   },
-  pmadd: f => {
-    const u = cur(); if (!(u && u.admin)) return;
-    const name = f.elements.name.value.trim(), iban = f.elements.iban.value.trim(), kz = Math.max(1, Math.floor(+f.elements.kz.value || 0)), promo = f.elements.promo.value.trim(), desc = f.elements.desc.value.trim();
-    if (!name || !iban || !kz){ S.soc.vmsg = "!Preenche o nome, o IBAN e o preço."; return render(); }
-    const btn = f.querySelector("#pm-save"); if (btn){ btn.disabled = true; btn.textContent = "A guardar…"; }
-    const id = (name.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "pm") + "-" + Date.now().toString(36);
-    const pm = [...pmList(), { id, name, iban, kz, promo, desc }];
-    const apply = () => { S.soc.pm = pm; store.set("pm", pm); S.soc.pmAdd = false; S.soc.vmsg = "Forma de pagamento adicionada."; render(); };
-    if (API_URL){
-      api("admin/vip-settings", { pm }).then(r => { if (r.ok) return apply(); S.soc.vmsg = "!" + (r.error || "Não foi possível guardar no servidor, mas foi aplicada aqui."); apply(); });
-    } else apply();
-  },
-  pmedit: f => {
-    const u = cur(); if (!(u && u.admin)) return;
-    const id = f.elements.id.value, name = f.elements.name.value.trim(), iban = f.elements.iban.value.trim(), kz = Math.max(1, Math.floor(+f.elements.kz.value || 0)), promo = f.elements.promo.value.trim(), desc = f.elements.desc.value.trim();
-    if (!name || !iban || !kz){ S.soc.vmsg = "!Preenche o nome, o IBAN e o preço."; return render(); }
-    const btn = f.querySelector("#pm-e-save"); if (btn){ btn.disabled = true; btn.textContent = "A guardar…"; }
-    const pm = pmList().map(m => m.id === id ? { id, name, iban, kz, promo, desc } : m);
-    const apply = () => { S.soc.pm = pm; store.set("pm", pm); S.soc.pmEdit = null; S.soc.vmsg = "Forma de pagamento atualizada."; render(); };
-    if (API_URL){
-      api("admin/vip-settings", { pm }).then(r => { if (r.ok) return apply(); S.soc.vmsg = "!" + (r.error || "Não foi possível guardar no servidor, mas foi aplicada aqui."); apply(); });
-    } else apply();
-  }
 };
 document.addEventListener("click", e => { const el = e.target.closest("[data-s]"); if (el && ACT[el.dataset.s]){ e.preventDefault(); ACT[el.dataset.s](el.dataset, el, e); } });
 document.addEventListener("submit", e => { const f = e.target.closest("[data-sf]"); if (f && FORM[f.dataset.sf]){ e.preventDefault(); FORM[f.dataset.sf](f); } });
@@ -1787,13 +1545,10 @@ document.addEventListener("input", e => {
 async function refreshAdmin(){
   if (!API_URL) return; const me = cur(); if (!isAdm(me)) return;
   const r = await api("admin/list"); if (!r.ok) return;
-  DBc.users = r.users; DBc.allow = r.allow || []; DBc.tadmins = r.tadmins || [];
-  if (isAdm(me)){ const rr = await api("admin/receipts"); S.soc.receipts = rr.ok ? (rr.receipts || []) : []; }
+  DBc.users = r.users; DBc.allow = r.allow || [];
   if (S.view !== "admin") return;
-  const el = $("adstat"), ls = $("adlist"), tl = $("adtl"), rc = $("reclist"); if (el) el.innerHTML = statHtml(me);
+  const el = $("adstat"), ls = $("adlist"); if (el) el.innerHTML = statHtml(me);
   if (ls && !S.soc.banFor) ls.innerHTML = adminRows(me);
-  if (tl) tl.innerHTML = tadmRows(me);
-  if (rc) rc.innerHTML = receiptsHtml();
 }
 // sessão no servidor: conta apagada ou banida perde o acesso em poucos segundos
 async function checkSession(){
@@ -1806,16 +1561,6 @@ async function checkSession(){
   render();
 }
 if (API_URL){ setInterval(checkSession, 4000); setInterval(() => { if (isAdm(cur()) && S.view === "admin" && document.visibilityState === "visible") refreshAdmin(); }, 4000); checkSession(); }
-// preço, IBAN e promoção do VIP: vêm do servidor para todos verem o que o administrador editou em "Pagar VIP"
-async function loadVipSettings(){
-  if (!API_URL) return;
-  const r = await api("vip/settings");
-  if (r && r.ok && Array.isArray(r.pm) && r.pm.length){
-    S.soc.pm = r.pm; store.set("pm", r.pm);
-    if (["vip", "svip", "payvip"].includes(S.view)) render();
-  }
-}
-if (API_URL){ loadVipSettings(); setInterval(loadVipSettings, 60000); }
 // atualização periódica: banimentos aplicam-se em tempo real
 setInterval(() => { reloadDB(); if (!cur() && S.soc.was) render(); }, 3000);
 window.addEventListener("storage", e => { if (e.key === DBK || e.key === SESK){ reloadDB(); if (!cur()){ if (S.soc.was) render(); } else if (!S.soc.was) render(); } });
