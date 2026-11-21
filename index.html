@@ -834,7 +834,8 @@ function pagarVipBody(u){
     ${s.vmsg ? `<div class="msg ${s.vmsg[0] === "!" ? "" : "ok"}" role="status">${esc(s.vmsg.replace(/^!/, ""))}</div>` : ""}
     <p class="note" style="text-align:center;margin:6px 0 14px">Paga por transferência e envia o comprovativo. O VIP ativa-se sozinho assim que for aprovado.</p>
     ${!u ? `<p class="note" style="text-align:center">Inicia sessão para enviares o comprovativo.</p>`
-      : pend ? `<div class="msg ok" role="status">O teu comprovativo está em análise. Assim que for aprovado o VIP ativa-se sozinho — não precisas de fazer mais nada.</div>`
+      : pend ? `<div class="msg ok" role="status">O teu comprovativo está em análise. Assim que for aprovado o VIP ativa-se sozinho — não precisas de fazer mais nada.</div>
+         <button type="button" class="btn alt" style="width:100%;margin-top:10px" data-s="recopen">Enviar novamente</button>`
       : `${rej ? `<div class="msg" role="status">!${esc(typeof u.receiptRejected === "string" ? u.receiptRejected : "O comprovativo anterior não foi aceite.")}</div>` : ""}
          <button type="button" class="btn" style="width:100%" data-s="recopen">Enviar comprovativo</button>`}
     ${addForm}`;
