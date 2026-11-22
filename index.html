@@ -261,7 +261,7 @@ const store = {
 let S = { hday: "all", view: "home", compId: null, raw: [], rawHist: [], fixtures: [], history: [], hidden: new Set(store.get("hiddenHist", [])), leagues: [], lastSync: null, lastFinal: null, msg: null, loading: true, tab: "all", comp: "", day: "",
   tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
   theme: store.get("theme", "auto"), drawer: false, search: false, q: "",
-  na: { home: "", away: "", league: "" }, favs: store.get("favSearch", []), ext: null, pesqQ: "", pesqPct: null };
+  na: { home: "", away: "", league: "" }, favs: store.get("favSearch", []), ext: null, pesqQ: "", pesqPct: null, pesqMarket: "win", pesqDay: "" };
 
 /* MODEL:BEGIN (gerado a partir de model.ts) */
 const MODEL = (() => {
@@ -748,18 +748,63 @@ function vipTabs(sup){
   const b = (v, l) => `<button type="button" class="vtb" data-s="vtab" data-v="${v}" aria-pressed="${t === v}">${l}</button>`;
   return `<div class="vtabs">${b("vip", sup ? "S.V" : "VIP")}${sup ? b("comb", "Combin") : ""}${sup ? b("pesq", "Pesq") : ""}${b("res", "Resultados")}</div>`;
 }
+const PESQ_MARKETS = [
+  { v: "win", l: "Vitória" },
+  { v: "btts", l: "Ambas as equipas marcam" },
+  { v: "over15", l: "Mais de 1,5 golos" },
+  { v: "over25", l: "Mais de 2,5 golos" },
+];
+function pesqPick(f, market, min){
+  if (market === "win") return vipPick(f, min);
+  const an = f.analysis, r = an && !an.generic ? an.result : null; if (!r) return null;
+  const key = market === "btts" ? "yes" : market === "over15" ? "over_1_5" : market === "over25" ? "over_2_5" : null;
+  const p = market === "btts" ? r.btts?.yes : r.totals?.[key];
+  if (!Number.isFinite(p)) return null;
+  const pct = Math.round(p * 100); if (pct < Math.round(min * 100)) return null;
+  return { pct };
+}
+function pesqOk(f, market, min){ // null = ainda não há resultado para avaliar
+  const fin = finalOf(f); if (!fin) return null;
+  if (market === "win"){ const p = pesqPick(f, market, min); if (!p) return null; return p.side === "h" ? fin.h > fin.a : fin.a > fin.h; }
+  if (market === "btts") return fin.h > 0 && fin.a > 0;
+  if (market === "over15") return (fin.h + fin.a) >= 2;
+  if (market === "over25") return (fin.h + fin.a) >= 3;
+  return null;
+}
+function pesqGrouped(list, hist, market, min){
+  let h = "", lc = "", ld = "";
+  for (const f of list){
+    if (hist){ const d = dayKey(f.kickoff_utc); if (d !== ld){ h += `<h2 class="day">${esc(fmtDay(f.kickoff_utc))}</h2>`; ld = d; lc = ""; } }
+    const c = f.competitions?.name ?? "Outros";
+    if (c !== lc){ h += `<div class="cn">${esc(c)}${f.competitions?.country ? " · " + esc(f.competitions.country) : ""}</div>`; lc = c; }
+    const p = pesqPick(f, market, min); if (!p) continue;
+    const label = market === "win" ? `${p.team} vitória` : (PESQ_MARKETS.find(m => m.v === market) || {}).l || "";
+    const ok = hist ? pesqOk(f, market, min) : null;
+    const mark = ok === null ? "" : (ok ? ` <span style="color:var(--ok)">✓</span>` : ` <span style="color:var(--bad)">✗</span>`);
+    h += matchCard(f).replace(/<div class="meta"><span>(<span class="st[^>]*>[^<]*<\/span>)<\/span>/, (m, badge) => `<div class="meta"><span style="font-weight:700;color:var(--ink)">${isLive(f.status) ? badge + " " : ""}${esc(label)}: ${p.pct}%${mark}</span>`);
+  }
+  return h;
+}
 function pesqBody(){
+  const marketOpts = PESQ_MARKETS.map(m => `<option value="${m.v}" ${(S.pesqMarket || "win") === m.v ? "selected" : ""}>${esc(m.l)}</option>`).join("");
   const form = `<form class="card" data-sf="pesq" novalidate><b>Pesquisar por percentagem</b>
-    <p class="note" style="margin:4px 0 8px">Mostra os jogos (por acontecer e já terminados) cuja análise atinge, no mínimo, a percentagem escolhida.</p>
-    <div class="sbar"><input id="pq-pct" name="pct" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="Percentagem mínima (ex.: 75)" autocomplete="off" value="${S.pesqPct != null ? esc(String(S.pesqPct)) : ""}" aria-label="Percentagem mínima"><button class="lupa" type="submit" style="background:none;border:0;padding:0;cursor:pointer" aria-label="Pesquisar">${ICON.search}</button></div></form>`;
-  if (S.pesqPct == null) return form + `<div class="empty">Escreve uma percentagem e toca na lupa para pesquisar.</div>`;
-  const min = S.pesqPct / 100;
-  const all = [...S.fixtures, ...S.history].filter(f => !["PST", "CANC"].includes(f.status) && vipPick(f, min));
-  const upcomingL = all.filter(f => !isDone(f.status)).sort((a, b) => a.kickoff_utc.localeCompare(b.kickoff_utc));
-  const doneL = all.filter(f => isDone(f.status)).sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc));
-  const list = [...upcomingL, ...doneL];
-  const res = `<div class="stat" style="grid-template-columns:repeat(1,1fr)"><div><b>${list.length}</b>jogo${list.length === 1 ? "" : "s"} com ${S.pesqPct}% ou mais</div></div>`;
-  return form + res + (list.length ? vipGrouped(list, true, min) : `<div class="empty">Nenhuma análise encontrada com ${S.pesqPct}% ou mais.</div>`);
+    <p class="note" style="margin:4px 0 8px">Escolhe o tipo de análise e a percentagem mínima para encontrar jogos.</p>
+    <label class="fl" for="pq-mkt">Tipo de análise</label><select id="pq-mkt" name="mkt">${marketOpts}</select>
+    <label class="fl" for="pq-pct" style="margin-top:8px">Percentagem mínima</label>
+    <div class="sbar"><input id="pq-pct" name="pct" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="Ex.: 70" autocomplete="off" value="${S.pesqPct != null ? esc(String(S.pesqPct)) : ""}" aria-label="Percentagem mínima"><button class="lupa" type="submit" style="background:none;border:0;padding:0;cursor:pointer" aria-label="Pesquisar">${ICON.search}</button></div></form>`;
+  if (S.pesqPct == null) return form + `<div class="empty">Escolhe o tipo de análise, escreve uma percentagem e toca na lupa para pesquisar.</div>`;
+  const min = S.pesqPct / 100, market = S.pesqMarket || "win";
+  const label = (PESQ_MARKETS.find(m => m.v === market) || {}).l || "";
+  const today = dayKey(new Date().toISOString());
+  const upAll = S.fixtures.filter(f => !["PST", "CANC"].includes(f.status) && !isDone(f.status) && (isLive(f.status) || dayKey(f.kickoff_utc) >= today) && pesqPick(f, market, min));
+  const days = dayList().slice(0, 14);
+  if (!days.some(d => d.key === S.pesqDay)) S.pesqDay = days[0].key;
+  const count = new Map(); upAll.forEach(f => { const k = dayKey(f.kickoff_utc); count.set(k, (count.get(k) || 0) + 1); });
+  const strip = days.map(d => `<button class="dy" data-pqday="${esc(d.key)}" aria-pressed="${S.pesqDay === d.key}"><span>${esc(d.wd)}</span><b>${esc(d.dn)}</b><em class="mo">${esc(d.mo)}</em><i class="${count.get(d.key) ? "has" : ""}"></i></button>`).join("");
+  const upList = upAll.filter(f => (isLive(f.status) && dayKey(f.kickoff_utc) < today ? today : dayKey(f.kickoff_utc)) === S.pesqDay).sort((a, b) => (a.competitions?.name ?? "").localeCompare(b.competitions?.name ?? "") || a.kickoff_utc.localeCompare(b.kickoff_utc));
+  const upSection = `<div class="stripw"><div class="strip" id="pqstrip">${strip}</div></div>` +
+    (upList.length ? pesqGrouped(upList, false, market, min) : `<div class="empty">Sem jogos por acontecer com ${S.pesqPct}% ou mais (${esc(label)}) neste dia.</div>`);
+  return form + upSection;
 }
 function vipView(kind){
   const sup = kind === "svip", pk = f => vipPick(f, sup ? SUP_MIN : VIP_MIN), tabs = () => vipTabs(sup), grp = (l, h) => vipGrouped(l, h, sup ? SUP_MIN : VIP_MIN);
@@ -1111,7 +1156,7 @@ function sections(r, nm){
     const tp = topI(items);
     return [one(items[tp][0], items[tp][1], items[tp][2], true)];
   };
-  const le4 = side => { const l = side === "h" ? r.lambda.home : r.lambda.away; let p = 0; for (let k = 0; k <= 4; k++) p += poi(k, l); return [one("4-", p, f => f[side] <= 4, true)]; };
+  const le4 = side => { const l = side === "h" ? r.lambda.home : r.lambda.away; let p = 0; for (let k = 0; k <= 4; k++) p += poi(k, l); return [one("-4", p, f => f[side] <= 4, true)]; };
   out.push({ title: "Golos da equipa da casa", pct: true, groups: [loseSide === "h" ? le4("h") : bucketTop(r.teamGoals.home, "h")] });
   out.push({ title: "Golos da equipa visitante", pct: true, groups: [loseSide === "a" ? le4("a") : bucketTop(r.teamGoals.away, "a")] });
   // quem marcou primeiro só é certo se uma das equipas não marcou
@@ -1529,6 +1574,7 @@ const FORM = {
     t.banUntil = Date.now() + ms; saveDB(); S.soc.banFor = null; render();
   },
   pesq: f => {
+    S.pesqMarket = f.elements.mkt.value;
     const n = Math.round(+f.elements.pct.value || 0);
     if (n < 1 || n > 100){ S.pesqPct = null; return render(); }
     S.pesqPct = n; render();
@@ -1580,7 +1626,7 @@ function go(view, compId){
 }
 window.addEventListener("popstate", e => { const s = e.state || { v: "home", c: null }; S.view = s.v; S.compId = s.c; S.drawer = false; S.search = false; S.lg = false; $("ov").innerHTML = ""; startBusy(); render(); window.scrollTo && window.scrollTo(0, 0); });
 document.addEventListener("click", e => {
-  const el = e.target.closest("[data-nav],[data-comp],[data-tab],[data-day],[data-vday],[data-hday],[data-an],[data-del],[data-favtoggle],[data-favgame],[data-favdel],[data-favopen],[data-act]"); if (!el) return;
+  const el = e.target.closest("[data-nav],[data-comp],[data-tab],[data-day],[data-vday],[data-hday],[data-pqday],[data-an],[data-del],[data-favtoggle],[data-favgame],[data-favdel],[data-favopen],[data-act]"); if (!el) return;
   const d = el.dataset;
   if (d.act === "close"){ if (e.target !== el && el.classList.contains("ov") && e.target.closest(".drawer")) return; S.drawer = false; S.search = false; S.lg = false; $("ov").innerHTML = ""; return; }
   if (d.act === "leagues"){ S.lg = true; S.drawer = false; S.search = false; leaguesHtml(); return; }
@@ -1622,6 +1668,7 @@ document.addEventListener("click", e => {
   if (d.act === "toggle"){ setTheme(isDark() ? "light" : "dark"); return; }
   if (d.hday){ const st = $("hstrip"), sc = st ? st.scrollLeft : 0; S.hday = d.hday; render(); const n = $("hstrip"); if (n) n.scrollLeft = sc; return; }
   if (d.vday){ const st = $("vstrip"), sc = st ? st.scrollLeft : 0; S.vday = d.vday; render(); const n = $("vstrip"); if (n) n.scrollLeft = sc; return; }
+  if (d.pqday){ const st = $("pqstrip"), sc = st ? st.scrollLeft : 0; S.pesqDay = d.pqday; render(); const n = $("pqstrip"); if (n) n.scrollLeft = sc; return; }
   if (d.day){ const st = $("strip"), sc = st ? st.scrollLeft : 0; S.day = d.day; render(); const n = $("strip"); if (n) n.scrollLeft = sc; return; }
   if (d.nav) return go(d.nav);
   if (d.comp) return go("comp", d.comp);
