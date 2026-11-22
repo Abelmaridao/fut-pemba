@@ -556,7 +556,7 @@ function matchCard(f, mode){
   const score = has ? `${f.home_goals} - ${f.away_goals}` : (done ? "– –" : "vs");
   const top = f.time_confirmed ? `${dayKey(f.kickoff_utc)} ${fmtHour(f.kickoff_utc)}` : `${dayKey(f.kickoff_utc)} · hora por confirmar`;
   let action;
-  const gated = S.view !== "vip" && S.view !== "svip" && mode !== "hist" && !!vipPick(f); // jogo do VIP fora das áreas VIP: mesma % da área VIP, mas continua bloqueado; no histórico aparece sempre como um jogo normal
+  const gated = S.view !== "vip" && mode !== "hist" && !!vipPick(f); // jogo do VIP fora da área VIP: mesma % da área VIP, mas continua bloqueado; no histórico aparece sempre como um jogo normal
   const gp = gated ? vipPick(f) : null;
   if (gated) action = `<button class="btn" style="background:#b8860b;color:#fff" data-an="${esc(f.id)}">VIP</button>`;
   else if (done) action = `<button class="btn" data-an="${esc(f.id)}">Ver estatísticas</button>`;
@@ -701,7 +701,7 @@ function favView(){
   return `<h1 class="ttl">Favoritos</h1><p class="sub">Jogos que guardaste com a estrela ☆ ou analisaste na lupa.</p>` +
     (list.length ? list.map(favCard).join("") : `<div class="empty">Ainda não tens favoritos. Toca na estrela ☆ de qualquer jogo para o guardar aqui.</div>`);
 }
-const VIP_MIN = 0.5, SUP_MIN = 0.6, SUP_ROWS = 70; // VIP: vitória 50%+; Super VIP: vitória 60%+ e só mostra linhas de 70%+
+const VIP_MIN = 0.55; // VIP: vitória 55%+
 const AVISOS = ["ESSAS ANÁLISES SÃO APENAS ESTIMATIVAS NÃO GARANTIAS DE VITÓRIA, CADA JOGO É UM JOGO.",
   "APOSTE APENAS O QUE PODES PERDER E COM RESPONSABILIDADES.",
   "NÃO USE TODAS AS PROBABILIDADES USE A QUE ACHARES MELHOR.",
@@ -743,10 +743,10 @@ function vipDays(u){
   const ax = access(u); if (u.admin || !ax.exp) return 7;
   return Math.max(1, Math.min(7, Math.ceil((ax.exp - Date.now()) / DAYMS))); // até 7 dias; vai diminuindo com os dias que restam
 }
-function vipTabs(sup){
-  const t = sup ? (S.vtab === "res" ? "res" : S.vtab === "comb" ? "comb" : S.vtab === "pesq" ? "pesq" : "vip") : (S.vtab === "res" ? "res" : "vip");
+function vipTabs(){
+  const t = S.vtab === "res" ? "res" : S.vtab === "comb" ? "comb" : S.vtab === "pesq" ? "pesq" : "vip";
   const b = (v, l) => `<button type="button" class="vtb" data-s="vtab" data-v="${v}" aria-pressed="${t === v}">${l}</button>`;
-  return `<div class="vtabs">${b("vip", sup ? "S.V" : "VIP")}${sup ? b("comb", "Combin") : ""}${sup ? b("pesq", "Pesq") : ""}${b("res", "Resultados")}</div>`;
+  return `<div class="vtabs">${b("vip", "VIP")}${b("comb", "Combin")}${b("pesq", "Pesq")}${b("res", "Resultados")}</div>`;
 }
 const PESQ_MARKETS = [
   { v: "win", l: "Vitória" },
@@ -791,7 +791,7 @@ function pesqBody(){
     <p class="note" style="margin:4px 0 8px">Escolhe o tipo de análise e a percentagem mínima para encontrar jogos.</p>
     <label class="fl" for="pq-mkt">Tipo de análise</label><select id="pq-mkt" name="mkt">${marketOpts}</select>
     <label class="fl" for="pq-pct" style="margin-top:8px">Percentagem mínima</label>
-    <div class="sbar"><input id="pq-pct" name="pct" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="Ex.: 70" autocomplete="off" value="${S.pesqPct != null ? esc(String(S.pesqPct)) : ""}" aria-label="Percentagem mínima"><button class="lupa" type="submit" style="background:none;border:0;padding:0;cursor:pointer" aria-label="Pesquisar">${ICON.search}</button></div></form>`;
+    <div style="display:flex;gap:8px;align-items:stretch;margin:8px 0"><input id="pq-pct" name="pct" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="Ex.: 70" autocomplete="off" value="${S.pesqPct != null ? esc(String(S.pesqPct)) : ""}" aria-label="Percentagem mínima" style="flex:1"><button class="btn" type="submit" style="width:52px;flex:0 0 auto;display:grid;place-items:center;padding:0" aria-label="Pesquisar">${ICON.search}</button></div></form>`;
   if (S.pesqPct == null) return form + `<div class="empty">Escolhe o tipo de análise, escreve uma percentagem e toca na lupa para pesquisar.</div>`;
   const min = S.pesqPct / 100, market = S.pesqMarket || "win";
   const label = (PESQ_MARKETS.find(m => m.v === market) || {}).l || "";
@@ -802,19 +802,16 @@ function pesqBody(){
   const count = new Map(); upAll.forEach(f => { const k = dayKey(f.kickoff_utc); count.set(k, (count.get(k) || 0) + 1); });
   const strip = days.map(d => `<button class="dy" data-pqday="${esc(d.key)}" aria-pressed="${S.pesqDay === d.key}"><span>${esc(d.wd)}</span><b>${esc(d.dn)}</b><em class="mo">${esc(d.mo)}</em><i class="${count.get(d.key) ? "has" : ""}"></i></button>`).join("");
   const upList = upAll.filter(f => (isLive(f.status) && dayKey(f.kickoff_utc) < today ? today : dayKey(f.kickoff_utc)) === S.pesqDay).sort((a, b) => (a.competitions?.name ?? "").localeCompare(b.competitions?.name ?? "") || a.kickoff_utc.localeCompare(b.kickoff_utc));
-  const doneAll = S.history.filter(f => pesqPick(f, market, min)).sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc));
   const upSection = `<div class="stripw"><div class="strip" id="pqstrip">${strip}</div></div>` +
     (upList.length ? pesqGrouped(upList, false, market, min) : `<div class="empty">Sem jogos por acontecer com ${S.pesqPct}% ou mais (${esc(label)}) neste dia.</div>`);
-  const histSection = `<h2 class="day" style="margin-top:18px">Histórico</h2>` +
-    (doneAll.length ? pesqGrouped(doneAll, true, market, min) : `<div class="empty">Sem jogos terminados com ${S.pesqPct}% ou mais (${esc(label)}).</div>`);
-  return form + upSection + histSection;
+  return form + upSection;
 }
-function vipView(kind){
-  const sup = kind === "svip", pk = f => vipPick(f, sup ? SUP_MIN : VIP_MIN), tabs = () => vipTabs(sup), grp = (l, h) => vipGrouped(l, h, sup ? SUP_MIN : VIP_MIN);
-  const u = cur(); if (kind === "svip" && !isAdm(u)){ S.view = "home"; return homeView(); }
+function vipView(){
+  const pk = f => vipPick(f, VIP_MIN), tabs = () => vipTabs(), grp = (l, h) => vipGrouped(l, h, VIP_MIN);
+  const u = cur();
   if (!u || !canVip(u)) return `<div class="empty" style="font-weight:800;color:var(--ink);font-size:18px">NÃO TENS ACESSO AO VIP</div><p class="note" style="text-align:center;margin-top:10px">Fala com o administrador para teres acesso.</p>`;
-  if (sup && S.vtab === "comb") return tabs() + combBody();
-  if (sup && S.vtab === "pesq") return tabs() + pesqBody();
+  if (S.vtab === "comb") return tabs() + combBody();
+  if (S.vtab === "pesq") return tabs() + pesqBody();
   if (S.vtab === "res"){
     const won = f => { const fin = finalOf(f), p = pk(f); return fin ? (p.side === "h" ? fin.h > fin.a : fin.a > fin.h) : null; };
     const fin = S.history.filter(f => pk(f) && won(f) !== null); // análises VIP já terminadas (todos os 7 dias, sem depender do dia de criação da conta)
@@ -834,7 +831,7 @@ function vipView(kind){
   const strip = days.map(d => `<button class="dy" data-vday="${esc(d.key)}" aria-pressed="${S.vday === d.key}"><span>${esc(d.wd)}</span><b>${esc(d.dn)}</b><em class="mo">${esc(d.mo)}</em><i class="${count.get(d.key) ? "has" : ""}"></i></button>`).join("");
   const list = all.filter(f => (isLive(f.status) && dayKey(f.kickoff_utc) < today ? today : dayKey(f.kickoff_utc)) === S.vday).sort((a, b) => (a.competitions?.name ?? "").localeCompare(b.competitions?.name ?? "") || a.kickoff_utc.localeCompare(b.kickoff_utc));
   return tabs() + `<div class="stripw"><div class="strip" id="vstrip">${strip}</div></div>${msgHtml()}` +
-    (list.length ? grp(list) : `<div class="empty">Sem jogos para o ${sup ? "Super VIP" : "VIP"}</div>`);
+    (list.length ? grp(list) : `<div class="empty">Sem jogos para o VIP</div>`);
 }
 function vipGrouped(list, hist, min = VIP_MIN){
   let h = "", lc = "", ld = "";
@@ -927,7 +924,7 @@ function combBody(){
   const head = list.length ? `<div class="card" style="text-align:center;font-weight:800">Ficha do dia · ${list.length} ${list.length === 1 ? "jogo" : "jogos"} · ${list.length * 2} análises</div>` : "";
   return tabs + `<div class="stripw"><div class="strip">${strip}</div></div>` + msgHtml() + head + (list.length ? cbGrouped(list, false) : `<div class="empty">Nenhum jogo cumpre as duas regras neste dia.</div>`);
 }
-function view(){ return ({ vip: () => vipView("vip"), svip: () => vipView("svip"), aviso: avisoView, home: homeView, comp: compView, tips: tipsView, cal: calView, fav: favView, hist: histView,
+function view(){ return ({ vip: () => vipView(), aviso: avisoView, home: homeView, comp: compView, tips: tipsView, cal: calView, fav: favView, hist: histView,
   admin: adminView })[S.view](); }
 function pruneFavs(){
   const keep = S.favs.filter(f => f.gid || Date.parse(f.kickoff_utc) >= Date.now() - 86400e3); // favoritos de jogos do app ficam até os removeres
@@ -971,7 +968,7 @@ function drawerHtml(){
   if (!S.drawer){ if (!S.search && !S.lg) $("ov").innerHTML = ""; return; }
   const dark = isDark(), u = cur(), B = "width:100%;font-size:18px;padding:14px;margin-bottom:8px";
   const top = u ? `<div class="mrow">${avatar(u, 44)}<b>${esc(u.name)}</b></div>
-    ${isAdm(u) ? `<button class="btn" style="${B};background:#d32f2f;color:#fff" data-s="admin">Painel</button>` : ""}<button class="btn" style="${B};background:#ffd600;color:#1b1500" data-s="vip">VIP</button>${isAdm(u) ? `<button class="btn" style="${B};background:linear-gradient(135deg,#f7dc7e,#d4af37 50%,#a67c00);color:#2a1d00" data-s="svip">Super VIP</button>` : ""}` : "";
+    ${isAdm(u) ? `<button class="btn" style="${B};background:#d32f2f;color:#fff" data-s="admin">Painel</button>` : ""}<button class="btn" style="${B};background:#ffd600;color:#1b1500" data-s="vip">VIP</button>` : "";
   $("ov").innerHTML = `<div class="ov" data-act="close"><div class="drawer" role="dialog" aria-label="Menu">${top}
     <button class="btn" style="${B};${dark ? "background:#fff;color:#000;border:1px solid #999" : "background:#000;color:#fff;border:1px solid #777"}" data-act="toggle" aria-pressed="${dark}">${dark ? "☀️ Modo claro" : "🌙 Modo escuro"}</button>
     <button class="btn" style="${B};background:#1fa463" data-s="wa">WhatsApp</button>
@@ -1247,7 +1244,7 @@ async function openAnalysis(id){
     const fb0 = isDone(f.status) ? "" : `<button type="button" class="btn alt" style="width:100%;margin:10px 0" data-favgame="${esc(f.id)}">${favG(f.id) ? "★ Remover dos favoritos" : "☆ Adicionar aos favoritos"}</button>`;
     const fb = fb0; // botão "Partilhar como imagem" removido
     const sc = dlg.scrollTop;
-    dlg.innerHTML = analysisHtml(f.analysis || genericAn(f), f, fb, { min: S.view === "vip" ? 50 : S.view === "svip" ? SUP_ROWS : 0 }); dlg.dataset.gid = id; dlg.dataset.sig = JSON.stringify(f.analysis || 0).length + ":" + f.status; showRecent(f);
+    dlg.innerHTML = analysisHtml(f.analysis || genericAn(f), f, fb, { min: S.view === "vip" ? 50 : 0 }); dlg.dataset.gid = id; dlg.dataset.sig = JSON.stringify(f.analysis || 0).length + ":" + f.status; showRecent(f);
     if (sc) dlg.scrollTop = sc;
   };
   const f0 = find();
@@ -1498,7 +1495,6 @@ const ACT = {
   admin: () => { if (!isAdm(cur())) return; go("admin"); refreshAdmin(); },
   tipq: d => askAssistant(d.q),
   vip: () => { reloadDB(); if (cur()){ S.vtab = "vip"; go("vip"); } },
-  svip: () => { reloadDB(); if (isAdm(cur())){ S.vtab = "vip"; go("svip"); } },
   ctab: d => { S.ctab = d.v; render(); },
   cday: d => { S.cday = d.k; render(); },
   cwday: d => { S.cwday = d.k; render(); },
@@ -1714,7 +1710,7 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 window.addEventListener("online", load);
 // transições automáticas: começa -> Ao vivo, termina -> Histórico (sem precisar de atualizar a página)
 const stateSig = () => { reclassify(); return dayKey(new Date().toISOString()) + "|" + S.fixtures.map(f => f.id + f.status + f.home_goals + f.away_goals + "").join(",") + "|" + S.history.length; };
-const AUTO_VIEWS = ["home", "comp", "cal", "fav", "hist", "vip", "svip", "comb"];
+const AUTO_VIEWS = ["home", "comp", "cal", "fav", "hist", "vip", "comb"];
 let lastSig = "";
 const checkState = () => { if (!cur()) return; const g = stateSig(); const first = lastSig === ""; if (g !== lastSig){ lastSig = g; if (!first && AUTO_VIEWS.includes(S.view)) render(); } };
 setInterval(checkState, 15000);
