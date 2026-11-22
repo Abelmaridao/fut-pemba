@@ -2,7 +2,7 @@ name: Criar aplicativo Android
 on:
   workflow_dispatch:
   push:
-    paths: ["package.json", "capacitor.config.json", "error.html", ".github/workflows/android.yml", "assets/**", "*.png", "*.jpg", "*.jpeg", "*.webp"]
+    paths: ["index.html", "package.json", "capacitor.config.json", ".github/workflows/android.yml", "icon.png", "assets/**", "*.png", "*.jpg", "*.jpeg", "*.webp"]
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -17,7 +17,7 @@ jobs:
         run: |
           mkdir -p www
           cp index.html www/index.html
-          cp error.html www/error.html
+          [ -f fixtures.json ] && cp fixtures.json www/fixtures.json || true
       - run: npm install
       - run: npx cap add android
       - run: npx cap sync android
@@ -42,14 +42,15 @@ jobs:
             # também por cima dos nomes antigos
             for name in ic_launcher ic_launcher_round ic_launcher_foreground; do cp $RES/mipmap-$n/eb_launcher.png $RES/mipmap-$n/$name.png; done
           done
-          rm -rf $RES/mipmap-anydpi-v26 $RES/mipmap-anydpi $RES/drawable-v24/ic_launcher_foreground.xml
+          # remove os recursos de ícone adaptável (mascarado/cortado); fica só o bitmap completo acima, sem corte
+          rm -rf $RES/mipmap-anydpi-v26 $RES/mipmap-anydpi $RES/drawable-v24/ic_launcher_foreground.xml $RES/drawable/ic_launcher_background.xml $RES/values/ic_launcher_background.xml
           MAN=android/app/src/main/AndroidManifest.xml
           sed -i 's#android:icon="[^"]*"#android:icon="@mipmap/eb_launcher"#; s#android:roundIcon="[^"]*"#android:roundIcon="@mipmap/eb_launcher"#' $MAN
           grep -q 'android:icon="@mipmap/eb_launcher"' $MAN || { echo "ERRO: não consegui apontar o AndroidManifest ao novo ícone."; exit 1; }
           grep -n 'android:icon\|android:roundIcon' $MAN
           ls -la $RES/mipmap-xxxhdpi/
           cp $RES/mipmap-xxxhdpi/eb_launcher.png icone-usado.png
-          echo "Ícones criados e ligados ao AndroidManifest."
+          echo "Ícones criados e ligados ao AndroidManifest (ícone completo, sem corte do ícone adaptável)."
       - name: Construir o APK
         run: cd android && chmod +x gradlew && ./gradlew assembleDebug
       - name: Confirmar o ícone dentro do APK
