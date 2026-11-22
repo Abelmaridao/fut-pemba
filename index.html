@@ -802,9 +802,12 @@ function pesqBody(){
   const count = new Map(); upAll.forEach(f => { const k = dayKey(f.kickoff_utc); count.set(k, (count.get(k) || 0) + 1); });
   const strip = days.map(d => `<button class="dy" data-pqday="${esc(d.key)}" aria-pressed="${S.pesqDay === d.key}"><span>${esc(d.wd)}</span><b>${esc(d.dn)}</b><em class="mo">${esc(d.mo)}</em><i class="${count.get(d.key) ? "has" : ""}"></i></button>`).join("");
   const upList = upAll.filter(f => (isLive(f.status) && dayKey(f.kickoff_utc) < today ? today : dayKey(f.kickoff_utc)) === S.pesqDay).sort((a, b) => (a.competitions?.name ?? "").localeCompare(b.competitions?.name ?? "") || a.kickoff_utc.localeCompare(b.kickoff_utc));
+  const doneAll = S.history.filter(f => pesqPick(f, market, min)).sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc));
   const upSection = `<div class="stripw"><div class="strip" id="pqstrip">${strip}</div></div>` +
     (upList.length ? pesqGrouped(upList, false, market, min) : `<div class="empty">Sem jogos por acontecer com ${S.pesqPct}% ou mais (${esc(label)}) neste dia.</div>`);
-  return form + upSection;
+  const histSection = `<h2 class="day" style="margin-top:18px">Histórico</h2>` +
+    (doneAll.length ? pesqGrouped(doneAll, true, market, min) : `<div class="empty">Sem jogos terminados com ${S.pesqPct}% ou mais (${esc(label)}).</div>`);
+  return form + upSection + histSection;
 }
 function vipView(kind){
   const sup = kind === "svip", pk = f => vipPick(f, sup ? SUP_MIN : VIP_MIN), tabs = () => vipTabs(sup), grp = (l, h) => vipGrouped(l, h, sup ? SUP_MIN : VIP_MIN);
