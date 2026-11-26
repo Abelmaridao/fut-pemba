@@ -556,14 +556,13 @@ function matchCard(f, mode){
   const score = has ? `${f.home_goals} - ${f.away_goals}` : (done ? "– –" : "vs");
   const top = f.time_confirmed ? `${dayKey(f.kickoff_utc)} ${fmtHour(f.kickoff_utc)}` : `${dayKey(f.kickoff_utc)} · hora por confirmar`;
   let action;
-  const gated = S.view !== "vip" && mode !== "hist" && !!vipPick(f); // jogo do VIP fora da área VIP: mesma % da área VIP, mas continua bloqueado; no histórico aparece sempre como um jogo normal
-  const gp = gated ? vipPick(f) : null;
+  const gated = S.view !== "vip" && mode !== "hist" && !!vipPick(f); // jogo do VIP fora da área VIP: continua bloqueado e NÃO revela a equipa nem a percentagem; no histórico aparece sempre como um jogo normal
   if (gated) action = `<button class="btn" style="background:#b8860b;color:#fff" data-an="${esc(f.id)}">VIP</button>`;
   else if (done) action = `<button class="btn" data-an="${esc(f.id)}">Ver estatísticas</button>`;
   else action = `<button class="btn amber" data-an="${esc(f.id)}" ${["NS","TBD"].includes(f.status) || isLive(f.status) ? "" : "disabled"}>Analisar com IA</button>`;
-  // mesma regra de percentagem da área VIP: quando o jogo é bloqueado fora do VIP, mostra "<equipa> vitória: NN%" em vez do estado
   const statusBadge = `<span><span class="st ${isLive(f.status) ? "live" : ""}">${esc(STATUS[f.status] ?? f.status)}</span></span>`;
-  const metaLead = gp ? `<span style="font-weight:700;color:var(--ink)">${isLive(f.status) ? `<span class="st live">${esc(STATUS[f.status] ?? f.status)}</span> ` : ""}${esc(gp.team)} vitória: ${gp.pct}%</span>` : statusBadge;
+  // jogo bloqueado fora do VIP: não mostra a equipa nem a percentagem, só avisa que há uma análise VIP
+  const metaLead = gated ? `<span style="font-weight:700;color:#b8860b">${isLive(f.status) ? `<span class="st live">${esc(STATUS[f.status] ?? f.status)}</span> ` : ""}🔒 Análise disponível no VIP</span>` : statusBadge;
   let mk = ""; // histórico normal: ✓ ou ✗ por baixo do placar (a escolha do modelo no "Resultado final" acertou?) — vale também para jogos do VIP
   if (mode === "hist" && has && f.analysis){
     try { const fin = finalOf(f), sec = sections(f.analysis.result, { h: f.home_team, a: f.away_team })[0], ok = sec && fin ? groupHit(sec.groups[0], fin) : null;
@@ -804,7 +803,11 @@ function pesqBody(){
   const upList = upAll.filter(f => (isLive(f.status) && dayKey(f.kickoff_utc) < today ? today : dayKey(f.kickoff_utc)) === S.pesqDay).sort((a, b) => (a.competitions?.name ?? "").localeCompare(b.competitions?.name ?? "") || a.kickoff_utc.localeCompare(b.kickoff_utc));
   const upSection = `<div class="stripw"><div class="strip" id="pqstrip">${strip}</div></div>` +
     (upList.length ? pesqGrouped(upList, false, market, min) : `<div class="empty">Sem jogos por acontecer com ${S.pesqPct}% ou mais (${esc(label)}) neste dia.</div>`);
-  return form + upSection;
+  const since = Date.now() - 7 * DAYMS;
+  const histAll = S.history.filter(f => new Date(f.kickoff_utc).getTime() >= since && pesqPick(f, market, min)).sort((a, b) => b.kickoff_utc.localeCompare(a.kickoff_utc));
+  const histSection = `<h2 class="day" style="display:block;text-align:center;border-bottom:0;margin-top:22px">Histórico de 7 dias</h2>` +
+    (histAll.length ? pesqGrouped(histAll, true, market, min) : `<div class="empty">Sem análises com ${S.pesqPct}% ou mais (${esc(label)}) nos últimos 7 dias.</div>`);
+  return form + upSection + histSection;
 }
 function vipView(){
   const pk = f => vipPick(f, VIP_MIN), tabs = () => vipTabs(), grp = (l, h) => vipGrouped(l, h, VIP_MIN);
@@ -969,8 +972,11 @@ function drawerHtml(){
   const dark = isDark(), u = cur(), B = "width:100%;font-size:18px;padding:14px;margin-bottom:8px";
   const top = u ? `<div class="mrow">${avatar(u, 44)}<b>${esc(u.name)}</b></div>
     ${isAdm(u) ? `<button class="btn" style="${B};background:#d32f2f;color:#fff" data-s="admin">Painel</button>` : ""}<button class="btn" style="${B};background:#ffd600;color:#1b1500" data-s="vip">VIP</button>` : "";
+  const updLabel = S.upd === "busy" ? "A atualizar…" : S.upd === "new" ? "Há uma versão nova — toca para atualizar" : S.upd === "off" ? "Sem ligação à internet" : S.upd === "ok" ? "Aplicativo atualizado — verificar" : "Verificar atualização";
+  const updBg = S.upd === "new" ? "#e65100" : S.upd === "off" ? "#777" : "#1565c0";
   $("ov").innerHTML = `<div class="ov" data-act="close"><div class="drawer" role="dialog" aria-label="Menu">${top}
     <button class="btn" style="${B};${dark ? "background:#fff;color:#000;border:1px solid #999" : "background:#000;color:#fff;border:1px solid #777"}" data-act="toggle" aria-pressed="${dark}">${dark ? "☀️ Modo claro" : "🌙 Modo escuro"}</button>
+    <button class="btn" style="${B};background:${updBg};color:#fff" data-s="upd" ${S.upd === "busy" ? "disabled" : ""}>${updLabel}</button>
     <button class="btn" style="${B};background:#1fa463" data-s="wa">WhatsApp</button>
     ${u ? `<button class="btn alt" style="width:100%;margin-top:8px" data-s="logout">Terminar sessão</button>` : ""}</div></div>`;
 }
@@ -1294,6 +1300,7 @@ const tm = t => { const iso = new Date(t).toISOString(); return dayKey(iso) === 
 const userById = id => DBc.users.find(x => x.id === id);
 const WHATSAPP_URL = "https://chat.whatsapp.com/C8DfJGozZr90IlVDU8H1Kt?s=cl&p=a&mlu=4&ilr=4"; // link do grupo de WhatsApp (ex.: "https://chat.whatsapp.com/xxxxxxxx")
 const DAYMS = 86400e3;
+const VIP_UNLIM = Date.UTC(2200, 0, 1); // marca de "VIP ilimitado" (data muito distante, nunca expira na prática)
 const dword = n => n === 1 ? "dia" : "dias";
 const vHid = new Set(); store.set("hiddenVip", []); // jogos do VIP já não se apagam: os que tinham sido removidos voltam aos seus dias
 const saveVHid = () => {};
@@ -1476,9 +1483,9 @@ function adminRows(me){
   if (!list.length) return `<p class="note">Nenhum utilizador encontrado.</p>`;
   const dt = t => fmtFull(new Date(t).toISOString());
   return list.map(u => {
-    const a = al.find(x => x.email === u.email), on = !!(a && a.exp > now), b = u.banUntil > now, self = u.id === me.id, E = esc(u.email);
-    const vip = u.admin ? "VIP sempre" : on ? "VIP até " + dt(a.exp) : a ? "VIP terminou" : "sem VIP";
-    const vipBtns = `<select class="vsel" style="width:auto;padding:6px" aria-label="Dias de VIP">${vdayOpts(7)}</select><button class="mbtn" data-s="renew" data-e="${E}" data-on="${on ? 1 : 0}">${on ? "Adicionar dias" : "Dar VIP"}</button>`;
+    const a = al.find(x => x.email === u.email), on = !!(a && a.exp > now), unlim = !!(a && a.exp >= VIP_UNLIM), b = u.banUntil > now, self = u.id === me.id, E = esc(u.email);
+    const vip = u.admin ? "VIP sempre" : unlim ? "VIP ilimitado" : on ? "VIP até " + dt(a.exp) : a ? "VIP terminou" : "sem VIP";
+    const vipBtns = unlim ? "" : `<select class="vsel" style="width:auto;padding:6px" aria-label="Dias de VIP">${vdayOpts(7)}</select><button class="mbtn" data-s="renew" data-e="${E}" data-on="${on ? 1 : 0}">${on ? "Adicionar dias" : "Dar VIP"}</button><button class="mbtn" data-s="unlim" data-e="${E}">VIP ilimitado</button>`;
     const main = `${b ? `<button class="mbtn" data-s="unban" data-id="${u.id}">Remover ban</button>` : `<button class="mbtn" data-s="banopen" data-id="${u.id}">Banir</button>`}<button class="mbtn" style="background:var(--bad)" data-s="deluser" data-id="${u.id}">Excluir conta</button>`;
     return `<div class="urow"><b>${esc(u.name)}</b>${u.admin ? `<span class="tag">ADMIN</span>` : ""}<br><small style="color:var(--mute)">${E} · ${b ? "Banido até " + esc(tm(u.banUntil)) : "Ativo"} · ${esc(vip)}</small>
       ${self ? "" : `<div class="row">${vipBtns}${a ? `<button class="mbtn" data-s="rmallow" data-e="${E}">Remover VIP</button>` : ""}${main}</div>`}</div>`;
@@ -1500,7 +1507,7 @@ const ACT = {
   cwday: d => { S.cwday = d.k; render(); },
   vtab: d => { S.vtab = d.v; render(); },
   vwday: d => { S.vwday = d.k; render(); },
-  upd: () => { if (S.upd === "busy") return; if (S.upd === "ok"){ checkUpdate().then(() => { if (S.upd === "new") doUpdate(); }); return; } doUpdate(); },
+  upd: () => { if (S.upd === "busy") return; if (S.upd === "new") { doUpdate(); return; } checkUpdate(true).then(() => { if (S.upd === "new") doUpdate(); }); },
   wa: () => { if (WHATSAPP_URL) window.open(WHATSAPP_URL, "_blank", "noopener"); else if (window.alert) window.alert("O link do grupo ainda não foi configurado."); },
   vdel: d => { if (window.confirm && !window.confirm("Remover este jogo do histórico VIP para sempre?")) return; vHid.add(d.id); saveVHid(); render(); },
   vclear: () => {
@@ -1509,6 +1516,7 @@ const ACT = {
     S.history.forEach(f => { const p = vipPick(f), fin = finalOf(f); if (!p || !fin) return; const w = p.side === "h" ? fin.h > fin.a : fin.a > fin.h; if (w === win) vHid.add(f.id); }); saveVHid(); render();
   },
   renew: (d, el) => { if (!adminOnly()) return; const sel = el.parentNode.querySelector("select"), n = +(sel && sel.value); if (!VDAYS.includes(n)) return; allowSave(d.e, { days: n }, d.on === "1" ? `Adicionados ${n} ${dword(n)} ao VIP de ${d.e}.` : `VIP de ${d.e} definido para ${n} ${dword(n)}.`); },
+  unlim: d => { if (!adminOnly()) return; if (window.confirm && !window.confirm(`Dar VIP ilimitado a ${d.e}?`)) return; allowSave(d.e, { unlim: true }, `VIP ilimitado dado a ${d.e}.`); },
   rmallow: d => {
     const me = adminOnly(); if (!me) return;
     if (API_URL){ api("admin/unallow", { email: d.e }).then(r => { S.soc.amsg = r.ok ? "VIP removido." : "!" + (r.error || "Erro."); refreshAdmin(); render(); }); return; }
@@ -1541,7 +1549,7 @@ function allowSave(email, o, okMsg){
   if (!t) return msg("!Este e-mail ainda não tem conta.");
   if (t.admin) return msg("!Esta conta é do administrador principal.");
   let a = allowOf(email); if (!a){ a = { email, exp: 0, by: "", created: now }; DBc.allow.push(a); }
-  a.exp = Math.max(a.exp || 0, now) + o.days * DAYMS; a.by = "";
+  a.exp = o.unlim ? VIP_UNLIM : Math.max(a.exp || 0, now) + o.days * DAYMS; a.by = ""; // ilimitado: substitui logo pela marca "sem fim"; normal: soma por cima dos dias que já restam
   saveDB(); msg(okMsg || "Guardado.");
 }
 function vipAll(days){ // só o principal; só quem ainda não tem VIP
@@ -1687,14 +1695,16 @@ document.addEventListener("change", e => {
 
 // ---- actualização do aplicativo: compara o index.html que está aberto com a versão mais recente no GitHub ----
 S.upd = "x"; // "ok" = actualizado · "new" = há versão nova · "x" = ainda não confirmado · "busy" · "off"
-async function checkUpdate(){
+async function checkUpdate(manual){ // manual = true: o botão "Verificar atualização" foi tocado, mostra "A atualizar…" enquanto verifica
   const before = S.upd;
+  if (manual){ S.upd = "busy"; if (S.drawer) drawerHtml(); }
   try {
     const u = location.origin + location.pathname;
     const [a, b] = await Promise.all([fetch(u, { cache: "force-cache" }).then(r => r.text()), fetch(u + "?_=" + Date.now(), { cache: "no-store" }).then(r => { if (!r.ok) throw 0; return r.text(); })]);
     S.upd = a === b ? "ok" : "new";
-  } catch (e) { if (S.upd !== "busy") S.upd = "x"; }
-  if (S.upd !== before){ if (S.drawer) drawerHtml(); render(); }
+  } catch (e) { S.upd = manual ? "off" : (S.upd !== "busy" ? "x" : S.upd); }
+  if (S.upd !== before || manual){ if (S.drawer) drawerHtml(); render(); }
+  if (manual && S.upd === "off") setTimeout(() => { if (S.upd === "off"){ S.upd = "x"; if (S.drawer) drawerHtml(); render(); } }, 2500);
 }
 async function doUpdate(){
   if (navigator.onLine === false){ S.upd = "off"; drawerHtml(); setTimeout(() => { if (S.upd === "off"){ S.upd = "x"; drawerHtml(); } }, 2500); return; }
