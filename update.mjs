@@ -65,9 +65,22 @@ export function buildData({ prev, results, now = new Date(), windowDays = WINDOW
 
   // Forma de uma equipa só com jogos ANTERIORES a k (para reconstruir análises sem "ver o resultado")
   const lastBefore = (id, k) => (form.get(id) ?? []).filter((x) => x.d < k).sort((a, b) => b.d - a.d).slice(0, FORM_N).map(({ gf, ga }) => ({ gf, ga }));
+
+  // Confrontos diretos: só informativo (ver model.ts), construído a partir dos mesmos jogos já obtidos, sem pedidos extra à API
+  const H2H_N = 6, pairKey = (x, y) => [x, y].sort().join("_");
+  const h2h = new Map(); // pairKey -> [{ d, homeId, gf, ga }] (gf/ga do ponto de vista de homeId nesse jogo)
+  for (const r of results) if (r.ok) for (const f of r.fixtures) {
+    if (!FINAL.has(f.status) || f.home_goals == null || f.away_goals == null) continue;
+    const d = Date.parse(f.kickoff_utc), key = pairKey(f.home_team_id, f.away_team_id);
+    (h2h.get(key) ?? h2h.set(key, []).get(key)).push({ d, homeId: f.home_team_id, gf: f.home_goals, ga: f.away_goals });
+  }
+  const h2hBefore = (homeId, awayId, k) => (h2h.get(pairKey(homeId, awayId)) ?? [])
+    .filter((x) => x.d < k).sort((a, b) => b.d - a.d).slice(0, H2H_N)
+    .map(({ homeId: hid, gf, ga }) => (hid === homeId ? { gf, ga } : { gf: ga, ga: gf })); // reorienta para o ponto de vista da equipa que é casa agora
+
   const retro = (f) => {
     const k = Date.parse(f.kickoff_utc);
-    const res = analyze({ home: lastBefore(f.home_team_id, k), away: lastBefore(f.away_team_id, k) });
+    const res = analyze({ home: lastBefore(f.home_team_id, k), away: lastBefore(f.away_team_id, k), h2h: h2hBefore(f.home_team_id, f.away_team_id, k) });
     return res.ok
       ? { analysis: { model_version: MODEL_VERSION, created_at: now.toISOString(), retro: true, result: round4(res) }, analysis_note: null }
       : { analysis: null, analysis_note: res.reason };
@@ -87,7 +100,7 @@ export function buildData({ prev, results, now = new Date(), windowDays = WINDOW
     }
     let analysis = null, analysis_note = null;
     if (["NS", "TBD"].includes(f.status)) {
-      const res = analyze({ home: last(f.home_team_id), away: last(f.away_team_id) });
+      const res = analyze({ home: last(f.home_team_id), away: last(f.away_team_id), h2h: h2hBefore(f.home_team_id, f.away_team_id, t) });
       if (res.ok) analysis = { model_version: MODEL_VERSION, created_at: now.toISOString(), result: round4(res) };
       else analysis_note = res.reason;
     } else if (old?.analysis) {

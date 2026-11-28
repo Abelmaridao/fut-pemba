@@ -1,7 +1,7 @@
 // Modelo estatístico "poisson-v2": puro, sem dependências, testável.
 export const MODEL_VERSION = "poisson-v2";
 export type Match = { gf: number; ga: number };
-export type Input = { home: Match[]; away: Match[] };
+export type Input = { home: Match[]; away: Match[]; h2h?: Match[] }; // h2h: confrontos diretos, do ponto de vista da equipa da casa (gf = golos da casa, ga = golos da equipa visitante nesse jogo)
 const MIN_MATCHES = 5;      // sem isto não se apresenta previsão quantitativa
 const SHRINK_K = 5;         // jogos "virtuais" da média da amostra (reduz extremos)
 const HOME_ADV = 1.1;       // fator casa: λ_casa × 1.1, λ_fora ÷ 1.1
@@ -42,6 +42,8 @@ export type Analysis =
     reach: { ge3: number; ge4: number; ge5: number; ge6: number };
     min10: { home: number; draw: number; away: number };
     quality: { homeMatches: number; awayMatches: number; level: "baixa" | "razoavel" | "boa" };
+    // confrontos diretos: só informativo, NÃO entra no cálculo das probabilidades acima (amostra pequena demais para ser fiável)
+    h2h: { games: number; homeWins: number; draws: number; awayWins: number; homeGoals: number; awayGoals: number } | null;
   };
 
 export function analyze(inp: Input): Analysis {
@@ -86,6 +88,14 @@ export function analyze(inp: Input): Analysis {
   const ge = (n: number) => { let p = 0; g.forEach((r, i) => r.forEach((q, j) => { if (i + j >= n) p += q; })); return p; };
   const nm = Math.min(H.length, A.length);
 
+  // confrontos diretos: resumo simples dos jogos anteriores entre estas duas equipas (quando existem); não altera lambda nem nenhuma probabilidade acima
+  const h2hList = (inp.h2h ?? []).filter(valid);
+  const h2h = h2hList.length ? h2hList.reduce((s, m) => {
+    s.games++; s.homeGoals += m.gf; s.awayGoals += m.ga;
+    if (m.gf > m.ga) s.homeWins++; else if (m.gf < m.ga) s.awayWins++; else s.draws++;
+    return s;
+  }, { games: 0, homeWins: 0, draws: 0, awayWins: 0, homeGoals: 0, awayGoals: 0 }) : null;
+
   return {
     ok: true, model: MODEL_VERSION, lambda: { home: lh, away: la },
     result: result1x2(g), totals, btts: { yes, no: 1 - yes },
@@ -98,5 +108,6 @@ export function analyze(inp: Input): Analysis {
     min10: result1x2(grid(lh * MIN10_SHARE, la * MIN10_SHARE)),
     firstToScore: { home: (1 - none) * lh / (lh + la), away: (1 - none) * la / (lh + la), none },
     quality: { homeMatches: H.length, awayMatches: A.length, level: nm >= 10 ? "boa" : nm >= 7 ? "razoavel" : "baixa" },
+    h2h,
   };
   }

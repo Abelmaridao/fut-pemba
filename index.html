@@ -1243,8 +1243,11 @@ function analysisHtml(an, f, extra = "", opts = {}){
   cand.sort((a, b) => b.x.p - a.x.p);
   const topHtml = cand.slice(0, 5).map(c => row(c.x, c.n, c.sec, true)).join("");
   const legend = fin ? `<p class="note"><span class="dot g"></span> certo · <span class="dot r"></span> errado · <span class="dot n"></span> sem dados para avaliar (por exemplo, quem marca primeiro quando as duas equipas marcam). Resultado final: ${fin.h} - ${fin.a}.</p>` : "";
+  // confrontos diretos: só informativo, não entra em nenhuma percentagem nem análise (amostra pequena demais para ser fiável sozinha)
+  const h2 = r.h2h;
+  const h2hHtml = h2 && h2.games ? `<div class="sec">Confrontos diretos</div><div class="rp nv"><span>Últimos ${h2.games} jogo${h2.games === 1 ? "" : "s"} entre as duas equipas</span><strong class="v">${esc(f.home_team)} ${h2.homeWins} · Empates ${h2.draws} · ${esc(f.away_team)} ${h2.awayWins}</strong></div><p class="note" style="margin:2px 0 0">Golos nesses jogos: ${esc(f.home_team)} ${h2.homeGoals} - ${h2.awayGoals} ${esc(f.away_team)}. Isto é só informativo, não altera as percentagens acima.</p>` : "";
   return `<div class="dtop"><form method="dialog"><button class="dbk" aria-label="Fechar">✕</button></form></div>${kickHeader(f, fin)}${legend}
-    <p class="warn">ESSAS ANÁLISES SÃO APENAS ESTIMATIVAS NÃO GARANTIAS DE VITÓRIA, CADA JOGO É UM JOGO.</p>${body}
+    <p class="warn">ESSAS ANÁLISES SÃO APENAS ESTIMATIVAS NÃO GARANTIAS DE VITÓRIA, CADA JOGO É UM JOGO.</p>${body}${h2hHtml}
     ${topHtml ? `<div class="sec">As 5 análises mais prováveis deste jogo</div>${topHtml}` : ""}
     ${extra}
     <form method="dialog"><button class="btn">Fechar</button></form>`;
