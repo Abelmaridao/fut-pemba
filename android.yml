@@ -2,7 +2,7 @@ name: Criar aplicativo Android
 on:
   workflow_dispatch:
   push:
-    paths: ["index.html", "package.json", "capacitor.config.json", ".github/workflows/android.yml", "icon.png", "assets/**", "*.png", "*.jpg", "*.jpeg", "*.webp"]
+    paths: ["index.html", "package.json", "capacitor.config.json", ".github/workflows/android.yml"]
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -23,16 +23,14 @@ jobs:
       - run: npx cap sync android
       - name: Aplicar o ícone
         run: |
-          echo "Imagens encontradas no repositório:"
-          find . -maxdepth 2 -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \) -not -path './node_modules/*' -not -path './android/*' -not -path './www/*'
-          SRC=""
-          for f in assets/icon.png assets/icon.jpg assets/icon.jpeg assets/icon.webp icon.png icon.jpg icon.jpeg logo.png logo.jpg; do [ -f "$f" ] && SRC="$f" && break; done
-          [ -z "$SRC" ] && SRC=$(find . -maxdepth 2 -type f \( -iname '*icon*' -o -iname '*ícon*' -o -iname '*logo*' \) \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \) -not -path './node_modules/*' -not -path './android/*' -not -path './www/*' | head -1)
-          [ -z "$SRC" ] && SRC=$(ls assets/*.png assets/*.jpg assets/*.jpeg assets/*.webp 2>/dev/null | head -1)
-          [ -z "$SRC" ] && SRC=$(ls ./*.png ./*.jpg ./*.jpeg ./*.webp 2>/dev/null | head -1)
-          if [ -z "$SRC" ]; then echo "ERRO: não encontrei nenhuma imagem de ícone. Põe a imagem com o nome icon.png na pasta principal do repositório."; exit 1; fi
-          echo "Ícone usado: $SRC"
-          identify "$SRC" || { echo "ERRO: a imagem $SRC não abre. Exporta-a de novo como PNG."; exit 1; }
+          # o ícone (leão azul com coroa) vem de dentro do próprio index.html (<link rel="icon" href="data:image/png;base64,...">),
+          # para não depender de nenhum ficheiro de imagem à parte no repositório
+          SRC=icone-fonte.png
+          B64=$(grep -oP '(?<=<link rel="icon" href="data:image/png;base64,)[^"]+' index.html | head -1)
+          if [ -z "$B64" ]; then echo "ERRO: não encontrei o ícone embutido (data:image/png;base64,...) dentro do index.html."; exit 1; fi
+          echo "$B64" | base64 -d > "$SRC"
+          echo "Ícone extraído do index.html:"
+          identify "$SRC" || { echo "ERRO: o ícone embutido no index.html não abre como imagem."; exit 1; }
           IM=convert; command -v convert >/dev/null || IM="magick"
           RES=android/app/src/main/res
           # ícone com nome próprio (eb_launcher): nada do modelo do Capacitor o pode substituir
